@@ -1,104 +1,107 @@
 
-import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, MapPin, Info, Home } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Award, MapPin, Home, Compass, BookOpen, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from '@/lib/utils';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    
-    // Close menu when location changes
-    closeMenu();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [location]);
-
-  const navLinkClass = ({ isActive }: { isActive: boolean }) => {
-    return `flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-300 ${
-      isActive 
-        ? 'bg-primary/10 text-primary font-medium' 
-        : 'hover:bg-secondary'
-    }`;
-  };
-
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  
+  const links = [
+    { href: '/', label: 'Accueil', icon: Home },
+    { href: '/map', label: 'Carte', icon: MapPin },
+    { href: '/ranking', label: 'Classement', icon: Award },
+    { href: '/guide', label: 'Guide CBD', icon: BookOpen },
+  ];
+  
+  const isActive = (path: string) => location.pathname === path;
+  
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-      scrolled 
-        ? 'bg-background/80 backdrop-blur-md shadow-sm' 
-        : 'bg-background'
-    }`}>
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <NavLink to="/" className="flex items-center gap-2 font-semibold text-lg">
-          <span className="text-primary">CBD</span>
-          <span>Boutique Finder</span>
-        </NavLink>
-
+    <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center space-x-2">
+            <Compass className="h-6 w-6 text-primary" />
+            <span className="font-bold">CBD Boutique Finder</span>
+          </Link>
+        </div>
+        
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
-          <NavLink to="/" className={navLinkClass} end>
-            <Home size={18} />
-            <span>Accueil</span>
-          </NavLink>
-          <NavLink to="/map" className={navLinkClass}>
-            <MapPin size={18} />
-            <span>Carte</span>
-          </NavLink>
-          <NavLink to="/guide" className={navLinkClass}>
-            <Info size={18} />
-            <span>Guide CBD</span>
-          </NavLink>
+        <nav className="hidden md:flex items-center gap-6">
+          {links.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  "flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary",
+                  isActive(link.href) ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
-
-        {/* Mobile Menu Button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden" 
-          onClick={toggleMenu}
-          aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </Button>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className={`md:hidden transform transition-all duration-300 ease-in-out ${
-        isOpen 
-          ? 'max-h-screen opacity-100 visible' 
-          : 'max-h-0 opacity-0 invisible'
-      }`}>
-        <nav className="flex flex-col gap-2 p-4 bg-background/95 backdrop-blur-sm">
-          <NavLink to="/" className={navLinkClass} end onClick={closeMenu}>
-            <Home size={18} />
-            <span>Accueil</span>
-          </NavLink>
-          <NavLink to="/map" className={navLinkClass} onClick={closeMenu}>
-            <MapPin size={18} />
-            <span>Carte</span>
-          </NavLink>
-          <NavLink to="/guide" className={navLinkClass} onClick={closeMenu}>
-            <Info size={18} />
-            <span>Guide CBD</span>
-          </NavLink>
-        </nav>
+        
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/login">
+              <User className="h-4 w-4 mr-2" />
+              Connexion
+            </Link>
+          </Button>
+          
+          {/* Mobile Navigation */}
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button size="icon" variant="ghost" className="md:hidden">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <div className="px-2">
+                <div className="flex items-center justify-between mb-8">
+                  <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
+                    <Compass className="h-6 w-6 text-primary" />
+                    <span className="font-bold">CBD Boutique Finder</span>
+                  </Link>
+                  <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
+                    <X className="h-6 w-6" />
+                    <span className="sr-only">Close</span>
+                  </Button>
+                </div>
+                <nav className="flex flex-col gap-4">
+                  {links.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        className={cn(
+                          "flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-colors",
+                          isActive(link.href) 
+                            ? "bg-primary/10 text-primary" 
+                            : "hover:bg-secondary text-muted-foreground"
+                        )}
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );

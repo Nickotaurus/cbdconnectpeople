@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Star } from 'lucide-react';
+import { Search, MapPin, Star, Award } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import StoreCard from '@/components/StoreCard';
@@ -73,6 +73,21 @@ const Index = () => {
                 </Button>
               </div>
             </div>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+              <Button variant="outline" size="lg" asChild className="w-full sm:w-auto">
+                <Link to="/map">
+                  <MapPin className="mr-2 h-5 w-5" />
+                  Voir la carte
+                </Link>
+              </Button>
+              <Button size="lg" asChild className="w-full sm:w-auto">
+                <Link to="/ranking">
+                  <Award className="mr-2 h-5 w-5" />
+                  Voir le classement
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -82,12 +97,20 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Boutiques à proximité</h2>
-            <Button variant="outline" asChild>
-              <Link to="/map">
-                <MapPin className="mr-2 h-4 w-4" />
-                Voir la carte
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link to="/map">
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Voir la carte
+                </Link>
+              </Button>
+              <Button variant="default" asChild>
+                <Link to="/ranking">
+                  <Award className="mr-2 h-4 w-4" />
+                  Classement
+                </Link>
+              </Button>
+            </div>
           </div>
           
           {filteredStores.length > 0 ? (
@@ -165,13 +188,11 @@ const Index = () => {
             
             <div className="bg-background rounded-lg p-6 shadow-sm flex flex-col items-center text-center transition-transform hover:translate-y-[-5px]">
               <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <svg className="h-6 w-6 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 10.5L11 12.5L15.5 8M20.8 13.8007L15.7471 20.3691C15.4713 20.7244 15.0835 20.9897 14.641 21.1232C14.1986 21.2566 13.7235 21.2519 13.2839 21.1097L7.53151 19.0503C7.25406 18.9624 6.99406 18.8281 6.76039 18.6533L3.86039 16.6533C3.33233 16.2876 3.00015 15.7017 3.00015 15.0796V7.00031C3.00015 6.20496 3.47926 5.4922 4.20732 5.20064L8.20732 3.70064C8.67216 3.50579 9.18857 3.49921 9.65921 3.68304L20.241 8.23767C20.9755 8.56858 21.3178 9.40073 20.9868 10.1353C20.9032 10.3218 20.7823 10.4897 20.6309 10.6295L19.22 11.9288" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <Award className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Coupons exclusifs</h3>
+              <h3 className="text-lg font-semibold mb-2">Classement</h3>
               <p className="text-muted-foreground">
-                Bénéficiez de réductions exclusives dans toutes les boutiques partenaires
+                Découvrez les meilleures boutiques CBD de France classées par catégories
               </p>
             </div>
           </div>
