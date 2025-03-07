@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Flower, Oil, User, Lightbulb } from 'lucide-react';
+import { Star, Flower, Droplet, User, Lightbulb } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Store } from '@/utils/data';
@@ -36,7 +36,7 @@ const RatingBreakdown: React.FC<RatingBreakdownProps> = ({ store, activeSortBy }
     { 
       id: 'oils', 
       name: 'Huiles CBD', 
-      icon: Oil, 
+      icon: Droplet, 
       color: 'bg-amber-500' 
     },
     { 

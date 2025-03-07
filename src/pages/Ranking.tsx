@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   MapPin, Star, Filter, ArrowUpDown, 
   Award, Check, ChevronDown, ChevronsUpDown, 
-  Flower, Oil
+  Flower, Droplet
 } from 'lucide-react';
 import { 
   Select, SelectContent, SelectItem, 
