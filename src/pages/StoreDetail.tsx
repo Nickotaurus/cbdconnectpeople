@@ -3,15 +3,17 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Star, MapPin, Globe, Phone, Clock, Bookmark, 
-  Share2, Heart, Calendar 
+  Share2, Heart, Calendar, Settings 
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { 
   Tabs, TabsContent, TabsList, TabsTrigger 
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import CouponCard from '@/components/CouponCard';
 import ReviewSection from '@/components/ReviewSection';
+import AdBanner from '@/components/AdBanner';
 import { getStoreById } from '@/utils/data';
 import { toast } from '@/hooks/use-toast';
 
@@ -125,6 +127,16 @@ const StoreDetail = () => {
           >
             <Share2 className="h-5 w-5" />
           </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-background/80 backdrop-blur-sm"
+            asChild
+          >
+            <Link to={`/store/${store.id}/admin`}>
+              <Settings className="h-5 w-5" />
+            </Link>
+          </Button>
         </div>
       </div>
       
@@ -133,7 +145,14 @@ const StoreDetail = () => {
         <div className="bg-background rounded-lg shadow-lg p-6 animate-fade-up">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">{store.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold">{store.name}</h1>
+                {store.isPremium && (
+                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                    Premium
+                  </Badge>
+                )}
+              </div>
               
               <div className="flex items-center mt-2">
                 <div className="flex items-center">
@@ -165,6 +184,17 @@ const StoreDetail = () => {
           </div>
           
           <Separator className="my-6" />
+          
+          {/* Only show this ad banner for non-premium stores sometimes */}
+          {!store.isPremium && Math.random() > 0.5 && (
+            <AdBanner
+              title="Cette boutique pourrait être mise en avant"
+              description="Les boutiques premium apparaissent en haut des résultats de recherche et bénéficient d'une meilleure visibilité."
+              imageUrl="https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000"
+              storeName="CBD Bordeaux"
+              ctaText="Voir l'offre premium"
+            />
+          )}
           
           <Tabs defaultValue="info" onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 mb-6">
@@ -256,6 +286,7 @@ const StoreDetail = () => {
                   discount={store.coupon.discount} 
                   validUntil={store.coupon.validUntil}
                   storeName={store.name}
+                  isAffiliate={store.coupon.isAffiliate}
                 />
                 <p className="text-sm text-muted-foreground mt-4 text-center">
                   Présentez ce coupon en boutique ou utilisez le code lors de vos achats en ligne pour profiter de la réduction.

@@ -13,6 +13,7 @@ const Index = lazy(() => import("./pages/Index"));
 const MapView = lazy(() => import("./pages/MapView"));
 const StoreDetail = lazy(() => import("./pages/StoreDetail"));
 const CbdGuide = lazy(() => import("./pages/CbdGuide"));
+const StoreAdmin = lazy(() => import("./pages/StoreAdmin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/map" element={<MapView />} />
                 <Route path="/store/:id" element={<StoreDetail />} />
                 <Route path="/guide" element={<CbdGuide />} />
+                <Route path="/store/:id/admin" element={<StoreAdmin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

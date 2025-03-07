@@ -1,4 +1,3 @@
-
 export interface Store {
   id: string;
   name: string;
@@ -21,7 +20,11 @@ export interface Store {
     code: string;
     discount: string;
     validUntil: string;
+    usageCount?: number;
+    isAffiliate?: boolean;
   };
+  isPremium?: boolean;
+  premiumUntil?: string;
   reviews: {
     id: string;
     author: string;
@@ -36,6 +39,48 @@ export interface Store {
     quality: string;
   }[];
 }
+
+export const subscriptionPlans = [
+  {
+    id: "basic",
+    name: "Basique",
+    price: 0,
+    features: [
+      "Fiche boutique simple",
+      "Présence sur la carte",
+      "1 coupon de réduction",
+    ],
+    isPopular: false,
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    price: 29.99,
+    features: [
+      "Mise en avant prioritaire",
+      "Fiche boutique enrichie",
+      "Photos et vidéos illimitées",
+      "Statistiques de visite",
+      "Coupons illimités",
+      "Support prioritaire",
+    ],
+    isPopular: true,
+  },
+  {
+    id: "ultimate",
+    name: "Ultimate",
+    price: 49.99,
+    features: [
+      "Tous les avantages Premium",
+      "Bannière publicitaire",
+      "Badge \"Vérifié\"",
+      "Accès aux données du marché",
+      "Formations exclusives",
+      "Assistance 7j/7",
+    ],
+    isPopular: false,
+  },
+];
 
 export const stores: Store[] = [
   {
@@ -65,7 +110,11 @@ export const stores: Store[] = [
       code: "CBDMARAIS15",
       discount: "15% sur votre première commande",
       validUntil: "31/12/2024",
+      usageCount: 42,
+      isAffiliate: true,
     },
+    isPremium: true,
+    premiumUntil: "31/12/2024",
     reviews: [
       {
         id: "r1",
