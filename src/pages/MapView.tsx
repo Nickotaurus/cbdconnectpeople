@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronRight, Star, PlusCircle } from 'lucide-react';
+import { Search, Filter, ChevronRight, Star, PlusCircle, Download } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -83,6 +83,16 @@ const MapView = () => {
             <PlusCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Ajouter une boutique</span>
             <span className="sm:hidden">Ajouter</span>
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="gap-1"
+            onClick={() => navigate('/import-stores')}
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden md:inline">Importer</span>
           </Button>
           
           <Sheet>
