@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronRight, Star } from 'lucide-react';
+import { Search, Filter, ChevronRight, Star, PlusCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -27,7 +26,6 @@ const MapView = () => {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   
   useEffect(() => {
-    // Try to get the user's location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -37,7 +35,7 @@ const MapView = () => {
         },
         (error) => {
           console.log('Geolocation error:', error);
-          // Use default location (handled by filterUserLocation)
+          setUserLocation(filterUserLocation());
         }
       );
     }
@@ -75,6 +73,17 @@ const MapView = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
+          <Button 
+            variant="default" 
+            size="sm"
+            className="gap-1"
+            onClick={() => navigate('/add-store')}
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Ajouter une boutique</span>
+            <span className="sm:hidden">Ajouter</span>
+          </Button>
           
           <Sheet>
             <SheetTrigger asChild>
@@ -155,9 +164,7 @@ const MapView = () => {
         </div>
       </div>
       
-      {/* Map and Stores Section */}
       <div className="flex-1 flex flex-col md:flex-row">
-        {/* Map */}
         <div className="w-full md:w-3/5 h-1/2 md:h-full order-2 md:order-1 p-4">
           <Map 
             stores={filteredStores} 
@@ -166,7 +173,6 @@ const MapView = () => {
           />
         </div>
         
-        {/* Store List */}
         <div className="w-full md:w-2/5 h-1/2 md:h-full order-1 md:order-2 overflow-y-auto p-4 bg-secondary/50">
           <div className="mb-4">
             <h2 className="text-xl font-semibold">

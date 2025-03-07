@@ -82,7 +82,7 @@ export const subscriptionPlans = [
   },
 ];
 
-export const stores: Store[] = [
+let storesData: Store[] = [
   {
     id: "1",
     name: "CBD Paris Marais",
@@ -293,6 +293,60 @@ export const stores: Store[] = [
   },
 ];
 
+if (typeof window !== 'undefined') {
+  const savedStores = localStorage.getItem('cbd-stores');
+  if (savedStores) {
+    try {
+      storesData = JSON.parse(savedStores);
+    } catch (e) {
+      console.error('Error parsing stored stores:', e);
+    }
+  }
+}
+
+export const stores = storesData;
+
+export const addStore = (store: Omit<Store, 'id'>): Store => {
+  const newId = (Math.max(...stores.map(s => parseInt(s.id))) + 1).toString();
+  const newStore: Store = {
+    ...store,
+    id: newId
+  };
+  
+  storesData.push(newStore);
+  
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('cbd-stores', JSON.stringify(storesData));
+  }
+  
+  return newStore;
+};
+
+export const updateStore = (store: Store): Store => {
+  const index = storesData.findIndex(s => s.id === store.id);
+  if (index !== -1) {
+    storesData[index] = store;
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cbd-stores', JSON.stringify(storesData));
+    }
+    
+    return store;
+  }
+  throw new Error(`Store with id ${store.id} not found`);
+};
+
+export const deleteStore = (id: string): boolean => {
+  const initialLength = storesData.length;
+  storesData = storesData.filter(s => s.id !== id);
+  
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('cbd-stores', JSON.stringify(storesData));
+  }
+  
+  return storesData.length < initialLength;
+};
+
 export const guideContent = [
   {
     id: "1",
@@ -327,13 +381,10 @@ export const guideContent = [
 ];
 
 export const filterUserLocation = () => {
-  // In a real app, this would use the browser's geolocation API
-  // For now, we'll return Paris coordinates as default
   return { latitude: 48.8566, longitude: 2.3522 };
 };
 
 export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  // Approximate radius of earth in km
   const R = 6371;
   
   const dLat = deg2rad(lat2 - lat1);

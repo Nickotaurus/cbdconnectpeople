@@ -15,6 +15,7 @@ const StoreDetail = lazy(() => import("./pages/StoreDetail"));
 const CbdGuide = lazy(() => import("./pages/CbdGuide"));
 const Ranking = lazy(() => import("./pages/Ranking"));
 const StoreAdmin = lazy(() => import("./pages/StoreAdmin"));
+const AddStore = lazy(() => import("./pages/AddStore"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/guide" element={<CbdGuide />} />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/store/:id/admin" element={<StoreAdmin />} />
+                <Route path="/add-store" element={<AddStore />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
