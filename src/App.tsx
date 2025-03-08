@@ -24,6 +24,7 @@ const ProducerProfile = lazy(() => import("./pages/ProducerProfile"));
 const AddProducer = lazy(() => import("./pages/AddProducer"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const Forum = lazy(() => import("./pages/Forum"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/add-producer" element={<AddProducer />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forum" element={<Forum />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

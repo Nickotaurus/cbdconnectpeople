@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
 import ProducerDashboard from '@/components/ProducerDashboard';
+import { MessageSquare } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
@@ -57,6 +58,22 @@ const Index = () => {
           </Button>
           <Button size="lg" variant="outline" onClick={() => navigate('/guide')}>
             Guide du CBD
+          </Button>
+        </div>
+        
+        {/* Nouvelle section pour le forum */}
+        <div className="mb-16">
+          <div className="flex items-center justify-center mb-4 gap-2">
+            <MessageSquare className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Forum Communautaire</h2>
+          </div>
+          <p className="text-muted-foreground mb-6">
+            Rejoignez notre communauté active de passionnés de CBD. Posez vos questions,
+            partagez vos expériences et découvrez les dernières actualités.
+          </p>
+          <Button variant="outline" onClick={() => navigate('/forum')}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Accéder au forum
           </Button>
         </div>
         

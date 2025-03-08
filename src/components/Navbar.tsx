@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, Home, Compass, BookOpen, User, Leaf, LogOut } from 'lucide-react';
+import { Menu, X, Award, MapPin, Home, Compass, BookOpen, User, Leaf, LogOut, MessageSquare } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -35,6 +34,7 @@ const Navbar = () => {
     { href: '/map', label: 'Carte', icon: MapPin },
     { href: '/ranking', label: 'Classement', icon: Award },
     { href: '/guide', label: 'Guide CBD', icon: BookOpen },
+    { href: '/forum', label: 'Forum', icon: MessageSquare },
   ];
   
   // Liens supplémentaires selon le rôle
