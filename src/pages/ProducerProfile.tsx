@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Leaf, MapPin, Building, Globe, Phone, Mail, Award, Flower, MessageSquare } from 'lucide-react';
@@ -13,7 +12,6 @@ const ProducerProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Mock producer data - would come from API in real app
   const producer = {
     id: id,
     name: "Chanvre des Cévennes",
@@ -41,7 +39,6 @@ const ProducerProfile = () => {
     photos: ["https://images.unsplash.com/photo-1536152470836-b943b246224c"]
   };
   
-  // Define what cultivation type label to show based on type
   const cultivationLabels = {
     outdoor: "Culture en extérieur",
     indoor: "Culture en intérieur",
@@ -49,7 +46,6 @@ const ProducerProfile = () => {
     mixed: "Culture mixte"
   };
   
-  // Check if user is a store and is verified to enable contact
   const isVerifiedStore = user?.role === "store" && user.isVerified;
   
   const handleContactRequest = () => {
@@ -223,7 +219,7 @@ const ProducerProfile = () => {
                   <p className="text-muted-foreground mb-4">
                     Les coordonnées complètes sont réservées aux boutiques vérifiées.
                   </p>
-                  {!user || user.role !== "store" && (
+                  {(!user || user.role !== "store") && (
                     <Button variant="outline" className="w-full" onClick={() => navigate('/register')}>
                       S'inscrire en tant que boutique
                     </Button>
@@ -292,7 +288,7 @@ const ProducerProfile = () => {
                     : "Informations sur les produits réservées aux boutiques vérifiées"}
                 </p>
                 
-                {!user || user.role !== "store" && (
+                {(!user || user.role !== "store") && (
                   <Button 
                     variant="outline" 
                     className="mt-4"
