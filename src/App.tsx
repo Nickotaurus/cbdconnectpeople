@@ -19,6 +19,7 @@ const StoreAdmin = lazy(() => import("./pages/StoreAdmin"));
 const AddStore = lazy(() => import("./pages/AddStore"));
 const ImportStores = lazy(() => import("./pages/ImportStores"));
 const Producers = lazy(() => import("./pages/Producers"));
+const AddProducer = lazy(() => import("./pages/AddProducer"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -46,6 +47,7 @@ const App = () => (
                   <Route path="/add-store" element={<AddStore />} />
                   <Route path="/import-stores" element={<ImportStores />} />
                   <Route path="/producers" element={<Producers />} />
+                  <Route path="/add-producer" element={<AddProducer />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="*" element={<NotFound />} />
