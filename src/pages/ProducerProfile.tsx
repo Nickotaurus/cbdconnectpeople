@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Leaf, MapPin, Building, Globe, Phone, Mail, Award, Flower, MessageSquare } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { UserRole } from '@/types/auth';
 
 const ProducerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -219,7 +221,7 @@ const ProducerProfile = () => {
                   <p className="text-muted-foreground mb-4">
                     Les coordonnées complètes sont réservées aux boutiques vérifiées.
                   </p>
-                  {(!user || user.role !== "store") && (
+                  {(!user || (user.role as UserRole) !== "store") && (
                     <Button variant="outline" className="w-full" onClick={() => navigate('/register')}>
                       S'inscrire en tant que boutique
                     </Button>
@@ -288,7 +290,7 @@ const ProducerProfile = () => {
                     : "Informations sur les produits réservées aux boutiques vérifiées"}
                 </p>
                 
-                {(!user || user.role !== "store") && (
+                {(!user || (user.role as UserRole) !== "store") && (
                   <Button 
                     variant="outline" 
                     className="mt-4"
