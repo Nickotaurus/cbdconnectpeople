@@ -61,7 +61,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center space-x-2">
             <Compass className="h-6 w-6 text-primary" />
-            <span className="font-bold">CBD Boutique Finder</span>
+            <span className="font-bold">CBDConnectWorld</span>
           </Link>
         </div>
         
@@ -157,7 +157,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
                     <Compass className="h-6 w-6 text-primary" />
-                    <span className="font-bold">CBD Boutique Finder</span>
+                    <span className="font-bold">CBDConnectWorld</span>
                   </Link>
                   <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
                     <X className="h-6 w-6" />

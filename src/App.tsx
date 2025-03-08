@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 
 import Navbar from "./components/Navbar";
+import Chatbot from "./components/Chatbot";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -56,6 +57,7 @@ const App = () => (
                 </Routes>
               </Suspense>
             </main>
+            <Chatbot />
           </div>
         </BrowserRouter>
       </TooltipProvider>
