@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
 import ProducerDashboard from '@/components/ProducerDashboard';
-import { MessageSquare, Network, Users, Store, Leaf } from 'lucide-react';
+import { MessageSquare, Network, Users, Store, Leaf, Briefcase } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
@@ -35,6 +35,36 @@ const Index = () => {
             <ProducerDashboard />
           </div>
         );
+      case 'partner':
+        return (
+          <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-6">Espace Partenaire</h1>
+            <p className="text-muted-foreground mb-6">
+              Bienvenue dans votre espace partenaire. Depuis cet espace, vous pouvez gérer votre profil et accéder aux statistiques de visite.
+            </p>
+            {/* À implémenter dans une prochaine itération */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="border rounded-xl p-6 flex flex-col items-center">
+                <h3 className="text-xl font-medium mb-3">Profil Partenaire</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  Complétez votre profil pour augmenter votre visibilité
+                </p>
+                <Button onClick={() => navigate('/partner/profile')}>
+                  Gérer mon profil
+                </Button>
+              </div>
+              <div className="border rounded-xl p-6 flex flex-col items-center">
+                <h3 className="text-xl font-medium mb-3">Mes statistiques</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  Consultez les statistiques de visite de votre profil
+                </p>
+                <Button onClick={() => navigate('/partner/stats')}>
+                  Voir les statistiques
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
       default:
         break;
     }
@@ -52,14 +82,14 @@ const Index = () => {
             Connecter le monde du CBD
           </h1>
           <p className="text-xl text-muted-foreground">
-            La plateforme qui relie clients, boutiques et producteurs de CBD
+            La plateforme qui relie clients, boutiques, producteurs et partenaires de CBD
           </p>
         </div>
         
         <div className="mb-20">
           <h2 className="text-2xl font-semibold mb-6">Je suis...</h2>
           
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {/* Client Profile Selection */}
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -113,10 +143,28 @@ const Index = () => {
                 Espace Producteur
               </Button>
             </div>
+            
+            {/* Partner Profile Selection - NEW */}
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Briefcase className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-medium mb-3">Un Partenaire</h3>
+              <p className="text-sm text-muted-foreground mb-6 flex-grow">
+                Je propose des services spécialisés aux professionnels du CBD
+              </p>
+              <Button 
+                size="lg" 
+                className="w-full" 
+                onClick={() => navigate('/register?role=partner')}
+              >
+                Espace Partenaire
+              </Button>
+            </div>
           </div>
         </div>
         
-        {/* Nouvelle section pour le forum */}
+        {/* Forum section */}
         <div className="mb-16">
           <div className="flex items-center justify-center mb-4 gap-2">
             <MessageSquare className="h-6 w-6 text-primary" />

@@ -1,5 +1,5 @@
 
-export type UserRole = "client" | "store" | "producer";
+export type UserRole = "client" | "store" | "producer" | "partner";
 
 export interface User {
   id: string;
@@ -27,3 +27,30 @@ export interface ClientUser extends User {
   role: "client";
   favorites?: string[];
 }
+
+export interface PartnerUser extends User {
+  role: "partner";
+  partnerId?: string;
+  category?: PartnerCategory;
+  description?: string;
+  website?: string;
+  contactInfo?: {
+    email: string;
+    phone?: string;
+    address?: string;
+  };
+}
+
+export type PartnerCategory = 
+  | "bank"
+  | "accountant"
+  | "legal"
+  | "insurance"
+  | "logistics"
+  | "breeder"
+  | "label"
+  | "association"
+  | "media"
+  | "laboratory"
+  | "production"
+  | "realEstate";

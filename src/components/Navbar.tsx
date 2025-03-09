@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network } from 'lucide-react';
+import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network, Briefcase } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -29,13 +29,14 @@ const Navbar = () => {
     navigate('/');
   };
   
-  // Links communs à tous les utilisateurs
+  // Liens communs à tous les utilisateurs
   const commonLinks = [
     { href: '/', label: 'Accueil', icon: Home },
     { href: '/map', label: 'Carte', icon: MapPin },
     { href: '/ranking', label: 'Classement', icon: Award },
     { href: '/guide', label: 'Guide CBD', icon: MessageSquare },
     { href: '/forum', label: 'Forum', icon: MessageSquare },
+    { href: '/partners', label: 'Partenaires', icon: Briefcase },
   ];
   
   // Liens supplémentaires selon le rôle
@@ -109,7 +110,8 @@ const Navbar = () => {
                   <span>{user.name}</span>
                   <span className="text-xs text-muted-foreground">
                     {user.role === "client" ? "Client" : 
-                     user.role === "store" ? "Boutique" : "Producteur"}
+                     user.role === "store" ? "Boutique" : 
+                     user.role === "producer" ? "Producteur" : "Partenaire"}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -127,6 +129,12 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate('/producer-dashboard')}>
                     <Leaf className="h-4 w-4 mr-2" />
                     Mon exploitation
+                  </DropdownMenuItem>
+                )}
+                {user.role === "partner" && (
+                  <DropdownMenuItem onClick={() => navigate('/partner/profile')}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Mon espace partenaire
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

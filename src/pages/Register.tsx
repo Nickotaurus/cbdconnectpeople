@@ -1,17 +1,19 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/auth';
+import { UserRole, PartnerCategory } from '@/types/auth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register } = useAuth();
   const { toast } = useToast();
   
@@ -20,7 +22,17 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>('client');
+  const [partnerCategory, setPartnerCategory] = useState<PartnerCategory | ''>('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    // Extract role from URL if present
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role') as UserRole | null;
+    if (roleParam && ['client', 'store', 'producer', 'partner'].includes(roleParam)) {
+      setRole(roleParam);
+    }
+  }, [location]);
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +46,19 @@ const Register = () => {
       return;
     }
     
+    if (role === 'partner' && !partnerCategory) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une catégorie de partenaire",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
+      // Pour cette démo, nous allons simplement passer les informations supplémentaires
+      // Dans une vraie application, ces données seraient traitées côté serveur
       await register(email, password, name, role);
       toast({
         title: "Inscription réussie",
@@ -52,6 +75,21 @@ const Register = () => {
       setIsLoading(false);
     }
   };
+  
+  const partnerCategories = [
+    { value: "bank", label: "Banque" },
+    { value: "accountant", label: "Comptable" },
+    { value: "legal", label: "Juriste" },
+    { value: "insurance", label: "Assurance" },
+    { value: "logistics", label: "Logistique" },
+    { value: "breeder", label: "Breeder" },
+    { value: "label", label: "Label" },
+    { value: "association", label: "Association" },
+    { value: "media", label: "Média" },
+    { value: "laboratory", label: "Laboratoire" },
+    { value: "production", label: "Production" },
+    { value: "realEstate", label: "Agence immobilière" }
+  ];
   
   return (
     <div className="container max-w-md mx-auto py-8">
@@ -116,11 +154,12 @@ const Register = () => {
               
               <div className="grid gap-2">
                 <Label>Type de compte</Label>
-                <Tabs defaultValue="client" onValueChange={(value) => setRole(value as UserRole)}>
-                  <TabsList className="grid grid-cols-3">
+                <Tabs defaultValue={role} onValueChange={(value) => setRole(value as UserRole)}>
+                  <TabsList className="grid grid-cols-4">
                     <TabsTrigger value="client">Client</TabsTrigger>
                     <TabsTrigger value="store">Boutique</TabsTrigger>
                     <TabsTrigger value="producer">Producteur</TabsTrigger>
+                    <TabsTrigger value="partner">Partenaire</TabsTrigger>
                   </TabsList>
                   <TabsContent value="client" className="mt-2">
                     <p className="text-sm text-muted-foreground">
@@ -136,6 +175,32 @@ const Register = () => {
                     <p className="text-sm text-muted-foreground">
                       Présentez vos produits et connectez-vous directement avec les boutiques CBD en France.
                     </p>
+                  </TabsContent>
+                  <TabsContent value="partner" className="mt-2">
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Proposez vos services spécialisés aux professionnels du CBD et développez votre activité.
+                      </p>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="partnerCategory">Catégorie de partenaire</Label>
+                        <Select 
+                          value={partnerCategory} 
+                          onValueChange={(value) => setPartnerCategory(value as PartnerCategory)}
+                        >
+                          <SelectTrigger id="partnerCategory">
+                            <SelectValue placeholder="Sélectionnez votre activité" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {partnerCategories.map((category) => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
