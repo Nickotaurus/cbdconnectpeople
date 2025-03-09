@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, Home, Compass, BookOpen, User, Leaf, LogOut, MessageSquare } from 'lucide-react';
+import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -33,7 +34,7 @@ const Navbar = () => {
     { href: '/', label: 'Accueil', icon: Home },
     { href: '/map', label: 'Carte', icon: MapPin },
     { href: '/ranking', label: 'Classement', icon: Award },
-    { href: '/guide', label: 'Guide CBD', icon: BookOpen },
+    { href: '/guide', label: 'Guide CBD', icon: MessageSquare },
     { href: '/forum', label: 'Forum', icon: MessageSquare },
   ];
   
@@ -60,7 +61,7 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center space-x-2">
-            <Compass className="h-6 w-6 text-primary" />
+            <Network className="h-6 w-6 text-primary" />
             <span className="font-bold">CBDConnectWorld</span>
           </Link>
         </div>
@@ -118,7 +119,7 @@ const Navbar = () => {
                 </DropdownMenuItem>
                 {user.role === "store" && (
                   <DropdownMenuItem onClick={() => navigate('/store-dashboard')}>
-                    <Compass className="h-4 w-4 mr-2" />
+                    <Network className="h-4 w-4 mr-2" />
                     Ma boutique
                   </DropdownMenuItem>
                 )}
@@ -156,7 +157,7 @@ const Navbar = () => {
               <div className="px-2">
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
-                    <Compass className="h-6 w-6 text-primary" />
+                    <Network className="h-6 w-6 text-primary" />
                     <span className="font-bold">CBDConnectWorld</span>
                   </Link>
                   <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
