@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PartnerCategory } from '@/types/auth';
-import { Shield, Building, MapPin, Calculator, Flask, Tag, Package, Signpost } from 'lucide-react';
+import { Shield, Building, MapPin, Calculator, User, Tag, Package, Signpost } from 'lucide-react';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
 
 // Données simulées de partenaires
