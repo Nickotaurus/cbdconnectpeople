@@ -68,7 +68,7 @@ const partners = [
     category: 'realEstate', 
     description: 'Agence immobilière spécialisée dans les locaux commerciaux pour CBD',
     isPremium: false 
-  },
+  }
 ];
 
 const partnerCategories = [
