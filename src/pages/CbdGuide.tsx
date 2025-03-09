@@ -1,172 +1,289 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import AiRecommendations from '@/components/AiRecommendations';
+import { 
+  Leaf, 
+  Pill, 
+  BookOpen, 
+  Scale, 
+  History, 
+  HelpCircle, 
+  BrainCircuit 
+} from 'lucide-react';
 
 const CbdGuide = () => {
   const [activeTab, setActiveTab] = useState("what-is-cbd");
-
+  
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Guide du CBD</h1>
-        <p className="text-muted-foreground">
-          Tout ce que vous devez savoir sur le CBD, ses bienfaits et son utilisation
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">Guide complet du CBD</h1>
+        <p className="text-muted-foreground mb-6">
+          Découvrez tout ce que vous devez savoir sur le cannabidiol (CBD), ses bienfaits, son cadre légal et comment le consommer.
         </p>
+        
+        <div className="grid lg:grid-cols-[3fr_1fr] gap-6">
+          <div>
+            <Tabs 
+              defaultValue="what-is-cbd" 
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mb-8"
+            >
+              <TabsList className="w-full grid grid-cols-3 md:grid-cols-6 mb-6">
+                <TabsTrigger value="what-is-cbd" className="flex flex-col gap-1 h-auto py-2">
+                  <Leaf className="h-4 w-4" />
+                  <span className="text-xs">Qu'est-ce que le CBD</span>
+                </TabsTrigger>
+                <TabsTrigger value="benefits" className="flex flex-col gap-1 h-auto py-2">
+                  <Pill className="h-4 w-4" />
+                  <span className="text-xs">Bienfaits</span>
+                </TabsTrigger>
+                <TabsTrigger value="consumption" className="flex flex-col gap-1 h-auto py-2">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="text-xs">Consommation</span>
+                </TabsTrigger>
+                <TabsTrigger value="legality" className="flex flex-col gap-1 h-auto py-2">
+                  <Scale className="h-4 w-4" />
+                  <span className="text-xs">Légalité</span>
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex flex-col gap-1 h-auto py-2">
+                  <History className="h-4 w-4" />
+                  <span className="text-xs">Histoire</span>
+                </TabsTrigger>
+                <TabsTrigger value="faq" className="flex flex-col gap-1 h-auto py-2">
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="text-xs">FAQ</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <ScrollArea className="h-[60vh] rounded-md border p-6">
+                <TabsContent value="what-is-cbd" className="space-y-4">
+                  <h2 className="text-2xl font-semibold">Qu'est-ce que le CBD ?</h2>
+                  <p>
+                    Le cannabidiol (CBD) est l'un des principaux cannabinoïdes présents dans la plante de cannabis. Contrairement au tétrahydrocannabinol (THC), le CBD n'a pas d'effets psychoactifs et ne provoque pas de "high".
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4 my-6">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Le CBD dans la plante</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Le CBD est principalement présent dans les fleurs et les feuilles du cannabis. Il est extrait sous forme d'huile qui peut ensuite être transformée en divers produits.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Système endocannabinoïde</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Le CBD interagit avec le système endocannabinoïde du corps humain, qui joue un rôle dans la régulation de nombreux processus physiologiques.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <p>
+                    Le CBD peut être extrait de deux variétés de cannabis : le chanvre et la marijuana. Les produits CBD commercialisés légalement en France proviennent exclusivement du chanvre industriel contenant moins de 0,3% de THC.
+                  </p>
+                </TabsContent>
+                
+                {/* Autres tabs... */}
+                <TabsContent value="benefits" className="space-y-4">
+                  <h2 className="text-2xl font-semibold">Les bienfaits potentiels du CBD</h2>
+                  <p>
+                    De nombreuses études scientifiques suggèrent que le CBD pourrait présenter plusieurs bienfaits thérapeutiques, bien que la recherche soit encore en cours.
+                  </p>
+                  
+                  <div className="grid md:grid-cols-2 gap-4 my-6">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Réduction de l'anxiété</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Plusieurs études indiquent que le CBD peut aider à réduire l'anxiété, y compris l'anxiété sociale, le trouble panique et le SSPT.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Soulagement de la douleur</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Le CBD a montré des propriétés analgésiques qui peuvent aider à soulager différents types de douleurs chroniques.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Amélioration du sommeil</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          En réduisant l'anxiété et la douleur, le CBD peut indirectement améliorer la qualité du sommeil chez certaines personnes.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Effets neuroprotecteurs</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Des recherches préliminaires suggèrent que le CBD pourrait avoir des effets neuroprotecteurs pour certaines maladies neurologiques.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground italic">
+                    Note : Ces informations ne constituent pas des conseils médicaux. Consultez toujours un professionnel de santé avant d'utiliser le CBD à des fins thérapeutiques.
+                  </p>
+                </TabsContent>
+                
+                {/* Autres tabs continuent... */}
+                <TabsContent value="consumption" className="space-y-4">
+                  <h2 className="text-2xl font-semibold">Méthodes de consommation</h2>
+                  <p>
+                    Il existe diverses façons de consommer du CBD, chacune ayant ses propres avantages et inconvénients.
+                  </p>
+                  
+                  <div className="grid md:grid-cols-2 gap-4 my-6">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Huiles et teintures</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Placées sous la langue pour une absorption sublinguale, offrant un bon équilibre entre rapidité d'action et durée des effets.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Gélules et capsules</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Pratiques pour un dosage précis, mais peuvent prendre plus de temps à agir car absorbées par le système digestif.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Produits topiques</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Crèmes, baumes et lotions appliqués directement sur la peau pour un soulagement localisé.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Fleurs et e-liquides</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          Inhalés par vaporisation, offrant l'effet le plus rapide mais généralement de plus courte durée.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold mt-6">Conseils de dosage</h3>
+                  <p>
+                    Le dosage idéal varie considérablement d'une personne à l'autre en fonction de facteurs comme le poids, le métabolisme et la condition traitée. Il est généralement recommandé de commencer avec une faible dose et d'augmenter progressivement jusqu'à obtenir l'effet désiré.
+                  </p>
+                </TabsContent>
+                
+                {/* Autres tabs continuent... */}
+                <TabsContent value="legality" className="space-y-4">
+                  {/* Contenu de la section légalité */}
+                </TabsContent>
+                
+                <TabsContent value="history" className="space-y-4">
+                  {/* Contenu de la section histoire */}
+                </TabsContent>
+                
+                <TabsContent value="faq" className="space-y-4">
+                  {/* Contenu de la section FAQ */}
+                </TabsContent>
+                
+                <TabsContent value="ai-recommendations" className="space-y-4">
+                  <h2 className="text-2xl font-semibold">Recommandations personnalisées</h2>
+                  <p className="mb-4">
+                    Obtenez des conseils personnalisés en fonction de vos besoins spécifiques grâce à notre assistant IA spécialisé dans le CBD.
+                  </p>
+                  
+                  <AiRecommendations />
+                </TabsContent>
+              </ScrollArea>
+            </Tabs>
+          </div>
+          
+          {/* Sidebar avec recommandations IA */}
+          <div className="space-y-6">
+            <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-background">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BrainCircuit className="h-5 w-5 text-primary" />
+                  Aide personnalisée
+                </CardTitle>
+                <CardDescription>
+                  Besoin de conseils adaptés à votre situation?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm mb-4">
+                  Notre assistant IA peut vous proposer des recommandations personnalisées en fonction de vos besoins.
+                </p>
+                <button 
+                  className="w-full py-2 px-4 bg-primary/10 hover:bg-primary/20 text-primary rounded-md text-sm font-medium transition-colors"
+                  onClick={() => setActiveTab("ai-recommendations")}
+                >
+                  Obtenir des recommandations
+                </button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Ressources complémentaires</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    <a href="#" className="hover:underline">Guide des terpènes du CBD</a>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    <a href="#" className="hover:underline">Les cannabinoïdes expliqués</a>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                    <a href="#" className="hover:underline">CBD et autres médicaments</a>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-
-      <Tabs defaultValue="what-is-cbd" onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="what-is-cbd">Qu'est-ce que le CBD</TabsTrigger>
-          <TabsTrigger value="benefits">Bienfaits</TabsTrigger>
-          <TabsTrigger value="usage">Utilisation</TabsTrigger>
-          <TabsTrigger value="legal">Législation</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="what-is-cbd" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Qu'est-ce que le CBD ?</CardTitle>
-              <CardDescription>
-                Comprendre le cannabidiol et son origine
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p>
-                Le CBD, ou cannabidiol, est l'un des nombreux composés actifs présents dans la plante de cannabis (Cannabis sativa). Contrairement au THC (tétrahydrocannabinol), le CBD n'a pas d'effets psychoactifs et ne provoque pas d'état d'euphorie.
-              </p>
-              
-              <div className="my-4">
-                <h3 className="text-lg font-medium mb-2">Extraction et production</h3>
-                <p>
-                  Le CBD est généralement extrait des fleurs de chanvre industriel, une variété de cannabis cultivée spécifiquement pour ses fibres et sa haute teneur en CBD. Plusieurs méthodes d'extraction sont utilisées, dont l'extraction au CO2 supercritique, considérée comme l'une des plus propres et des plus efficaces.
-                </p>
-              </div>
-
-              <div className="my-4">
-                <h3 className="text-lg font-medium mb-2">Différence entre CBD et THC</h3>
-                <p>
-                  Bien que le CBD et le THC partagent la même formule chimique, leur structure moléculaire diffère, ce qui explique leurs effets distincts sur le corps. Le CBD interagit avec le système endocannabinoïde sans se lier directement aux récepteurs CB1 et CB2, contrairement au THC.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="benefits" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Bienfaits potentiels du CBD</CardTitle>
-              <CardDescription>
-                Les effets thérapeutiques rapportés par la recherche et les utilisateurs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>Réduction de l'anxiété et du stress</AccordionTrigger>
-                  <AccordionContent>
-                    Plusieurs études suggèrent que le CBD peut aider à réduire l'anxiété. Il pourrait interagir avec les récepteurs de la sérotonine dans le cerveau, ce qui joue un rôle important dans la régulation de l'humeur et du comportement social.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>Soulagement de la douleur</AccordionTrigger>
-                  <AccordionContent>
-                    Le CBD peut aider à soulager la douleur en influençant l'activité des récepteurs endocannabinoïdes, réduisant l'inflammation et interagissant avec les neurotransmetteurs. Particulièrement prometteur pour les douleurs chroniques et neuropathiques.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>Amélioration du sommeil</AccordionTrigger>
-                  <AccordionContent>
-                    En réduisant l'anxiété et la douleur, le CBD peut indirectement améliorer la qualité du sommeil. Certaines recherches suggèrent également un effet direct sur le cycle veille-sommeil.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>Effets neuroprotecteurs</AccordionTrigger>
-                  <AccordionContent>
-                    Des études préliminaires indiquent que le CBD pourrait avoir des propriétés neuroprotectrices, potentiellement bénéfiques pour les personnes atteintes de maladies neurologiques comme l'épilepsie, la sclérose en plaques ou la maladie de Parkinson.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="usage" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Modes d'utilisation du CBD</CardTitle>
-              <CardDescription>
-                Les différentes façons de consommer du CBD et leurs particularités
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="bg-secondary/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Huiles et teintures</h3>
-                <p className="text-sm">
-                  Administrées sous la langue pour une absorption rapide par la muqueuse sublinguale. Effet en 15-30 minutes, durée de 4-6 heures.
-                </p>
-              </div>
-              
-              <div className="bg-secondary/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Fleurs et résines</h3>
-                <p className="text-sm">
-                  Peuvent être vaporisées (jamais fumées) pour un effet rapide via les poumons. Effet en 5-10 minutes, durée de 2-4 heures.
-                </p>
-              </div>
-              
-              <div className="bg-secondary/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Produits comestibles</h3>
-                <p className="text-sm">
-                  Gélules, bonbons, infusions, etc. Absorption par le système digestif. Effet en 30-90 minutes, durée de 6-8 heures.
-                </p>
-              </div>
-              
-              <div className="bg-secondary/30 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Produits topiques</h3>
-                <p className="text-sm">
-                  Crèmes, baumes appliqués localement sur la peau. Idéal pour les douleurs musculaires et articulaires localisées.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="legal" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Législation du CBD en France</CardTitle>
-              <CardDescription>
-                La situation légale actuelle du CBD et ses évolutions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg mb-4">
-                <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                  <strong>Note importante :</strong> La législation concernant le CBD évolue régulièrement. Les informations fournies ici sont à titre indicatif et peuvent ne pas refléter les changements récents. Consultez toujours les sources officielles pour les informations les plus à jour.
-                </p>
-              </div>
-              
-              <h3 className="text-lg font-medium">Statut actuel</h3>
-              <p>
-                En France, le CBD est légal à condition qu'il provienne de variétés de cannabis autorisées (contenant moins de 0,3% de THC) et que le produit fini ne contienne pas de THC détectable. La vente de fleurs et feuilles brutes de CBD a connu des évolutions juridiques complexes.
-              </p>
-              
-              <h3 className="text-lg font-medium mt-4">Restrictions</h3>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Interdiction de faire des allégations thérapeutiques</li>
-                <li>Obligation d'étiquetage conforme pour les produits alimentaires</li>
-                <li>Restrictions sur la publicité</li>
-                <li>Interdiction de vente aux mineurs (moins de 18 ans)</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
