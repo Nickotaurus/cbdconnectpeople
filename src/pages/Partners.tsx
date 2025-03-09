@@ -18,56 +18,64 @@ const partners = [
     name: 'AssurCBD', 
     category: 'insurance', 
     description: 'Spécialiste de l'assurance pour les professionnels du CBD',
-    isPremium: true 
+    isPremium: true,
+    location: 'Paris'
   },
   { 
     id: '2', 
     name: 'Comptabilité Cannabis', 
     category: 'accountant', 
     description: 'Cabinet comptable spécialisé dans le cannabis légal',
-    isPremium: false 
+    isPremium: false,
+    location: 'Lyon'
   },
   { 
     id: '3', 
     name: 'CBD Bank', 
     category: 'bank', 
     description: 'Solutions bancaires pour les entreprises du secteur CBD',
-    isPremium: true 
+    isPremium: true,
+    location: 'Paris'
   },
   { 
     id: '4', 
     name: 'CBD Logistics', 
     category: 'logistics', 
     description: 'Transport et logistique spécialisés pour le CBD',
-    isPremium: false 
+    isPremium: false,
+    location: 'Bordeaux'
   },
   { 
     id: '5', 
     name: 'CBD Legal', 
     category: 'legal', 
     description: 'Cabinet d'avocats spécialisé dans la législation du CBD',
-    isPremium: true 
+    isPremium: true,
+    location: 'Marseille'
   },
   { 
     id: '6', 
     name: 'CBD Media', 
     category: 'media', 
     description: 'Agence de communication dédiée au CBD',
-    isPremium: false 
+    isPremium: false,
+    location: 'Nantes'
   },
   { 
     id: '7', 
     name: 'CBD Lab', 
     category: 'laboratory', 
     description: 'Analyses et certifications de produits CBD',
-    isPremium: true 
+    isPremium: true,
+    location: 'Toulouse'
   },
   { 
     id: '8', 
     name: 'CBD Immobilier', 
     category: 'realEstate', 
     description: 'Agence immobilière spécialisée dans les locaux commerciaux pour CBD',
-    isPremium: false 
+    isPremium: false,
+    location: 'Lyon'
   }
 ];
 
@@ -84,6 +92,15 @@ const partnerCategories = [
   { value: "laboratory", label: "Laboratoire" },
   { value: "production", label: "Production" },
   { value: "realEstate", label: "Agence immobilière" }
+];
+
+const locations = [
+  { value: "paris", label: "Paris" },
+  { value: "lyon", label: "Lyon" },
+  { value: "marseille", label: "Marseille" },
+  { value: "bordeaux", label: "Bordeaux" },
+  { value: "toulouse", label: "Toulouse" },
+  { value: "nantes", label: "Nantes" }
 ];
 
 const getCategoryName = (category: string) => {
@@ -118,6 +135,7 @@ const Partners = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [locationFilter, setLocationFilter] = useState<string>('');
   const [showSubscription, setShowSubscription] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
@@ -128,7 +146,8 @@ const Partners = () => {
     const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          partner.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter ? partner.category === categoryFilter : true;
-    return matchesSearch && matchesCategory;
+    const matchesLocation = locationFilter ? partner.location.toLowerCase() === locationFilter.toLowerCase() : true;
+    return matchesSearch && matchesCategory && matchesLocation;
   });
   
   const handleViewContact = (partnerId: string) => {
@@ -167,7 +186,7 @@ const Partners = () => {
       {/* Filtres avec design amélioré */}
       <div className="bg-card rounded-lg border shadow-sm p-4 mb-8">
         <h2 className="text-lg font-medium mb-4">Filtrer les partenaires</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -191,6 +210,22 @@ const Partners = () => {
                       {getCategoryIcon(category.value)}
                       {category.label}
                     </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="pl-9">
+                <SelectValue placeholder="Filtrer par localisation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Toutes les localisations</SelectItem>
+                {locations.map((location) => (
+                  <SelectItem key={location.value} value={location.value}>
+                    {location.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -223,6 +258,7 @@ const Partners = () => {
               <TableRow>
                 <TableHead>Partenaire</TableHead>
                 <TableHead>Catégorie</TableHead>
+                <TableHead>Localisation</TableHead>
                 <TableHead className="hidden md:table-cell">Description</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -247,6 +283,7 @@ const Partners = () => {
                         {getCategoryName(partner.category)}
                       </div>
                     </TableCell>
+                    <TableCell>{partner.location}</TableCell>
                     <TableCell className="hidden md:table-cell">{partner.description}</TableCell>
                     <TableCell>
                       <Button 
@@ -261,7 +298,7 @@ const Partners = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     Aucun partenaire trouvé avec les critères sélectionnés
                   </TableCell>
                 </TableRow>
