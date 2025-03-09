@@ -1,13 +1,13 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { guideContent } from '@/utils/data';
 import AiRecommendations from '@/components/AiRecommendations';
-import { Shield, Building, MapPin, Calculator, Flask, Tag, Package, Signpost, Sprout, Book, Coins } from 'lucide-react';
+import { Shield, Building, MapPin, Calculator, Flask, Tag, Package, Signpost, Sprout, Book, Coins, Search } from 'lucide-react';
 
 const CbdGuide = () => {
   const [selectedTab, setSelectedTab] = useState('client');
@@ -61,6 +61,18 @@ const CbdGuide = () => {
                 {showAiRecommendations ? "Masquer l'IA" : "Consulter l'IA"}
               </Button>
             </div>
+            
+            {/* Ajout d'une section recherche */}
+            <div className="bg-card rounded-lg border p-4">
+              <h3 className="font-medium mb-3">Rechercher</h3>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Rechercher dans le guide..."
+                />
+              </div>
+            </div>
           </div>
         </div>
         
@@ -72,6 +84,7 @@ const CbdGuide = () => {
             <>
               <h1 className="text-3xl font-bold mb-6">Guide du CBD</h1>
               
+              {/* Garde le contenu client existant */}
               <TabsContent value="client" className={selectedTab === 'client' ? 'block' : 'hidden'}>
                 <div className="space-y-8">
                   <div className="grid gap-6 md:grid-cols-2">
@@ -89,6 +102,7 @@ const CbdGuide = () => {
                 </div>
               </TabsContent>
               
+              {/* Garde le contenu producteur existant */}
               <TabsContent value="producer" className={selectedTab === 'producer' ? 'block' : 'hidden'}>
                 <div className="space-y-8">
                   <h2 className="text-2xl font-semibold border-b pb-2">Guide pour les producteurs</h2>
@@ -187,6 +201,7 @@ const CbdGuide = () => {
                 </div>
               </TabsContent>
               
+              {/* Mise à jour du contenu pour les boutiques avec les nouvelles sections */}
               <TabsContent value="store" className={selectedTab === 'store' ? 'block' : 'hidden'}>
                 <div className="space-y-8">
                   <h2 className="text-2xl font-semibold border-b pb-2">Guide pour les boutiques</h2>
@@ -225,9 +240,10 @@ const CbdGuide = () => {
                     </div>
                   </div>
                   
-                  {/* Trouver un partenaire */}
+                  {/* Trouver un partenaire - Section améliorée */}
                   <div>
                     <div className="flex items-center mb-4">
+                      <Briefcase className="h-6 w-6 mr-2 text-primary" />
                       <h3 className="text-xl font-medium">Trouver un partenaire</h3>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -405,7 +421,8 @@ const CbdGuide = () => {
                   
                   <div className="flex justify-center mt-8">
                     <Button onClick={() => navigate('/partners')}>
-                      Consulter l'annuaire des partenaires
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      Consulter l'annuaire complet des partenaires
                     </Button>
                   </div>
                 </div>
