@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,7 +30,7 @@ export const partnerCategories = [
 ];
 
 // Locations data
-const locations = [
+export const locations = [
   { value: "paris", label: "Paris" },
   { value: "lyon", label: "Lyon" },
   { value: "marseille", label: "Marseille" },
@@ -121,5 +122,4 @@ export const getCategoryIcon = (category: string) => {
   }
 };
 
-export { locations, partnerCategories };
 export default PartnerFilters;

@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Briefcase } from 'lucide-react';
 import { partners } from '@/data/partnersData';
-import { partnerCategories, getCategoryIcon } from '@/components/partners/PartnerFilters';
+import { getCategoryIcon, partnerCategories } from '@/components/partners/PartnerFilters';
 import PartnerFilters from '@/components/partners/PartnerFilters';
 import PartnersTable from '@/components/partners/PartnersTable';
 import PartnerSubscriptionModal from '@/components/partners/PartnerSubscriptionModal';
