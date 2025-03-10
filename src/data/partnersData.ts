@@ -5,7 +5,7 @@ export const partners = [
     id: '1', 
     name: 'AssurCBD', 
     category: 'insurance', 
-    description: 'Spécialiste de l'assurance pour les professionnels du CBD',
+    description: 'Spécialiste de l\'assurance pour les professionnels du CBD',
     isPremium: true,
     location: 'Paris'
   },
@@ -37,7 +37,7 @@ export const partners = [
     id: '5', 
     name: 'CBD Legal', 
     category: 'legal', 
-    description: 'Cabinet d'avocats spécialisé dans la législation du CBD',
+    description: 'Cabinet d\'avocats spécialisé dans la législation du CBD',
     isPremium: true,
     location: 'Marseille'
   },
