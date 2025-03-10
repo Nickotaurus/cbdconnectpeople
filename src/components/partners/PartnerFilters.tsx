@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,7 +66,7 @@ const PartnerFilters = ({
               <SelectValue placeholder="Filtrer par catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les catégories</SelectItem>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
               {partnerCategories.map((category) => (
                 <SelectItem key={category.value} value={category.value}>
                   <div className="flex items-center gap-2">
@@ -86,7 +85,7 @@ const PartnerFilters = ({
               <SelectValue placeholder="Filtrer par localisation" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les localisations</SelectItem>
+              <SelectItem value="all">Toutes les localisations</SelectItem>
               {locations.map((location) => (
                 <SelectItem key={location.value} value={location.value}>
                   {location.label}
@@ -122,5 +121,5 @@ export const getCategoryIcon = (category: string) => {
   }
 };
 
-export { locations };
+export { locations, partnerCategories };
 export default PartnerFilters;

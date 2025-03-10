@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,25 +19,23 @@ const Partners = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
   const [showSubscription, setShowSubscription] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
-  // Vérifie si l'utilisateur a un abonnement premium (pour la démo)
   const hasPremium = user?.role === 'store' || user?.role === 'producer';
   
   const filteredPartners = partners.filter(partner => {
     const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          partner.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter ? partner.category === categoryFilter : true;
-    const matchesLocation = locationFilter ? partner.location.toLowerCase() === locationFilter.toLowerCase() : true;
+    const matchesCategory = categoryFilter === 'all' ? true : partner.category === categoryFilter;
+    const matchesLocation = locationFilter === 'all' ? true : partner.location.toLowerCase() === locationFilter.toLowerCase();
     return matchesSearch && matchesCategory && matchesLocation;
   });
   
   const handleViewContact = (partnerId: string) => {
     if (hasPremium) {
-      // Dans une app réelle, afficherait les coordonnées ou redirigerait vers un profil détaillé
       alert("Contact affiché (simulation) - Dans une version en production, vous verriez les coordonnées complètes du partenaire.");
     } else {
       setSelectedPartnerId(partnerId);
@@ -47,7 +44,6 @@ const Partners = () => {
   };
   
   const handleSubscription = (planId: string) => {
-    // Dans une app réelle, traiterait l'abonnement
     setShowSubscription(false);
     setSelectedPartnerId(null);
     alert(`Abonnement ${planId} souscrit (simulation) - Dans une version en production, vous auriez accès aux coordonnées des partenaires.`);
@@ -69,7 +65,6 @@ const Partners = () => {
         )}
       </div>
       
-      {/* Composant de filtres */}
       <PartnerFilters 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -79,7 +74,6 @@ const Partners = () => {
         setLocationFilter={setLocationFilter}
       />
       
-      {/* Affichage du modal d'abonnement ou de la table des partenaires */}
       {showSubscription ? (
         <PartnerSubscriptionModal 
           onClose={() => setShowSubscription(false)} 
@@ -94,7 +88,6 @@ const Partners = () => {
         />
       )}
       
-      {/* Section pour devenir partenaire - affiché seulement pour les non-partenaires */}
       {!user || user.role !== 'partner' ? (
         <BecomePartnerCTA />
       ) : null}
