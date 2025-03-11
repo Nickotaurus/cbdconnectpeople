@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserRole } from "@/types/auth";
-import { ArrowRight, Store, Users, Briefcase, Leaf } from 'lucide-react';
+import { ArrowRight, Store, Users, Briefcase, Leaf, Trophy, Star, MessageSquare } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileContent {
   title: string;
@@ -13,18 +14,20 @@ interface ProfileContent {
 
 const profileContents: Record<UserRole, ProfileContent> = {
   client: {
-    title: "Trouvez facilement votre CBD de qualité !",
+    title: "Trouvez facilement votre CBD et échangez avec la communauté !",
     points: [
       "Accédez aux meilleures boutiques près de chez vous",
       "Profitez d'offres exclusives et de réductions",
-      "Lisez et laissez des avis pour guider la communauté"
+      "Lisez et laissez des avis pour partager votre expérience",
+      "Participez aux discussions et obtenez des conseils !"
     ],
     icon: <Users className="h-12 w-12" />
   },
   store: {
-    title: "Augmentez votre visibilité et attirez plus de clients !",
+    title: "Augmentez votre visibilité et fidélisez vos clients !",
     points: [
       "Référencez votre boutique gratuitement",
+      "Offrez des réductions pour attirer plus de clients",
       "Gérez vos avis et améliorez votre réputation",
       "Accédez à un réseau de producteurs de confiance"
     ],
@@ -35,20 +38,35 @@ const profileContents: Record<UserRole, ProfileContent> = {
     points: [
       "Soyez visible auprès des boutiques intéressées",
       "Mettez en avant votre savoir-faire et vos produits",
-      "Recevez des demandes de collaboration en direct"
+      "Recevez des demandes de collaboration en direct",
+      "Partagez vos conseils et expertises avec la communauté"
     ],
     icon: <Leaf className="h-12 w-12" />
   },
   partner: {
-    title: "Connectez-vous avec les acteurs du CBD !",
+    title: "Connectez-vous avec les acteurs du CBD et développez votre activité !",
     points: [
       "Accédez à un marché en pleine croissance",
       "Développez votre réseau professionnel",
-      "Soyez référencé dans notre annuaire exclusif"
+      "Soyez référencé dans notre annuaire exclusif",
+      "Proposez vos services aux membres de la communauté"
     ],
     icon: <Briefcase className="h-12 w-12" />
   }
 };
+
+interface BadgeInfo {
+  name: string;
+  requirement: string;
+  icon: React.ReactNode;
+}
+
+const badges: BadgeInfo[] = [
+  { name: "Débutant", requirement: "Inscription sur la plateforme", icon: <Trophy className="h-4 w-4" /> },
+  { name: "Explorateur", requirement: "1er avis laissé", icon: <Star className="h-4 w-4" /> },
+  { name: "Ambassadeur", requirement: "Participation active aux discussions", icon: <MessageSquare className="h-4 w-4" /> },
+  { name: "Expert CBD", requirement: "Contributions régulières et reconnues par la communauté", icon: <Star className="h-4 w-4" /> }
+];
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -72,10 +90,10 @@ const OnboardingPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Rejoignez CBD Connect World !
+              Rejoignez CBD Connect World et connectez-vous à la communauté !
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Profitez d'une inscription gratuite et découvrez tous les avantages adaptés à votre profil.
+              Inscrivez-vous gratuitement et échangez avec les acteurs du CBD !
             </p>
             <Button
               size="lg"
@@ -116,8 +134,31 @@ const OnboardingPage = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Badge System Section */}
       <div className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-8">
+              Progressez et devenez un expert CBD !
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {badges.map((badge, index) => (
+                <div key={index} className="flex flex-col items-center bg-muted/30 p-6 rounded-lg border border-primary/10">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                    {badge.icon}
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">{badge.name}</h3>
+                  <Badge variant="outline" className="mb-2">Niveau {index + 1}</Badge>
+                  <p className="text-sm text-muted-foreground text-center">{badge.requirement}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="py-16 bg-muted/50">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">
             Prêt à rejoindre la communauté ?
