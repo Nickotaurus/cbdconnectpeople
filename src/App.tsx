@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +26,7 @@ const Register = lazy(() => import("./pages/Register"));
 const Forum = lazy(() => import("./pages/Forum"));
 const Partners = lazy(() => import("./pages/Partners")); // Nouvelle page
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 
 const queryClient = new QueryClient();
 
@@ -57,6 +57,7 @@ const App = () => (
                   <Route path="/register" element={<Register />} />
                   <Route path="/forum" element={<Forum />} />
                   <Route path="/partners" element={<Partners />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

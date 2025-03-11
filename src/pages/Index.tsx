@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -102,7 +101,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="w-full" 
-                onClick={() => navigate('/register?role=client')}
+                onClick={() => navigate('/onboarding?role=client')}
               >
                 Espace Client
               </Button>
@@ -120,7 +119,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="w-full" 
-                onClick={() => navigate('/register?role=store')}
+                onClick={() => navigate('/onboarding?role=store')}
               >
                 Espace Boutique
               </Button>
@@ -138,7 +137,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="w-full" 
-                onClick={() => navigate('/register?role=producer')}
+                onClick={() => navigate('/onboarding?role=producer')}
               >
                 Espace Producteur
               </Button>
@@ -156,7 +155,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="w-full" 
-                onClick={() => navigate('/register?role=partner')}
+                onClick={() => navigate('/onboarding?role=partner')}
               >
                 Espace Partenaire
               </Button>
