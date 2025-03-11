@@ -9,6 +9,7 @@ export interface User {
   isVerified?: boolean;
   createdAt: string;
   profileCompleted?: boolean;
+  badges?: Badge[];
 }
 
 export interface StoreUser extends User {
@@ -54,3 +55,11 @@ export type PartnerCategory =
   | "laboratory"
   | "production"
   | "realEstate";
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  earnedAt?: string;
+}

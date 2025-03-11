@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Award } from 'lucide-react';
 import { partners } from '@/data/partnersData';
 import { getCategoryIcon, partnerCategories } from '@/components/partners/PartnerFilters';
 import PartnerFilters from '@/components/partners/PartnerFilters';
 import PartnersTable from '@/components/partners/PartnersTable';
 import PartnerSubscriptionModal from '@/components/partners/PartnerSubscriptionModal';
 import BecomePartnerCTA from '@/components/partners/BecomePartnerCTA';
+import UserBadges from '@/components/badges/UserBadges';
 
 const getCategoryName = (category: string) => {
   const found = partnerCategories.find(c => c.value === category);
@@ -36,7 +37,21 @@ const Partners = () => {
   });
   
   const handleViewContact = (partnerId: string) => {
+    // Ajouter le badge Pro Connect si c'est une première mise en relation
+    const earnedBadge = {
+      id: "pro_connect",
+      name: "Pro Connect",
+      description: "Faire une première mise en relation avec un partenaire",
+      icon: "Handshake",
+      earnedAt: new Date().toISOString()
+    };
+
     if (hasPremium) {
+      if (user && (!user.badges || !user.badges.some(b => b.id === "pro_connect"))) {
+        // Dans un environnement réel, une fonction updateUserBadges serait appelée ici
+        // pour mettre à jour la base de données
+        console.log("Badge Pro Connect obtenu !", earnedBadge);
+      }
       alert("Contact affiché (simulation) - Dans une version en production, vous verriez les coordonnées complètes du partenaire.");
     } else {
       setSelectedPartnerId(partnerId);
@@ -65,6 +80,18 @@ const Partners = () => {
           </Button>
         )}
       </div>
+      
+      {user && (
+        <div className="mb-6 bg-card rounded-lg border p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" />
+              <h3 className="font-medium">Vos badges</h3>
+            </div>
+            <UserBadges user={user} />
+          </div>
+        </div>
+      )}
       
       <PartnerFilters 
         searchTerm={searchTerm}

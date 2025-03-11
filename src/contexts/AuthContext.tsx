@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, UserRole } from "@/types/auth";
+import { badges } from "@/components/badges/UserBadges";
 
 interface AuthContextType {
   user: User | null;
@@ -41,6 +42,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: email.split("@")[0],
         role: "client",
         createdAt: new Date().toISOString(),
+        badges: [
+          {
+            id: badges[0].id,
+            name: badges[0].name,
+            description: badges[0].description,
+            icon: badges[0].icon,
+            earnedAt: new Date().toISOString()
+          }
+        ]
       };
       
       setUser(mockUser);
@@ -66,6 +76,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: new Date().toISOString(),
         profileCompleted: false,
         isVerified: role === "client", // Clients are verified by default, stores and producers need verification
+        badges: [
+          {
+            id: badges[0].id,
+            name: badges[0].name,
+            description: badges[0].description,
+            icon: badges[0].icon,
+            earnedAt: new Date().toISOString()
+          }
+        ]
       };
       
       setUser(mockUser);
