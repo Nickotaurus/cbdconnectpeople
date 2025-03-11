@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/sheet";
 import Map from '@/components/Map';
 import StoreCard from '@/components/StoreCard';
+import { Store } from '@/types/store';
 import { 
   getStoresByDistance, 
   filterUserLocation, 
-  Store,
   calculateDistance
 } from '@/utils/data';
 

@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Store, filterUserLocation } from '@/utils/data';
+import { Store } from '@/types/store';
+import { filterUserLocation } from '@/utils/geoUtils';
 
 interface MapProps {
   stores: Store[];

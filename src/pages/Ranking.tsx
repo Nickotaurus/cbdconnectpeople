@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -28,11 +27,11 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import StoreCard from '@/components/StoreCard';
 import RatingBreakdown from '@/components/RatingBreakdown';
+import { Store } from '@/types/store';
 import { 
   getStoresByDistance, 
   filterUserLocation, 
   calculateDistance,
-  Store
 } from '@/utils/data';
 
 type SortOptions = 'rating' | 'flowers' | 'oils' | 'experience' | 'originality' | 'distance';
@@ -57,7 +56,6 @@ const Ranking = () => {
   const [isNational, setIsNational] = useState(true);
   
   useEffect(() => {
-    // Try to get the user's location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -67,17 +65,15 @@ const Ranking = () => {
         },
         (error) => {
           console.log('Geolocation error:', error);
-          // Use default location (handled by filterUserLocation)
+          setUserLocation(filterUserLocation());
         }
       );
     }
   }, []);
   
   useEffect(() => {
-    // Apply filters and sorting
     let filteredStores = [...allStores];
     
-    // Apply search filter
     if (searchTerm) {
       filteredStores = filteredStores.filter(store => 
         store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,28 +81,22 @@ const Ranking = () => {
       );
     }
     
-    // Apply premium filter
     if (filters.onlyPremium) {
       filteredStores = filteredStores.filter(store => store.isPremium);
     }
     
-    // Apply coupon filter
     if (filters.onlyCoupons) {
       filteredStores = filteredStores.filter(store => store.coupon && store.coupon.code);
     }
     
-    // Apply rating filter
     if (filters.minRating > 0) {
       filteredStores = filteredStores.filter(store => store.rating >= filters.minRating);
     }
     
-    // Apply display mode (national vs local)
     if (!isNational) {
-      // For local, we use the already sorted by distance list (first 20)
       filteredStores = filteredStores.slice(0, 20);
     }
     
-    // Apply sorting
     filteredStores.sort((a, b) => {
       if (sortBy === 'distance') {
         const distA = calculateDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
@@ -114,13 +104,10 @@ const Ranking = () => {
         return distA - distB;
       }
       
-      // For other sorting options, we assume higher is better
       if (sortBy === 'rating') {
         return b.rating - a.rating;
       }
       
-      // For category-specific ratings
-      // Calculate average rating based on category
       const getCategoryRating = (store: Store, category: string) => {
         const reviews = store.reviews.filter(review => review.category === category);
         if (reviews.length === 0) return 0;
@@ -133,7 +120,6 @@ const Ranking = () => {
       return bRating - aRating;
     });
     
-    // Take only top 10 for national ranking
     if (isNational && filteredStores.length > 10) {
       filteredStores = filteredStores.slice(0, 10);
     }
@@ -168,7 +154,6 @@ const Ranking = () => {
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Header Section */}
       <section className="bg-primary/5 py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -206,7 +191,6 @@ const Ranking = () => {
         </div>
       </section>
       
-      {/* Filters and Sort Section */}
       <section className="py-6 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -309,10 +293,8 @@ const Ranking = () => {
         </div>
       </section>
       
-      {/* Results Section */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          {/* Results count and active filters */}
           <div className="mb-6">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <h2 className="text-xl font-semibold">
@@ -376,7 +358,6 @@ const Ranking = () => {
             </div>
           </div>
           
-          {/* Stores grid */}
           {displayedStores.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedStores.map((store, index) => (
@@ -402,7 +383,6 @@ const Ranking = () => {
                       )}
                     />
                     
-                    {/* Category Ratings */}
                     <div className="mt-3 bg-secondary/50 p-3 rounded-lg">
                       <RatingBreakdown store={store} activeSortBy={sortBy} />
                     </div>

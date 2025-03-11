@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { addStore, Store } from '@/utils/data';
+import { addStore } from '@/utils/storeUtils';
+import { Store } from '@/types/store';
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
