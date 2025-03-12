@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -203,12 +202,12 @@ const Partners = () => {
               </div>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{partner.name}</CardTitle>
-                  <Badge variant="outline" className="flex items-center gap-1 font-normal">
+                  <Badge variant="secondary" className="flex items-center gap-1 font-semibold text-sm px-3 py-1">
                     {getCategoryIcon(partner.category)}
                     {getCategoryLabel(partner.category)}
                   </Badge>
                 </div>
+                <CardTitle className="text-xl mt-2">{partner.name}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {partner.location} • <span>{partner.distance} km</span>
@@ -221,7 +220,7 @@ const Partners = () => {
                   <p className="text-xs font-medium mb-1.5">Certifications:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {partner.certifications.map(cert => (
-                      <Badge key={cert} variant="secondary" className="flex items-center gap-1">
+                      <Badge key={cert} variant="outline" className="flex items-center gap-1">
                         <Check className="h-3 w-3" />
                         {cert}
                       </Badge>
