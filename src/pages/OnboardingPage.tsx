@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserRole } from "@/types/auth";
-import { ArrowRight, Store, Users, Briefcase, Leaf, Trophy, Star, MessageSquare } from 'lucide-react';
+import { ArrowRight, Store, Users, Briefcase, Trophy, Star, MessageSquare } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
 interface ProfileContent {
@@ -29,19 +28,9 @@ const profileContents: Record<UserRole, ProfileContent> = {
       "Référencez votre boutique gratuitement",
       "Offrez des réductions pour attirer plus de clients",
       "Gérez vos avis et améliorez votre réputation",
-      "Accédez à un réseau de producteurs de confiance"
+      "Accédez à un réseau de partenaires et fournisseurs fiables"
     ],
     icon: <Store className="h-12 w-12" />
-  },
-  producer: {
-    title: "Développez votre réseau et trouvez des partenaires !",
-    points: [
-      "Soyez visible auprès des boutiques intéressées",
-      "Mettez en avant votre savoir-faire et vos produits",
-      "Recevez des demandes de collaboration en direct",
-      "Partagez vos conseils et expertises avec la communauté"
-    ],
-    icon: <Leaf className="h-12 w-12" />
   },
   partner: {
     title: "Connectez-vous avec les acteurs du CBD et développez votre activité !",
@@ -49,7 +38,8 @@ const profileContents: Record<UserRole, ProfileContent> = {
       "Accédez à un marché en pleine croissance",
       "Développez votre réseau professionnel",
       "Soyez référencé dans notre annuaire exclusif",
-      "Proposez vos services aux membres de la communauté"
+      "Proposez vos services aux membres de la communauté",
+      "Inclut désormais : producteurs, banques, comptables, juristes, assurances, logistique, breeders, labels, associations, médias, laboratoires, agences immobilières"
     ],
     icon: <Briefcase className="h-12 w-12" />
   }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +10,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import ClientRegistrationInfo from './ClientRegistrationInfo';
 import StoreRegistrationInfo from './StoreRegistrationInfo';
-import ProducerRegistrationInfo from './ProducerRegistrationInfo';
 import PartnerRegistrationInfo from './PartnerRegistrationInfo';
 
 interface RegisterFormProps {
@@ -126,16 +124,14 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         <div className="grid gap-2">
           <Label>Type de compte</Label>
           <Tabs defaultValue={role} onValueChange={(value) => setRole(value as UserRole)}>
-            <TabsList className="grid grid-cols-4">
+            <TabsList className="grid grid-cols-3">
               <TabsTrigger value="client">Client</TabsTrigger>
               <TabsTrigger value="store">Boutique</TabsTrigger>
-              <TabsTrigger value="producer">Producteur</TabsTrigger>
               <TabsTrigger value="partner">Partenaire</TabsTrigger>
             </TabsList>
             
             <ClientRegistrationInfo />
             <StoreRegistrationInfo />
-            <ProducerRegistrationInfo />
             <PartnerRegistrationInfo
               partnerCategory={partnerCategory}
               setPartnerCategory={setPartnerCategory}

@@ -1,5 +1,5 @@
 
-export type UserRole = "client" | "store" | "producer" | "partner";
+export type UserRole = "client" | "store" | "partner";
 
 export interface User {
   id: string;
@@ -16,12 +16,6 @@ export interface StoreUser extends User {
   role: "store";
   storeId?: string;
   siretVerified?: boolean;
-}
-
-export interface ProducerUser extends User {
-  role: "producer";
-  producerId?: string;
-  certifications?: string[];
 }
 
 export interface ClientUser extends User {
