@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
 import ProducerDashboard from '@/components/ProducerDashboard';
 import { MessageSquare, Network, Users, Store, Leaf, Briefcase } from 'lucide-react';
+import { PartnerUser } from '@/types/auth';
 
 const Index = () => {
   const { user } = useAuth();
@@ -28,8 +30,10 @@ const Index = () => {
           </div>
         );
       case 'partner':
-        // If this user is a partner of type "producer", show the producer dashboard
-        if (user.category === 'production') {
+        // Cast user to PartnerUser type to access category property
+        const partnerUser = user as PartnerUser;
+        // If this user is a partner of type "production", show the producer dashboard
+        if (partnerUser.category === 'production') {
           return (
             <div className="container mx-auto px-4 py-8">
               <h1 className="text-3xl font-bold mb-6">Espace Producteur</h1>
