@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flower, Leaf, MapPin, Building, Send } from 'lucide-react';
@@ -102,7 +101,7 @@ const AddProducer = () => {
     }, 1500);
   };
   
-  if (user?.role !== 'producer') {
+  if (user?.role !== 'partner') {
     return (
       <div className="container max-w-md mx-auto py-16">
         <Card>

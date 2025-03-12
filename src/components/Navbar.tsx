@@ -110,8 +110,7 @@ const Navbar = () => {
                   <span>{user.name}</span>
                   <span className="text-xs text-muted-foreground">
                     {user.role === "client" ? "Client" : 
-                     user.role === "store" ? "Boutique" : 
-                     user.role === "producer" ? "Producteur" : "Partenaire"}
+                     user.role === "store" ? "Boutique" : "Partenaire"}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -123,12 +122,6 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate('/store-dashboard')}>
                     <Network className="h-4 w-4 mr-2" />
                     Ma boutique
-                  </DropdownMenuItem>
-                )}
-                {user.role === "producer" && (
-                  <DropdownMenuItem onClick={() => navigate('/producer-dashboard')}>
-                    <Leaf className="h-4 w-4 mr-2" />
-                    Mon exploitation
                   </DropdownMenuItem>
                 )}
                 {user.role === "partner" && (

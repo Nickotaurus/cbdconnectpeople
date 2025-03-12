@@ -27,14 +27,17 @@ const Index = () => {
             <StoreDashboard />
           </div>
         );
-      case 'producer':
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Espace Producteur</h1>
-            <ProducerDashboard />
-          </div>
-        );
       case 'partner':
+        // If this user is a partner of type "producer", show the producer dashboard
+        if (user.category === 'production') {
+          return (
+            <div className="container mx-auto px-4 py-8">
+              <h1 className="text-3xl font-bold mb-6">Espace Producteur</h1>
+              <ProducerDashboard />
+            </div>
+          );
+        }
+        // Otherwise show the regular partner dashboard
         return (
           <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Espace Partenaire</h1>
@@ -88,7 +91,7 @@ const Index = () => {
         <div className="mb-20">
           <h2 className="text-2xl font-semibold mb-6">Je suis...</h2>
           
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Client Profile Selection */}
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -125,25 +128,7 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Producer Profile Selection */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Leaf className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-medium mb-3">Un Producteur</h3>
-              <p className="text-sm text-muted-foreground mb-6 flex-grow">
-                Je souhaite promouvoir mes produits auprès des boutiques
-              </p>
-              <Button 
-                size="lg" 
-                className="w-full" 
-                onClick={() => navigate('/onboarding?role=producer')}
-              >
-                Espace Producteur
-              </Button>
-            </div>
-            
-            {/* Partner Profile Selection - NEW */}
+            {/* Partner Profile Selection */}
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Briefcase className="h-8 w-8 text-primary" />

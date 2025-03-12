@@ -5,16 +5,16 @@ import { Store, FileText, ShoppingBag, ChevronRight, Users, Sprout } from 'lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ProducerUser } from '@/types/auth';
+import { PartnerUser } from '@/types/auth';
 
 const ProducerDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const producerUser = user as ProducerUser;
+  const producerUser = user as PartnerUser;
   
   // Mock data - would come from API in real app
-  const profileCompleteness = producerUser?.producerId ? 100 : 20;
-  const producerId = producerUser?.producerId || null;
+  const profileCompleteness = producerUser?.partnerId ? 100 : 20;
+  const producerId = producerUser?.partnerId || null;
   const interestedStores = 8; // Mock data
   
   return (
@@ -36,7 +36,7 @@ const ProducerDashboard = () => {
               <Progress value={profileCompleteness} className="h-2" />
             </div>
             
-            {!producerUser?.producerId && (
+            {!producerUser?.partnerId && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-md text-sm">
                 <p className="font-medium text-yellow-800 dark:text-yellow-300">Votre profil producteur n'est pas encore créé.</p>
                 <p className="text-muted-foreground mt-1">Complétez votre profil pour être visible auprès des boutiques.</p>
@@ -52,7 +52,7 @@ const ProducerDashboard = () => {
                 <div>
                   <p className="text-sm font-medium">Boutiques intéressées</p>
                   <p className="text-sm text-muted-foreground">
-                    {producerUser?.producerId ? `${interestedStores} boutiques` : 'Créez votre profil'}
+                    {producerUser?.partnerId ? `${interestedStores} boutiques` : 'Créez votre profil'}
                   </p>
                 </div>
               </div>
@@ -69,7 +69,7 @@ const ProducerDashboard = () => {
             </div>
           </CardContent>
           <CardFooter className="flex-col items-start space-y-2">
-            {producerUser?.producerId && (
+            {producerUser?.partnerId && (
               <Button 
                 variant="outline" 
                 className="w-full md:w-auto" 

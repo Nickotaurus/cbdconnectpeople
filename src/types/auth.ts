@@ -29,6 +29,7 @@ export interface PartnerUser extends User {
   category?: PartnerCategory;
   description?: string;
   website?: string;
+  certifications?: string[];
   contactInfo?: {
     email: string;
     phone?: string;
