@@ -27,6 +27,7 @@ const Forum = lazy(() => import("./pages/Forum"));
 const Partners = lazy(() => import("./pages/Partners")); // Nouvelle page
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
                   <Route path="/forum" element={<Forum />} />
                   <Route path="/partners" element={<Partners />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
+                  <Route path="/marketplace" element={<MarketplacePage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
