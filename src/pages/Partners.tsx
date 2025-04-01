@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -201,13 +202,12 @@ const Partners = () => {
                 />
               </div>
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <Badge variant="secondary" className="flex items-center gap-1 font-semibold text-sm px-3 py-1">
-                    {getCategoryIcon(partner.category)}
-                    {getCategoryLabel(partner.category)}
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl mt-2">{partner.name}</CardTitle>
+                {/* Make category badge more prominent to emphasize profession */}
+                <Badge variant="secondary" className="flex items-center gap-1 text-base px-3 py-1.5 mb-2 font-semibold">
+                  {getCategoryIcon(partner.category)}
+                  {getCategoryLabel(partner.category)}
+                </Badge>
+                <CardTitle className="text-xl">{partner.name}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {partner.location} • <span>{partner.distance} km</span>
