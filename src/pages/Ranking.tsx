@@ -1,412 +1,462 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  MapPin, Star, Filter, ArrowUpDown, 
-  Award, Check, ChevronDown, ChevronsUpDown, 
-  Flower, Droplet
-} from 'lucide-react';
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import StoreCard from '@/components/StoreCard';
-import RatingBreakdown from '@/components/RatingBreakdown';
-import { Store } from '@/types/store';
-import { 
-  getStoresByDistance, 
-  filterUserLocation, 
-  calculateDistance,
-} from '@/utils/data';
+import { Star, Trophy, Store, Globe, Leaf, Hash, ExternalLink } from 'lucide-react';
 
-type SortOptions = 'rating' | 'flowers' | 'oils' | 'experience' | 'originality' | 'distance';
-type FilterOptions = {
-  onlyPremium: boolean;
-  onlyCoupons: boolean;
-  minRating: number;
-};
+// Types
+interface RankedItem {
+  id: string;
+  name: string;
+  image: string;
+  rating: number;
+  category: string;
+  location?: string;
+  url?: string;
+  description: string;
+  sponsored: boolean;
+}
 
-const Ranking = () => {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortOptions>('rating');
-  const [userLocation, setUserLocation] = useState(filterUserLocation());
-  const [allStores, setAllStores] = useState(getStoresByDistance(userLocation.latitude, userLocation.longitude));
-  const [displayedStores, setDisplayedStores] = useState<Store[]>([]);
-  const [filters, setFilters] = useState<FilterOptions>({
-    onlyPremium: false,
-    onlyCoupons: true,
-    minRating: 0,
-  });
-  const [isNational, setIsNational] = useState(true);
-  
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ latitude, longitude });
-          setAllStores(getStoresByDistance(latitude, longitude));
-        },
-        (error) => {
-          console.log('Geolocation error:', error);
-          setUserLocation(filterUserLocation());
-        }
-      );
-    }
-  }, []);
-  
-  useEffect(() => {
-    let filteredStores = [...allStores];
-    
-    if (searchTerm) {
-      filteredStores = filteredStores.filter(store => 
-        store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (filters.onlyPremium) {
-      filteredStores = filteredStores.filter(store => store.isPremium);
-    }
-    
-    if (filters.onlyCoupons) {
-      filteredStores = filteredStores.filter(store => store.coupon && store.coupon.code);
-    }
-    
-    if (filters.minRating > 0) {
-      filteredStores = filteredStores.filter(store => store.rating >= filters.minRating);
-    }
-    
-    if (!isNational) {
-      filteredStores = filteredStores.slice(0, 20);
-    }
-    
-    filteredStores.sort((a, b) => {
-      if (sortBy === 'distance') {
-        const distA = calculateDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
-        const distB = calculateDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
-        return distA - distB;
+interface RankingCategory {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  items: RankedItem[];
+}
+
+// Mock data for rankings
+const rankings: RankingCategory[] = [
+  {
+    id: 'stores',
+    name: 'Meilleures boutiques CBD',
+    icon: <Store className="h-5 w-5" />,
+    items: [
+      {
+        id: '1',
+        name: 'CBD Shop Paris',
+        image: 'https://images.unsplash.com/photo-1567449303183-ae0d6ed1c14e?q=80&w=1000',
+        rating: 4.9,
+        category: 'boutique',
+        location: 'Paris, France',
+        description: 'Large sélection de produits et personnel compétent et passionné.',
+        sponsored: true
+      },
+      {
+        id: '2',
+        name: 'Green Leaf',
+        image: 'https://images.unsplash.com/photo-1439127989242-c3749a012eac?q=80&w=1000',
+        rating: 4.8,
+        category: 'boutique',
+        location: 'Lyon, France',
+        description: 'Ambiance chaleureuse et produits bio de qualité exceptionnelle.',
+        sponsored: false
+      },
+      {
+        id: '3',
+        name: 'CBD House',
+        image: 'https://images.unsplash.com/photo-1527015175522-6576b6581ccf?q=80&w=1000',
+        rating: 4.7,
+        category: 'boutique',
+        location: 'Marseille, France',
+        description: 'Boutique spécialisée dans les produits CBD haut de gamme.',
+        sponsored: false
+      },
+      {
+        id: '4',
+        name: 'Cannavie',
+        image: 'https://images.unsplash.com/photo-1611232658409-0d98127f237f?q=80&w=1000',
+        rating: 4.7,
+        category: 'boutique',
+        location: 'Bordeaux, France',
+        description: 'Une des premières boutiques CBD de la ville avec produits locaux.',
+        sponsored: false
+      },
+      {
+        id: '5',
+        name: 'Herba CBD',
+        image: 'https://images.unsplash.com/photo-1626128665085-483747621778?q=80&w=1000',
+        rating: 4.6,
+        category: 'boutique',
+        location: 'Toulouse, France',
+        description: 'Conseils personnalisés et espace de dégustation pour e-liquides.',
+        sponsored: false
       }
-      
-      if (sortBy === 'rating') {
-        return b.rating - a.rating;
+    ]
+  },
+  {
+    id: 'ecommerce',
+    name: 'Meilleurs sites e-commerce CBD',
+    icon: <Globe className="h-5 w-5" />,
+    items: [
+      {
+        id: '1',
+        name: 'CBD Shop Online',
+        image: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=1000',
+        rating: 4.8,
+        category: 'ecommerce',
+        url: 'https://cbdshoponline.fr',
+        description: 'Large catalogue et livraison rapide dans toute la France.',
+        sponsored: true
+      },
+      {
+        id: '2',
+        name: 'Natural CBD',
+        image: 'https://images.unsplash.com/photo-1421757295538-9c80958e75b0?q=80&w=1000',
+        rating: 4.7,
+        category: 'ecommerce',
+        url: 'https://naturalcbd.fr',
+        description: 'Spécialiste des produits CBD biologiques et éthiques.',
+        sponsored: false
+      },
+      {
+        id: '3',
+        name: 'CBD Express',
+        image: 'https://images.unsplash.com/photo-1580397581145-cdb6a35b7d3f?q=80&w=1000',
+        rating: 4.6,
+        category: 'ecommerce',
+        url: 'https://cbdexpress.fr',
+        description: 'Livraison en 24h et service client disponible 7j/7.',
+        sponsored: false
+      },
+      {
+        id: '4',
+        name: 'Green CBD Market',
+        image: 'https://images.unsplash.com/photo-1528297506728-9533d2ac3fa4?q=80&w=1000',
+        rating: 4.5,
+        category: 'ecommerce',
+        url: 'https://greencbdmarket.com',
+        description: 'Prix compétitifs et programme de fidélité avantageux.',
+        sponsored: false
+      },
+      {
+        id: '5',
+        name: 'CBD Premium',
+        image: 'https://images.unsplash.com/photo-1633265486064-086b219458ec?q=80&w=1000',
+        rating: 4.5,
+        category: 'ecommerce',
+        url: 'https://cbdpremium.fr',
+        description: 'Sélection rigoureuse des meilleures marques européennes.',
+        sponsored: false
       }
-      
-      const getCategoryRating = (store: Store, category: string) => {
-        const reviews = store.reviews.filter(review => review.category === category);
-        if (reviews.length === 0) return 0;
-        return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
-      };
-      
-      const aRating = getCategoryRating(a, sortBy);
-      const bRating = getCategoryRating(b, sortBy);
-      
-      return bRating - aRating;
-    });
-    
-    if (isNational && filteredStores.length > 10) {
-      filteredStores = filteredStores.slice(0, 10);
-    }
-    
-    setDisplayedStores(filteredStores);
-  }, [allStores, searchTerm, sortBy, filters, isNational, userLocation]);
-  
-  const handleSortChange = (value: string) => {
-    setSortBy(value as SortOptions);
-  };
-  
-  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
-    setFilters({
-      ...filters,
-      [key]: value
-    });
-  };
-  
-  const toggleRankingMode = () => {
-    setIsNational(!isNational);
-  };
-  
-  const resetFilters = () => {
-    setFilters({
-      onlyPremium: false,
-      onlyCoupons: false,
-      minRating: 0
-    });
-    setSearchTerm('');
-    setSortBy('rating');
-  };
+    ]
+  },
+  {
+    id: 'flowers',
+    name: 'Meilleures fleurs CBD',
+    icon: <Leaf className="h-5 w-5" />,
+    items: [
+      {
+        id: '1',
+        name: 'Strawberry Haze',
+        image: 'https://images.unsplash.com/photo-1603901622858-72d9154fc78f?q=80&w=1000',
+        rating: 4.9,
+        category: 'fleur',
+        description: 'Notes fruitées et douces avec des effets relaxants. Idéale en soirée.',
+        sponsored: true
+      },
+      {
+        id: '2',
+        name: 'Purple Kush',
+        image: 'https://images.unsplash.com/photo-1603576477364-39a7c4e2c983?q=80&w=1000',
+        rating: 4.8,
+        category: 'fleur',
+        description: 'Fleur violacée très parfumée, reconnue pour ses effets anti-stress.',
+        sponsored: false
+      },
+      {
+        id: '3',
+        name: 'Lemon Haze',
+        image: 'https://images.unsplash.com/photo-1456409165996-16eaefdc15ff?q=80&w=1000',
+        rating: 4.7,
+        category: 'fleur',
+        description: 'Goût d\'agrumes prononcé et effet énergisant. Parfaite pour la journée.',
+        sponsored: false
+      },
+      {
+        id: '4',
+        name: 'OG Kush',
+        image: 'https://images.unsplash.com/photo-1603318355936-9162894d479d?q=80&w=1000',
+        rating: 4.7,
+        category: 'fleur',
+        description: 'Classique indémodable avec des arômes terreux et boisés.',
+        sponsored: false
+      },
+      {
+        id: '5',
+        name: 'Cannatonic',
+        image: 'https://images.unsplash.com/photo-1553525553-f373197579bf?q=80&w=1000',
+        rating: 4.6,
+        category: 'fleur',
+        description: 'Forte teneur en CBD et presque pas de THC. Effets médicinaux.',
+        sponsored: false
+      }
+    ]
+  },
+  {
+    id: 'resins',
+    name: 'Meilleures résines CBD',
+    icon: <Hash className="h-5 w-5" />,
+    items: [
+      {
+        id: '1',
+        name: 'Charas Gold',
+        image: 'https://images.unsplash.com/photo-1566733971016-d576678feebf?q=80&w=1000',
+        rating: 4.8,
+        category: 'résine',
+        description: 'Résine artisanale pressée à la main, texture souple et arômes intenses.',
+        sponsored: true
+      },
+      {
+        id: '2',
+        name: 'Moroccan Hash',
+        image: 'https://images.unsplash.com/photo-1563656157432-67560b79e9b9?q=80&w=1000',
+        rating: 4.7,
+        category: 'résine',
+        description: 'Résine traditionnelle aux notes épicées et terreuses. Très relaxante.',
+        sponsored: false
+      },
+      {
+        id: '3',
+        name: 'Afghan Black',
+        image: 'https://images.unsplash.com/photo-1592652426689-4d854bbe0bab?q=80&w=1000',
+        rating: 4.6,
+        category: 'résine',
+        description: 'Résine sombre et compacte, effets médicinaux et puissants.',
+        sponsored: false
+      },
+      {
+        id: '4',
+        name: 'Nepalese Temple Ball',
+        image: 'https://images.unsplash.com/photo-1534705867302-2a41394d2a3b?q=80&w=1000',
+        rating: 4.5,
+        category: 'résine',
+        description: 'Forme ronde traditionnelle, goût doux et sensation de bien-être.',
+        sponsored: false
+      },
+      {
+        id: '5',
+        name: 'Bubble Hash',
+        image: 'https://images.unsplash.com/photo-1586143314812-260c941f8b5b?q=80&w=1000',
+        rating: 4.5,
+        category: 'résine',
+        description: 'Extraction à l\'eau glacée, très pure et riche en terpènes.',
+        sponsored: false
+      }
+    ]
+  },
+  {
+    id: 'oils',
+    name: 'Meilleures huiles CBD',
+    icon: <Star className="h-5 w-5" />,
+    items: [
+      {
+        id: '1',
+        name: 'Full Spectrum 10%',
+        image: 'https://images.unsplash.com/photo-1590510429906-a56ac1f80b58?q=80&w=1000',
+        rating: 4.9,
+        category: 'huile',
+        description: 'Huile complète avec tous les cannabinoïdes. Effet entourage maximal.',
+        sponsored: true
+      },
+      {
+        id: '2',
+        name: 'CBD + CBG Oil',
+        image: 'https://images.unsplash.com/photo-1584728288982-89ab885be0bc?q=80&w=1000',
+        rating: 4.8,
+        category: 'huile',
+        description: 'Combinaison synergique de CBD et CBG. Idéale pour l\'inflammation.',
+        sponsored: false
+      },
+      {
+        id: '3',
+        name: 'CBD MCT Premium',
+        image: 'https://images.unsplash.com/photo-1615493737464-8a4cefb54d3c?q=80&w=1000',
+        rating: 4.7,
+        category: 'huile',
+        description: 'Absorption optimale grâce aux triglycérides à chaîne moyenne.',
+        sponsored: false
+      },
+      {
+        id: '4',
+        name: 'Sleep Formula',
+        image: 'https://images.unsplash.com/photo-1603465396765-6b5fa5180e23?q=80&w=1000',
+        rating: 4.6,
+        category: 'huile',
+        description: 'Enrichie en melatonine et terpènes favorisant le sommeil.',
+        sponsored: false
+      },
+      {
+        id: '5',
+        name: 'Bio Hemp Oil 5%',
+        image: 'https://images.unsplash.com/photo-1593704160339-f2f5991f7fe1?q=80&w=1000',
+        rating: 4.6,
+        category: 'huile',
+        description: 'Issue de chanvre biologique et extraction CO2. Goût naturel.',
+        sponsored: false
+      }
+    ]
+  }
+];
 
+const RankingPage = () => {
+  const [activeTab, setActiveTab] = useState<string>(rankings[0].id);
+  
+  // Render star ratings
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+          <Star 
+            key={i} 
+            className={`h-4 w-4 ${i < Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} 
+          />
+        ))}
+        <span className="ml-2 text-sm font-medium">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+  
+  // Get the current ranking category
+  const currentRanking = rankings.find(r => r.id === activeTab) || rankings[0];
+  
   return (
-    <div className="min-h-screen pb-12">
-      <section className="bg-primary/5 py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              {isNational ? (
-                "Top 10 des boutiques CBD en France"
-              ) : (
-                "Meilleures boutiques CBD près de chez vous"
-              )}
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              Découvrez les meilleures boutiques CBD classées selon les avis clients,
-              la qualité des produits et l'expérience en boutique.
-            </p>
-            
-            <div className="flex flex-col md:flex-row md:items-center justify-center gap-3 mb-4">
-              <Button 
-                variant={isNational ? "default" : "outline"} 
-                className="flex-1 md:flex-none"
-                onClick={() => setIsNational(true)}
-              >
-                <Award className="mr-2 h-4 w-4" />
-                Classement National
-              </Button>
-              <Button 
-                variant={!isNational ? "default" : "outline"} 
-                className="flex-1 md:flex-none"
-                onClick={() => setIsNational(false)}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Classement Local
-              </Button>
-            </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-3">
+            <Trophy className="h-16 w-16 text-amber-400" />
           </div>
+          <h1 className="text-3xl font-bold mb-2">Classement CBD</h1>
+          <p className="text-muted-foreground mb-6">
+            Découvrez les meilleurs produits, boutiques et sites CBD en France
+          </p>
         </div>
-      </section>
-      
-      <section className="py-6 border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="w-full md:w-auto">
-              <div className="relative">
-                <Input
-                  placeholder="Rechercher une boutique..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full md:w-64 pr-10"
-                />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0"
-                    onClick={() => setSearchTerm('')}
-                  >
-                    ✕
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-3 items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm whitespace-nowrap">Trier par:</span>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Choisir un critère" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Note générale</SelectItem>
-                    <SelectItem value="flowers">Fleurs CBD</SelectItem>
-                    <SelectItem value="oils">Huiles CBD</SelectItem>
-                    <SelectItem value="experience">Expérience boutique</SelectItem>
-                    <SelectItem value="originality">Originalité</SelectItem>
-                    <SelectItem value="distance">Distance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtres
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>Options de filtrage</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem className="flex items-center justify-between cursor-default">
-                      <span>Boutiques Premium</span>
-                      <Switch 
-                        checked={filters.onlyPremium} 
-                        onCheckedChange={(v) => handleFilterChange('onlyPremium', v)} 
-                      />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center justify-between cursor-default">
-                      <span>Avec coupons</span>
-                      <Switch 
-                        checked={filters.onlyCoupons} 
-                        onCheckedChange={(v) => handleFilterChange('onlyCoupons', v)} 
-                      />
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Note minimum</DropdownMenuLabel>
-                  <DropdownMenuGroup className="px-2 py-1.5">
-                    <div className="flex items-center gap-2">
-                      {[0, 3, 3.5, 4, 4.5].map((rating) => (
-                        <Button
-                          key={rating}
-                          variant={filters.minRating === rating ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleFilterChange('minRating', rating)}
-                          className="h-8 min-w-8 px-2"
-                        >
-                          {rating > 0 ? rating : 'Tous'}
-                        </Button>
-                      ))}
-                    </div>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start" 
-                      onClick={resetFilters}
-                    >
-                      Réinitialiser les filtres
-                    </Button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="mb-6">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <h2 className="text-xl font-semibold">
-                {displayedStores.length} boutiques trouvées
-              </h2>
-              
-              <div className="flex flex-wrap gap-2 ml-auto">
-                {filters.onlyPremium && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    Premium uniquement
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 p-0"
-                      onClick={() => handleFilterChange('onlyPremium', false)}
-                    >
-                      ✕
-                    </Button>
-                  </Badge>
-                )}
-                
-                {filters.onlyCoupons && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    Avec coupons
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 p-0"
-                      onClick={() => handleFilterChange('onlyCoupons', false)}
-                    >
-                      ✕
-                    </Button>
-                  </Badge>
-                )}
-                
-                {filters.minRating > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    {filters.minRating}+ étoiles
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 p-0"
-                      onClick={() => handleFilterChange('minRating', 0)}
-                    >
-                      ✕
-                    </Button>
-                  </Badge>
-                )}
-                
-                {(filters.onlyPremium || filters.onlyCoupons || filters.minRating > 0) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 px-2 text-xs"
-                    onClick={resetFilters}
-                  >
-                    Effacer tout
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+        
+        <Tabs defaultValue={rankings[0].id} onValueChange={setActiveTab} className="w-full mb-10">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full h-auto">
+            {rankings.map(category => (
+              <TabsTrigger 
+                key={category.id} 
+                value={category.id}
+                className="flex items-center gap-2 py-3"
+              >
+                {category.icon}
+                <span className="hidden md:inline">{category.name}</span>
+                <span className="inline md:hidden">
+                  {category.id === 'stores' ? 'Boutiques' : 
+                   category.id === 'ecommerce' ? 'Sites' : 
+                   category.id === 'flowers' ? 'Fleurs' : 
+                   category.id === 'resins' ? 'Résines' : 'Huiles'}
+                </span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
           
-          {displayedStores.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedStores.map((store, index) => (
-                <div key={store.id} className="relative">
-                  {isNational && index < 3 && (
-                    <div className={`absolute -top-3 -left-3 z-10 w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
-                      index === 0 ? 'bg-yellow-400' : 
-                      index === 1 ? 'bg-gray-300' : 
-                      'bg-amber-700'
-                    }`}>
-                      <span className="font-bold text-white">{index + 1}</span>
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold mb-8 flex items-center">
+              <Trophy className="h-6 w-6 text-amber-400 mr-2" />
+              Top 10 {currentRanking.name}
+            </h2>
+            
+            <div className="space-y-6">
+              {currentRanking.items.map((item, index) => (
+                <Card 
+                  key={item.id} 
+                  className={`overflow-hidden ${item.sponsored ? 'border-2 border-amber-400' : ''}`}
+                >
+                  <div className="md:flex">
+                    <div className="relative md:w-1/5 h-40 md:h-auto">
+                      <span className="absolute top-2 left-2 w-8 h-8 bg-amber-400 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                        {index + 1}
+                      </span>
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  )}
-                  
-                  <div className="h-full">
-                    <StoreCard 
-                      store={store} 
-                      distance={calculateDistance(
-                        userLocation.latitude, 
-                        userLocation.longitude, 
-                        store.latitude, 
-                        store.longitude
-                      )}
-                    />
                     
-                    <div className="mt-3 bg-secondary/50 p-3 rounded-lg">
-                      <RatingBreakdown store={store} activeSortBy={sortBy} />
+                    <div className="flex-1 p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-xl mb-1">{item.name}</CardTitle>
+                          
+                          {(item.location || item.url) && (
+                            <CardDescription className="flex items-center gap-1 mb-2">
+                              {item.location && (
+                                <>
+                                  <Store className="h-3.5 w-3.5" />
+                                  {item.location}
+                                </>
+                              )}
+                              
+                              {item.url && (
+                                <>
+                                  <Globe className="h-3.5 w-3.5 ml-2" />
+                                  <a 
+                                    href={item.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:underline text-primary"
+                                  >
+                                    {item.url.replace(/(^\w+:|^)\/\//, '')}
+                                  </a>
+                                </>
+                              )}
+                            </CardDescription>
+                          )}
+                          
+                          <div className="mb-3">
+                            {renderStars(item.rating)}
+                          </div>
+                        </div>
+                        
+                        {item.sponsored && (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                            Sponsorisé
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {item.description}
+                      </p>
+                      
+                      <div className="flex justify-end">
+                        <Button variant="default" className="gap-2">
+                          {item.category === 'boutique' ? 'Voir la boutique' : 
+                           item.category === 'ecommerce' ? (
+                             <>
+                               Visiter le site <ExternalLink className="h-4 w-4" />
+                             </>
+                           ) : 'Voir le détail'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                Aucune boutique ne correspond aux critères sélectionnés.
-              </p>
-              <Button 
-                className="mt-4" 
-                onClick={resetFilters}
-              >
-                Réinitialiser tous les filtres
-              </Button>
-            </div>
-          )}
+          </div>
+        </Tabs>
+        
+        {/* Sponsorship CTA */}
+        <div className="mt-16 bg-primary/5 rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">
+            Vous souhaitez apparaître dans nos classements ?
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Proposez vos produits ou services pour nos classements et gagnez en visibilité auprès de notre communauté.
+          </p>
+          <Button variant="default" size="lg">
+            Devenir partenaire
+          </Button>
         </div>
-      </section>
+      </div>
     </div>
   );
 };
 
-export default Ranking;
+export default RankingPage;

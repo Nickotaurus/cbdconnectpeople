@@ -1,10 +1,11 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
-import { MessageSquare, Network, Users, Store, Leaf, Briefcase } from 'lucide-react';
-import { PartnerUser } from '@/types/auth';
+import { MessageSquare, Network, Users, Store, Leaf, Briefcase, MapPin, Award, Newspaper, ShoppingBag, MessageCircle, Globe } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ const Index = () => {
       case 'client':
         return (
           <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Bienvenue sur CBDConnectWorld</h1>
+            <h1 className="text-3xl font-bold mb-6">Bienvenue sur CBD Connect People</h1>
             <ClientDashboard />
           </div>
         );
@@ -66,81 +67,117 @@ const Index = () => {
   // Default view for non-authenticated users with prominent profile selection
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="mb-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-14">
           <div className="flex justify-center mb-4">
-            <Network className="h-12 w-12 text-primary" />
+            <Network className="h-16 w-16 text-primary" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Connecter le monde du CBD
+            CBD Connect People
           </h1>
           <p className="text-xl text-muted-foreground">
-            La plateforme qui relie clients, boutiques, producteurs et partenaires de CBD
+            La plateforme qui connecte tous les acteurs de l'écosystème CBD
           </p>
         </div>
         
-        <div className="mb-20">
-          <h2 className="text-2xl font-semibold mb-6">Je suis...</h2>
+        {/* Main Features */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          <FeatureCard 
+            icon={<MapPin className="h-8 w-8 text-primary" />}
+            title="Boutiques"
+            description="Trouvez les boutiques CBD près de chez vous"
+            onClick={() => navigate('/map')}
+          />
+          <FeatureCard 
+            icon={<Globe className="h-8 w-8 text-primary" />}
+            title="E-commerce"
+            description="Découvrez les meilleurs sites CBD"
+            onClick={() => navigate('/e-commerce')}
+          />
+          <FeatureCard 
+            icon={<MessageCircle className="h-8 w-8 text-primary" />}
+            title="Annonces"
+            description="Achetez, vendez et échangez"
+            onClick={() => navigate('/classifieds')}
+          />
+          <FeatureCard 
+            icon={<ShoppingBag className="h-8 w-8 text-primary" />}
+            title="Marketplace"
+            description="Tous les produits CBD"
+            onClick={() => navigate('/marketplace')}
+          />
+        </div>
+        
+        {/* Secondary Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
+              <Award className="h-16 w-16 text-primary opacity-50" />
+            </div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl">Classement CBD</CardTitle>
+              <CardDescription>
+                Top 10 des meilleures boutiques, produits et sites CBD
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/ranking')}>
+                Voir les classements
+              </Button>
+            </CardContent>
+          </Card>
           
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Client Profile Selection */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Users className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-medium mb-3">Un Client</h3>
-              <p className="text-sm text-muted-foreground mb-6 flex-grow">
-                Je cherche des boutiques de CBD, des conseils ou des promotions
-              </p>
-              <Button 
-                size="lg" 
-                className="w-full" 
-                onClick={() => navigate('/onboarding?role=client')}
-              >
-                Espace Client
-              </Button>
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
+              <Newspaper className="h-16 w-16 text-primary opacity-50" />
             </div>
-            
-            {/* Store Profile Selection */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Store className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-medium mb-3">Une Boutique</h3>
-              <p className="text-sm text-muted-foreground mb-6 flex-grow">
-                Je veux référencer ma boutique et attirer de nouveaux clients
-              </p>
-              <Button 
-                size="lg" 
-                className="w-full" 
-                onClick={() => navigate('/onboarding?role=store')}
-              >
-                Espace Boutique
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl">Actualité CBD</CardTitle>
+              <CardDescription>
+                Les dernières nouvelles et tendances du secteur
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/news')}>
+                Lire les actualités
               </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
+              <Briefcase className="h-16 w-16 text-primary opacity-50" />
             </div>
-            
-            {/* Partner Profile Selection */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 transition-all hover:shadow-md hover:scale-105 flex flex-col items-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Briefcase className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-medium mb-3">Un Partenaire</h3>
-              <p className="text-sm text-muted-foreground mb-6 flex-grow">
-                Je propose des services spécialisés aux professionnels du CBD
-              </p>
-              <Button 
-                size="lg" 
-                className="w-full" 
-                onClick={() => navigate('/onboarding?role=partner')}
-              >
-                Espace Partenaire
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl">Partenaires</CardTitle>
+              <CardDescription>
+                Tous les professionnels de l'écosystème CBD
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/partners')}>
+                Voir les partenaires
               </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Registration CTA */}
+        <div className="bg-primary/5 rounded-lg p-8 text-center mb-16">
+          <h2 className="text-2xl font-bold mb-4">
+            Rejoignez la communauté CBD Connect People
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Créez votre compte gratuit et profitez de tous les services de la plateforme.
+            Particuliers, boutiques et partenaires, tout l'écosystème CBD vous attend !
+          </p>
+          <Button size="lg" className="gap-2" onClick={() => navigate('/register')}>
+            Inscription gratuite
+          </Button>
         </div>
         
         {/* Forum section */}
-        <div className="mb-16">
+        <div className="mb-12 text-center">
           <div className="flex items-center justify-center mb-4 gap-2">
             <MessageSquare className="h-6 w-6 text-primary" />
             <h2 className="text-2xl font-bold">Forum Communautaire</h2>
@@ -158,5 +195,28 @@ const Index = () => {
     </div>
   );
 };
+
+// Composant pour les cartes de fonctionnalités
+const FeatureCard = ({ 
+  icon, 
+  title, 
+  description, 
+  onClick 
+}: { 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string;
+
+  onClick: () => void;
+}) => (
+  <div 
+    className="bg-primary/5 rounded-lg p-4 flex flex-col items-center text-center hover:bg-primary/10 transition-colors cursor-pointer"
+    onClick={onClick}
+  >
+    <div className="mb-3">{icon}</div>
+    <h3 className="text-lg font-semibold mb-1">{title}</h3>
+    <p className="text-sm text-muted-foreground">{description}</p>
+  </div>
+);
 
 export default Index;

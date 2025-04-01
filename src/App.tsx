@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,10 +25,13 @@ const AddProducer = lazy(() => import("./pages/AddProducer"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Forum = lazy(() => import("./pages/Forum"));
-const Partners = lazy(() => import("./pages/Partners")); // Nouvelle page
+const Partners = lazy(() => import("./pages/Partners"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
+const ClassifiedsPage = lazy(() => import("./pages/ClassifiedsPage"));
+const EcommercePage = lazy(() => import("./pages/EcommercePage"));
+const NewsPage = lazy(() => import("./pages/NewsPage"));
 
 const queryClient = new QueryClient();
 
@@ -60,6 +64,9 @@ const App = () => (
                   <Route path="/partners" element={<Partners />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/marketplace" element={<MarketplacePage />} />
+                  <Route path="/classifieds" element={<ClassifiedsPage />} />
+                  <Route path="/e-commerce" element={<EcommercePage />} />
+                  <Route path="/news" element={<NewsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

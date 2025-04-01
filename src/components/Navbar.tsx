@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network, Briefcase } from 'lucide-react';
+import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network, Briefcase, ShoppingBag, Globe, Newspaper, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -32,11 +32,13 @@ const Navbar = () => {
   // Liens communs à tous les utilisateurs
   const commonLinks = [
     { href: '/', label: 'Accueil', icon: Home },
-    { href: '/map', label: 'Carte', icon: MapPin },
-    { href: '/ranking', label: 'Classement', icon: Award },
-    { href: '/guide', label: 'Guide CBD', icon: MessageSquare },
-    { href: '/forum', label: 'Forum', icon: MessageSquare },
-    { href: '/partners', label: 'Partenaires', icon: Briefcase },
+    { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
+    { href: '/map', label: 'Boutiques CBD', icon: MapPin },
+    { href: '/e-commerce', label: 'Sites CBD', icon: Globe },
+    { href: '/partners', label: 'Partenaires CBD', icon: Briefcase },
+    { href: '/ranking', label: 'Classement CBD', icon: Award },
+    { href: '/news', label: 'Actualité CBD', icon: Newspaper },
+    { href: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
   ];
   
   // Liens supplémentaires selon le rôle
@@ -63,7 +65,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center space-x-2">
             <Network className="h-6 w-6 text-primary" />
-            <span className="font-bold">CBDConnectWorld</span>
+            <span className="font-bold">CBD Connect People</span>
           </Link>
         </div>
         
@@ -138,10 +140,9 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">
-                <User className="h-4 w-4 mr-2" />
-                Connexion
+            <Button variant="default" size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link to="/register">
+                Inscription gratuite
               </Link>
             </Button>
           )}
@@ -159,7 +160,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
                     <Network className="h-6 w-6 text-primary" />
-                    <span className="font-bold">CBDConnectWorld</span>
+                    <span className="font-bold">CBD Connect People</span>
                   </Link>
                   <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
                     <X className="h-6 w-6" />
@@ -191,13 +192,13 @@ const Navbar = () => {
                   {!user && (
                     <div className="mt-4 flex flex-col gap-2">
                       <Button asChild>
-                        <Link to="/login" onClick={() => setIsSheetOpen(false)}>
-                          Se connecter
+                        <Link to="/register" onClick={() => setIsSheetOpen(false)}>
+                          Inscription gratuite
                         </Link>
                       </Button>
                       <Button variant="outline" asChild>
-                        <Link to="/register" onClick={() => setIsSheetOpen(false)}>
-                          S'inscrire
+                        <Link to="/login" onClick={() => setIsSheetOpen(false)}>
+                          Se connecter
                         </Link>
                       </Button>
                     </div>
