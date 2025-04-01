@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
-import { MessageSquare, Network, Users, Store, Leaf, Briefcase, MapPin, Award, Newspaper, ShoppingBag, MessageCircle, Globe } from 'lucide-react';
+import { Users, Store, Briefcase, MapPin, Award, Newspaper, MessageCircle, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
@@ -70,17 +70,48 @@ const Index = () => {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-14">
           <div className="flex justify-center mb-4">
-            <Network className="h-16 w-16 text-primary" />
+            <Store className="h-16 w-16 text-primary" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             CBD Connect People
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground mb-10">
             La plateforme qui connecte tous les acteurs de l'écosystème CBD
           </p>
         </div>
         
-        {/* Main Features */}
+        {/* 3 profils principaux */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <ProfileCard 
+            icon={<Users className="h-12 w-12 text-primary" />}
+            title="Je suis un Client"
+            description="Trouvez facilement des boutiques physiques, des sites e-commerce et des professionnels du CBD"
+            primaryAction={() => navigate('/map')}
+            primaryLabel="Trouver une boutique"
+            secondaryAction={() => navigate('/partners')}
+            secondaryLabel="Trouver un professionnel"
+          />
+          
+          <ProfileCard 
+            icon={<Store className="h-12 w-12 text-primary" />}
+            title="Je suis une Boutique"
+            description="Référencez gratuitement votre boutique physique ou inscrivez votre site e-commerce pour gagner en visibilité"
+            primaryAction={() => navigate('/register?role=store')}
+            primaryLabel="Référencer ma boutique"
+            banner="Gratuit pour les boutiques physiques"
+          />
+          
+          <ProfileCard 
+            icon={<Briefcase className="h-12 w-12 text-primary" />}
+            title="Je suis un Partenaire"
+            description="Proposez vos services et connectez-vous avec les acteurs du CBD"
+            primaryAction={() => navigate('/register?role=partner')}
+            primaryLabel="Devenir partenaire"
+            banner="Avocats, comptables, banques, assurances..."
+          />
+        </div>
+        
+        {/* Services principaux */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
           <FeatureCard 
             icon={<MapPin className="h-8 w-8 text-primary" />}
@@ -101,100 +132,88 @@ const Index = () => {
             onClick={() => navigate('/classifieds')}
           />
           <FeatureCard 
-            icon={<ShoppingBag className="h-8 w-8 text-primary" />}
-            title="Marketplace"
-            description="Tous les produits CBD"
-            onClick={() => navigate('/marketplace')}
+            icon={<Award className="h-8 w-8 text-primary" />}
+            title="Classements"
+            description="Top boutiques et produits"
+            onClick={() => navigate('/ranking')}
           />
         </div>
         
-        {/* Secondary Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
-              <Award className="h-16 w-16 text-primary opacity-50" />
-            </div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Classement CBD</CardTitle>
-              <CardDescription>
-                Top 10 des meilleures boutiques, produits et sites CBD
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate('/ranking')}>
-                Voir les classements
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
-              <Newspaper className="h-16 w-16 text-primary opacity-50" />
-            </div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Actualité CBD</CardTitle>
-              <CardDescription>
-                Les dernières nouvelles et tendances du secteur
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate('/news')}>
-                Lire les actualités
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-40 overflow-hidden bg-primary/5 flex items-center justify-center">
-              <Briefcase className="h-16 w-16 text-primary opacity-50" />
-            </div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">Partenaires</CardTitle>
-              <CardDescription>
-                Tous les professionnels de l'écosystème CBD
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate('/partners')}>
-                Voir les partenaires
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Registration CTA */}
-        <div className="bg-primary/5 rounded-lg p-8 text-center mb-16">
-          <h2 className="text-2xl font-bold mb-4">
-            Rejoignez la communauté CBD Connect People
-          </h2>
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Créez votre compte gratuit et profitez de tous les services de la plateforme.
-            Particuliers, boutiques et partenaires, tout l'écosystème CBD vous attend !
-          </p>
-          <Button size="lg" className="gap-2" onClick={() => navigate('/register')}>
-            Inscription gratuite
-          </Button>
-        </div>
-        
-        {/* Forum section */}
+        {/* Actualités */}
         <div className="mb-12 text-center">
           <div className="flex items-center justify-center mb-4 gap-2">
-            <MessageSquare className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-bold">Forum Communautaire</h2>
+            <Newspaper className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Actualités du CBD</h2>
           </div>
           <p className="text-muted-foreground mb-6">
-            Rejoignez notre communauté active de passionnés de CBD. Posez vos questions,
-            partagez vos expériences et découvrez les dernières actualités.
+            Restez informé des dernières actualités et tendances du monde du CBD
           </p>
-          <Button variant="outline" onClick={() => navigate('/forum')}>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Accéder au forum
+          <Button variant="outline" onClick={() => navigate('/news')}>
+            <Newspaper className="h-4 w-4 mr-2" />
+            Voir les actualités
           </Button>
         </div>
       </div>
     </div>
   );
 };
+
+// Composant pour les cartes de profil
+const ProfileCard = ({ 
+  icon, 
+  title, 
+  description,
+  primaryAction,
+  primaryLabel,
+  secondaryAction,
+  secondaryLabel,
+  banner
+}: { 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string;
+  primaryAction: () => void;
+  primaryLabel: string;
+  secondaryAction?: () => void;
+  secondaryLabel?: string;
+  banner?: string;
+}) => (
+  <Card className="flex flex-col h-full">
+    <CardHeader className="pb-3">
+      <div className="flex justify-center mb-3">
+        {icon}
+      </div>
+      <CardTitle className="text-xl text-center">{title}</CardTitle>
+      {banner && (
+        <div className="mt-2 bg-primary/10 text-primary text-sm py-1 px-2 rounded-md text-center">
+          {banner}
+        </div>
+      )}
+    </CardHeader>
+    <CardContent className="flex-grow">
+      <CardDescription className="text-center mb-6">
+        {description}
+      </CardDescription>
+      <div className="flex flex-col gap-2 mt-auto">
+        <Button 
+          className="w-full" 
+          onClick={primaryAction}
+        >
+          {primaryLabel}
+        </Button>
+        {secondaryAction && secondaryLabel && (
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={secondaryAction}
+          >
+            {secondaryLabel}
+          </Button>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 // Composant pour les cartes de fonctionnalités
 const FeatureCard = ({ 
@@ -206,7 +225,6 @@ const FeatureCard = ({
   icon: React.ReactNode; 
   title: string; 
   description: string;
-
   onClick: () => void;
 }) => (
   <div 

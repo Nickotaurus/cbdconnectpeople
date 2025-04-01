@@ -24,11 +24,9 @@ const ProducerProfile = lazy(() => import("./pages/ProducerProfile"));
 const AddProducer = lazy(() => import("./pages/AddProducer"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const Forum = lazy(() => import("./pages/Forum"));
 const Partners = lazy(() => import("./pages/Partners"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
-const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
 const ClassifiedsPage = lazy(() => import("./pages/ClassifiedsPage"));
 const EcommercePage = lazy(() => import("./pages/EcommercePage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
@@ -60,10 +58,8 @@ const App = () => (
                   <Route path="/add-producer" element={<AddProducer />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  <Route path="/forum" element={<Forum />} />
                   <Route path="/partners" element={<Partners />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
-                  <Route path="/marketplace" element={<MarketplacePage />} />
                   <Route path="/classifieds" element={<ClassifiedsPage />} />
                   <Route path="/e-commerce" element={<EcommercePage />} />
                   <Route path="/news" element={<NewsPage />} />

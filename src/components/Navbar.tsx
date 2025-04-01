@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, Home, User, Leaf, LogOut, MessageSquare, Network, Briefcase, ShoppingBag, Globe, Newspaper, MessageCircle } from 'lucide-react';
+import { Menu, X, Award, MapPin, User, Leaf, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -31,14 +31,12 @@ const Navbar = () => {
   
   // Liens communs à tous les utilisateurs
   const commonLinks = [
-    { href: '/', label: 'Accueil', icon: Home },
     { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
     { href: '/map', label: 'Boutiques CBD', icon: MapPin },
     { href: '/e-commerce', label: 'Sites CBD', icon: Globe },
     { href: '/partners', label: 'Partenaires CBD', icon: Briefcase },
     { href: '/ranking', label: 'Classement CBD', icon: Award },
     { href: '/news', label: 'Actualité CBD', icon: Newspaper },
-    { href: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
   ];
   
   // Liens supplémentaires selon le rôle
@@ -142,7 +140,7 @@ const Navbar = () => {
           ) : (
             <Button variant="default" size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Link to="/register">
-                Inscription gratuite
+                Référencer ma boutique
               </Link>
             </Button>
           )}
@@ -193,7 +191,7 @@ const Navbar = () => {
                     <div className="mt-4 flex flex-col gap-2">
                       <Button asChild>
                         <Link to="/register" onClick={() => setIsSheetOpen(false)}>
-                          Inscription gratuite
+                          Référencer ma boutique
                         </Link>
                       </Button>
                       <Button variant="outline" asChild>
