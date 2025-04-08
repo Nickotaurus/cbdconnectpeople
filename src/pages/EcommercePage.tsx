@@ -147,28 +147,47 @@ const EcommercePage = () => {
     );
   };
   
-  const subscriptionBenefits = {
-    essential: [
-      "Backlink de qualité renvoyant vers votre site",
-      "Visibilité accrue dans notre annuaire de sites CBD",
-      "Possibilité de faire gagner vos produits à la loterie du CBD",
-      "Accès au carnet d'adresses B2B avec coordonnées et contacts",
-      "Augmentez vos avis Google grâce au jeu CBD Quest"
-    ],
-    premium: [
-      "Tous les avantages de l'offre Visibilité Essentielle",
-      "Affichage prioritaire dans les résultats de recherche",
-      "Accès aux demandes de contacts directs",
-      "Accès au catalogue d'envoi d'offres spéciales aux clients",
-      "Un article sponsorisé avec lien retour vers votre site"
-    ]
-  };
+  const subscriptionOffers = [
+    {
+      id: 'essential',
+      title: 'Visibilité Essentielle',
+      description: 'Démarrez votre présence en ligne avec des avantages clés',
+      prices: {
+        oneYear: 50,
+        twoYears: 90,
+        savings: 10
+      },
+      benefits: [
+        'Backlink de qualité renvoyant vers votre société',
+        'Visibilité accrue avec la possibilité de faire gagner vos produits/services à la loterie du CBD',
+        'Accès au carnet d\'adresses B2B avec coordonnées et contacts',
+        'Récupérez plus d\'avis Google grâce au jeu CBD Quest'
+      ]
+    },
+    {
+      id: 'premium',
+      title: 'Visibilité Premium',
+      description: 'Maximisez votre impact et votre visibilité',
+      prices: {
+        oneYear: 100,
+        twoYears: 180,
+        savings: 20
+      },
+      benefits: [
+        'Tous les avantages de l\'offre Visibilité Essentielle',
+        'Affichage prioritaire dans la recherche',
+        'Accès aux demandes de contacts directs',
+        'Accès au catalogue d\'envoi d\'offres spéciales vers clients/boutiques',
+        'Un article sponsorisé avec lien retour vers votre site'
+      ]
+    }
+  ];
   
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold mb-2">Sites E-commerce CBD</h1>
+          <h1 className="text-3xl font-bold mb-2">Boutiques E-commerce CBD</h1>
           <p className="text-muted-foreground mb-6">
             Trouvez les meilleurs sites de vente en ligne de produits CBD
           </p>
@@ -211,251 +230,157 @@ const EcommercePage = () => {
             <h2 className="text-2xl font-bold mb-6">Référencez votre site e-commerce CBD</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <Card className="border border-primary/20 overflow-hidden">
-                <div className="bg-primary/10 px-6 py-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold">Visibilité Essentielle</h3>
-                    <p className="text-sm text-muted-foreground">Pour démarrer votre présence en ligne</p>
-                  </div>
-                  <LinkIcon className="h-8 w-8 text-primary" />
-                </div>
-                
-                <CardContent className="pt-6">
-                  <div className="flex justify-between mb-6">
-                    <div className="text-center px-4 py-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-medium">1 An</p>
-                      <p className="text-2xl font-bold">50€</p>
-                    </div>
-                    
-                    <div className="text-center px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg relative overflow-hidden">
-                      <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
-                        -10%
-                      </div>
-                      <p className="text-sm font-medium">2 Ans</p>
-                      <p className="text-2xl font-bold">90€</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Ce que vous obtenez :</h4>
-                    <ul className="space-y-2">
-                      {subscriptionBenefits.essential.map((benefit, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <div className="mt-1">
-                            <Check className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
-                      <p className="text-sm">
-                        <strong>Pourquoi choisir 2 ans ? </strong>
-                        Économisez 10€ et assurez une visibilit�� prolongée pour votre e-commerce.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-                
-                <CardFooter className="pt-4">
-                  <Button 
-                    className="w-full gap-2" 
-                    onClick={() => navigate('/e-commerce/subscription')}
-                  >
-                    Sélectionner cette offre
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card className="border-2 border-primary overflow-hidden relative">
-                <Badge className="absolute top-4 right-4 bg-primary">Recommandé</Badge>
-                
-                <div className="bg-primary/20 px-6 py-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold">Visibilité Premium</h3>
-                    <p className="text-sm text-muted-foreground">Pour maximiser votre impact</p>
-                  </div>
-                  <Award className="h-8 w-8 text-primary" />
-                </div>
-                
-                <CardContent className="pt-6">
-                  <div className="flex justify-between mb-6">
-                    <div className="text-center px-4 py-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-medium">1 An</p>
-                      <p className="text-2xl font-bold">100€</p>
-                    </div>
-                    
-                    <div className="text-center px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg relative overflow-hidden">
-                      <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
-                        -10%
-                      </div>
-                      <p className="text-sm font-medium">2 Ans</p>
-                      <p className="text-2xl font-bold">180€</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Tous les avantages, et plus :</h4>
-                    <ul className="space-y-2">
-                      {subscriptionBenefits.premium.map((benefit, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <div className="mt-1">
-                            <Check className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
-                      <p className="text-sm">
-                        <strong>Pourquoi choisir 2 ans ? </strong>
-                        Économisez 20€ et assurez une visibilité premium constante avec un engagement à long terme.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-                
-                <CardFooter className="pt-4">
-                  <Button 
-                    className="w-full gap-2" 
-                    onClick={() => navigate('/e-commerce/subscription')}
-                    variant="default"
-                  >
-                    Sélectionner cette offre
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-            
-            <div className="text-center max-w-2xl mx-auto">
-              <h3 className="text-xl font-bold mb-4">
-                Pourquoi référencer votre site e-commerce CBD ?
-              </h3>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <div className="rounded-full bg-primary/10 w-10 h-10 flex items-center justify-center mx-auto mb-3">
-                    <Star className="h-5 w-5 text-primary" />
-                  </div>
-                  <h4 className="font-medium text-sm mb-1">Visibilité ciblée</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Touchez une audience qualifiée intéressée par le CBD
-                  </p>
-                </div>
-                
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <div className="rounded-full bg-primary/10 w-10 h-10 flex items-center justify-center mx-auto mb-3">
-                    <LinkIcon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h4 className="font-medium text-sm mb-1">Backlink de qualité</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Améliorez votre référencement naturel
-                  </p>
-                </div>
-                
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <div className="rounded-full bg-primary/10 w-10 h-10 flex items-center justify-center mx-auto mb-3">
-                    <ExternalLink className="h-5 w-5 text-primary" />
-                  </div>
-                  <h4 className="font-medium text-sm mb-1">Trafic qualifié</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Augmentez vos conversions avec un trafic ciblé
-                  </p>
-                </div>
-              </div>
-              
-              <Button onClick={() => navigate('/e-commerce/subscription')} size="lg" className="gap-2">
-                Voir tous les détails et souscrire
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStores.map(store => (
-            <Card key={store.id} className={`overflow-hidden ${store.isPremium ? 'border-2 border-primary' : ''}`}>
-              <div className="h-24 flex items-center justify-center p-4 bg-secondary/30">
-                <img 
-                  src={store.logo} 
-                  alt={store.name} 
-                  className="max-h-full max-w-full object-contain"
-                />
-              </div>
-              
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{store.name}</CardTitle>
-                  {store.isPremium && (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                      Premium
-                    </Badge>
+              {subscriptionOffers.map(offer => (
+                <Card 
+                  key={offer.id} 
+                  className={`border ${offer.id === 'premium' ? 'border-2 border-primary' : 'border-primary/20'} overflow-hidden`}
+                >
+                  {offer.id === 'premium' && (
+                    <Badge className="absolute top-4 right-4 bg-primary">Recommandé</Badge>
                   )}
-                </div>
-                <CardDescription className="flex items-center">
-                  <Globe className="h-3.5 w-3.5 mr-1" />
-                  <a 
-                    href={store.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:underline text-primary"
-                  >
-                    {store.url.replace(/(^\w+:|^)\/\//, '')}
-                  </a>
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="pb-2">
-                <div className="mb-3">
-                  {renderStars(store.rating)}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {store.reviewCount} avis clients
-                  </p>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {store.description}
-                </p>
-                
-                <div className="mb-3">
-                  <h4 className="text-xs font-medium mb-1">Spécialités:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {store.specialties.map(specialty => (
-                      <Badge key={specialty} variant="outline" className="text-xs">
-                        {specialty}
-                      </Badge>
-                    ))}
+                  
+                  <div className={`px-6 py-4 flex items-center justify-between ${offer.id === 'premium' ? 'bg-primary/20' : 'bg-primary/10'}`}>
+                    <div>
+                      <h3 className="text-xl font-bold">{offer.title}</h3>
+                      <p className="text-sm text-muted-foreground">{offer.description}</p>
+                    </div>
+                    <Award className="h-8 w-8 text-primary" />
                   </div>
+                  
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between mb-6">
+                      <div className="text-center px-4 py-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">1 An</p>
+                        <p className="text-2xl font-bold">{offer.prices.oneYear}€</p>
+                      </div>
+                      
+                      <div className="text-center px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg relative overflow-hidden">
+                        <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
+                          -{offer.prices.savings}€
+                        </div>
+                        <p className="text-sm font-medium">2 Ans</p>
+                        <p className="text-2xl font-bold">{offer.prices.twoYears}€</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Ce que vous obtenez :</h4>
+                      <ul className="space-y-2">
+                        {offer.benefits.map((benefit, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <div className="mt-1">
+                              <Check className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="text-sm">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
+                        <p className="text-sm">
+                          <strong>Pourquoi choisir 2 ans ? </strong>
+                          Économisez {offer.prices.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="pt-4">
+                    <Button 
+                      className="w-full gap-2" 
+                      variant={offer.id === 'premium' ? 'default' : 'secondary'}
+                      onClick={() => navigate('/e-commerce/subscription', { state: { offer: offer.id } })}
+                    >
+                      Sélectionner cette offre
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStores.map(store => (
+              <Card key={store.id} className={`overflow-hidden ${store.isPremium ? 'border-2 border-primary' : ''}`}>
+                <div className="h-24 flex items-center justify-center p-4 bg-secondary/30">
+                  <img 
+                    src={store.logo} 
+                    alt={store.name} 
+                    className="max-h-full max-w-full object-contain"
+                  />
                 </div>
                 
-                <div>
-                  <h4 className="text-xs font-medium mb-1">Livraison:</h4>
-                  <p className="text-xs text-muted-foreground">
-                    {store.shippingCountries.join(', ')}
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{store.name}</CardTitle>
+                    {store.isPremium && (
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="flex items-center">
+                    <Globe className="h-3.5 w-3.5 mr-1" />
+                    <a 
+                      href={store.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:underline text-primary"
+                    >
+                      {store.url.replace(/(^\w+:|^)\/\//, '')}
+                    </a>
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="pb-2">
+                  <div className="mb-3">
+                    {renderStars(store.rating)}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {store.reviewCount} avis clients
+                    </p>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {store.description}
                   </p>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="pt-2">
-                <Button className="w-full gap-2" asChild>
-                  <a href={store.url} target="_blank" rel="noopener noreferrer">
-                    Visiter le site <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-        
-        {filteredStores.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Aucun site e-commerce ne correspond à votre recherche.</p>
+                  
+                  <div className="mb-3">
+                    <h4 className="text-xs font-medium mb-1">Spécialités:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {store.specialties.map(specialty => (
+                        <Badge key={specialty} variant="outline" className="text-xs">
+                          {specialty}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-xs font-medium mb-1">Livraison:</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {store.shippingCountries.join(', ')}
+                    </p>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-2">
+                  <Button className="w-full gap-2" asChild>
+                    <a href={store.url} target="_blank" rel="noopener noreferrer">
+                      Visiter le site <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
-        )}
+          
+          {filteredStores.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Aucun site e-commerce ne correspond à votre recherche.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
