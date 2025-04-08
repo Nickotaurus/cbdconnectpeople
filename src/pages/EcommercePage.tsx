@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Filter, Search, Globe, ExternalLink, Check, Star, Link as LinkIcon } from 'lucide-react';
+import { Filter, Search, Globe, ExternalLink, Check, Star, Link as LinkIcon, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Ecommerce {
   id: string;
@@ -22,7 +22,6 @@ interface Ecommerce {
   shippingCountries: string[];
 }
 
-// Mock data for e-commerce websites
 const mockEcommerces: Ecommerce[] = [
   {
     id: "ec1",
@@ -97,11 +96,9 @@ const EcommercePage = () => {
   const [filterSpecialty, setFilterSpecialty] = useState<string | null>(null);
   const [filteredStores, setFilteredStores] = useState(mockEcommerces);
   
-  // Filter stores based on search term and specialty
   const filterStores = (term: string, specialty: string | null) => {
     let result = [...mockEcommerces];
     
-    // Apply search filter
     if (term.trim()) {
       const lowerTerm = term.toLowerCase();
       result = result.filter(
@@ -111,7 +108,6 @@ const EcommercePage = () => {
       );
     }
     
-    // Apply specialty filter
     if (specialty) {
       result = result.filter(store => 
         store.specialties.some(s => s.toLowerCase() === specialty.toLowerCase())
@@ -132,12 +128,10 @@ const EcommercePage = () => {
     filterStores(searchTerm, specialty);
   };
   
-  // Get all unique specialties from all stores
   const allSpecialties = Array.from(
     new Set(mockEcommerces.flatMap(store => store.specialties))
   ).sort();
   
-  // Utility to render star ratings
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">
@@ -195,20 +189,25 @@ const EcommercePage = () => {
             </DropdownMenu>
           </div>
           
-          {/* Encart de référencement pour les e-commerçants */}
           <div className="bg-primary/5 rounded-lg p-6 mb-10 max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold mb-4">Référencez votre site e-commerce CBD</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="flex flex-col items-center bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-2">30€</h3>
-                <p className="text-lg font-medium mb-1">Pour 1 an</p>
-                <p className="text-sm text-muted-foreground text-center">Référencement de votre site e-commerce</p>
+                <h3 className="text-xl font-semibold mb-2">Offre 1</h3>
+                <p className="text-lg font-medium mb-1">Visibilité Essentielle</p>
+                <div className="flex flex-col gap-1 mt-2 text-center">
+                  <p className="text-sm"><strong>1 an : 50€</strong></p>
+                  <p className="text-sm"><strong>2 ans : 90€</strong></p>
+                </div>
               </div>
               
               <div className="flex flex-col items-center bg-white p-4 rounded-lg shadow-sm border-2 border-primary">
-                <h3 className="text-xl font-semibold mb-2">50€</h3>
-                <p className="text-lg font-medium mb-1">Pour 2 ans</p>
-                <p className="text-sm text-muted-foreground text-center">Référencement + tous les avantages</p>
+                <h3 className="text-xl font-semibold mb-2">Offre 2</h3>
+                <p className="text-lg font-medium mb-1">Visibilité Premium</p>
+                <div className="flex flex-col gap-1 mt-2 text-center">
+                  <p className="text-sm"><strong>1 an : 100€</strong></p>
+                  <p className="text-sm"><strong>2 ans : 180€</strong></p>
+                </div>
                 <Badge className="mt-2 bg-primary text-white">Meilleure offre</Badge>
               </div>
             </div>
@@ -256,9 +255,12 @@ const EcommercePage = () => {
               </div>
             </div>
             
-            <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/register?role=store&type=ecommerce'}>
-              Référencer mon site e-commerce
-            </Button>
+            <Link to="/e-commerce/subscription">
+              <Button className="w-full sm:w-auto gap-2">
+                Découvrir les détails de nos offres
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
         

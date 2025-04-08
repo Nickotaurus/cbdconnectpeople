@@ -30,6 +30,7 @@ const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const ClassifiedsPage = lazy(() => import("./pages/ClassifiedsPage"));
 const EcommercePage = lazy(() => import("./pages/EcommercePage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
+const EcommerceSubscriptionPage = lazy(() => import("./pages/EcommerceSubscriptionPage"));
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/classifieds" element={<ClassifiedsPage />} />
                   <Route path="/e-commerce" element={<EcommercePage />} />
+                  <Route path="/e-commerce/subscription" element={<EcommerceSubscriptionPage />} />
                   <Route path="/news" element={<NewsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
