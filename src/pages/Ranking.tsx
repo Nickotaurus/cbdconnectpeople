@@ -335,24 +335,26 @@ const RankingPage = () => {
         </div>
         
         <Tabs defaultValue={rankings[0].id} onValueChange={setActiveTab} className="w-full mb-10">
-          <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full h-auto">
-            {rankings.map(category => (
-              <TabsTrigger 
-                key={category.id} 
-                value={category.id}
-                className="flex items-center gap-2 py-3"
-              >
-                {category.icon}
-                <span className="hidden md:inline">{category.name}</span>
-                <span className="inline md:hidden">
-                  {category.id === 'stores' ? 'Boutiques' : 
-                   category.id === 'ecommerce' ? 'Sites' : 
-                   category.id === 'flowers' ? 'Fleurs' : 
-                   category.id === 'resins' ? 'Résines' : 'Huiles'}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="flex min-w-max w-full md:grid md:grid-cols-5 h-auto">
+              {rankings.map(category => (
+                <TabsTrigger 
+                  key={category.id} 
+                  value={category.id}
+                  className="flex items-center gap-2 py-3 whitespace-nowrap"
+                >
+                  {category.icon}
+                  <span className="hidden md:inline">{category.name}</span>
+                  <span className="inline md:hidden">
+                    {category.id === 'stores' ? 'Boutiques' : 
+                     category.id === 'ecommerce' ? 'Sites' : 
+                     category.id === 'flowers' ? 'Fleurs' : 
+                     category.id === 'resins' ? 'Résines' : 'Huiles'}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
           
           <div className="mt-10">
             <h2 className="text-2xl font-bold mb-8 flex items-center">
