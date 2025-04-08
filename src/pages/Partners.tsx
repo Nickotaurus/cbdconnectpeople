@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag, Award, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -382,7 +381,6 @@ const Partners = () => {
           </div>
         </div>
         
-        <BecomePartnerCTA />
       </div>
     </div>
   );
