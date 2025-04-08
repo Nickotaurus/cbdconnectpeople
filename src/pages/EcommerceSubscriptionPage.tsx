@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ const EcommerceSubscriptionPage = () => {
         "Affichage prioritaire dans la recherche",
         "Accès aux demandes de contacts directs",
         "Accès au catalogue d'envoi d'offres spéciales vers clients/boutiques",
-        "Un article sponsorisé avec lien retour vers votre site"
+        "Possibilité de publier un article sponsorisé avec lien retour vers votre site"
       ],
       icon: <Award className="h-8 w-8 text-primary" />
     }
@@ -212,7 +213,7 @@ const EcommerceSubscriptionPage = () => {
                     onClick={() => setSelectedDurations(prev => ({...prev, [offer.id]: "2"}))}
                   >
                     <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
-                      -{offer.prices.savings}€
+                      -{offer.savings}€
                     </div>
                     <p className="font-medium">2 Ans</p>
                     <p className="text-lg font-bold mt-1">{offer.prices.biennial}€</p>
@@ -238,7 +239,7 @@ const EcommerceSubscriptionPage = () => {
                   <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
                     <p className="text-sm">
                       <strong>Pourquoi choisir 2 ans ? </strong>
-                      Économisez {offer.prices.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
+                      Économisez {offer.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
                     </p>
                   </div>
                 </div>
