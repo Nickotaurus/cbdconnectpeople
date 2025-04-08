@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +5,70 @@ import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
 import { Users, Store, Briefcase, MapPin, Award, Newspaper, MessageCircle, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const ProfileCard = ({ 
+  icon, 
+  title, 
+  description,
+  primaryAction,
+  primaryLabel,
+  secondaryAction,
+  secondaryLabel,
+  banner
+}: { 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string | string[];
+  primaryAction: () => void;
+  primaryLabel: string;
+  secondaryAction?: () => void;
+  secondaryLabel?: string;
+  banner?: string;
+}) => (
+  <Card className="flex flex-col h-full">
+    <CardHeader className="pb-3">
+      <div className="flex justify-center mb-3">
+        {icon}
+      </div>
+      <CardTitle className="text-xl text-center">{title}</CardTitle>
+      {banner && (
+        <div className="mt-2 bg-primary/10 text-primary text-sm py-1 px-2 rounded-md text-center">
+          {banner}
+        </div>
+      )}
+    </CardHeader>
+    <CardContent className="flex-grow">
+      <CardDescription className="text-center mb-6">
+        {Array.isArray(description) ? (
+          <ul className="list-disc list-inside text-left space-y-2">
+            {description.map((point, index) => (
+              <li key={index}>{point}</li>
+            ))}
+          </ul>
+        ) : (
+          description
+        )}
+      </CardDescription>
+      <div className="flex flex-col gap-2 mt-auto">
+        <Button 
+          className="w-full" 
+          onClick={primaryAction}
+        >
+          {primaryLabel}
+        </Button>
+        {secondaryAction && secondaryLabel && (
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={secondaryAction}
+          >
+            {secondaryLabel}
+          </Button>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Index = () => {
   const { user } = useAuth();
@@ -80,7 +143,11 @@ const Index = () => {
           <ProfileCard 
             icon={<Users className="h-12 w-12 text-primary" />}
             title="Je suis un Client"
-            description={"Trouves facilement un cbd shop, gardes en mémoire tes boutiques et produits cbd préférés et débloques des codes promo exclusifs en jouant au jeu \"CBD Quest\" !"}
+            description={[
+              "Trouves facilement un cbd shop",
+              "Gardes en mémoire tes boutiques et produits CBD préférés",
+              "Débloque des codes promo exclusifs en jouant au jeu \"CBD Quest\" !"
+            ]}
             primaryAction={() => navigate('/map')}
             primaryLabel="Trouver une boutique"
           />
@@ -148,62 +215,6 @@ const Index = () => {
     </div>
   );
 };
-
-const ProfileCard = ({ 
-  icon, 
-  title, 
-  description,
-  primaryAction,
-  primaryLabel,
-  secondaryAction,
-  secondaryLabel,
-  banner
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-  primaryAction: () => void;
-  primaryLabel: string;
-  secondaryAction?: () => void;
-  secondaryLabel?: string;
-  banner?: string;
-}) => (
-  <Card className="flex flex-col h-full">
-    <CardHeader className="pb-3">
-      <div className="flex justify-center mb-3">
-        {icon}
-      </div>
-      <CardTitle className="text-xl text-center">{title}</CardTitle>
-      {banner && (
-        <div className="mt-2 bg-primary/10 text-primary text-sm py-1 px-2 rounded-md text-center">
-          {banner}
-        </div>
-      )}
-    </CardHeader>
-    <CardContent className="flex-grow">
-      <CardDescription className="text-center mb-6">
-        {description}
-      </CardDescription>
-      <div className="flex flex-col gap-2 mt-auto">
-        <Button 
-          className="w-full" 
-          onClick={primaryAction}
-        >
-          {primaryLabel}
-        </Button>
-        {secondaryAction && secondaryLabel && (
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={secondaryAction}
-          >
-            {secondaryLabel}
-          </Button>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-);
 
 const FeatureCard = ({ 
   icon, 
