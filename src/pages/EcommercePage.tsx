@@ -225,82 +225,8 @@ const EcommercePage = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
-          <div className="bg-primary/5 rounded-lg p-6 mb-10">
-            <h2 className="text-2xl font-bold mb-6">Référencez votre site e-commerce CBD</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {subscriptionOffers.map(offer => (
-                <Card 
-                  key={offer.id} 
-                  className={`border ${offer.id === 'premium' ? 'border-2 border-primary' : 'border-primary/20'} overflow-hidden`}
-                >
-                  {offer.id === 'premium' && (
-                    <Badge className="absolute top-4 right-4 bg-primary">Recommandé</Badge>
-                  )}
-                  
-                  <div className={`px-6 py-4 flex items-center justify-between ${offer.id === 'premium' ? 'bg-primary/20' : 'bg-primary/10'}`}>
-                    <div>
-                      <h3 className="text-xl font-bold">{offer.title}</h3>
-                      <p className="text-sm text-muted-foreground">{offer.description}</p>
-                    </div>
-                    <Award className="h-8 w-8 text-primary" />
-                  </div>
-                  
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between mb-6">
-                      <div className="text-center px-4 py-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">1 An</p>
-                        <p className="text-2xl font-bold">{offer.prices.oneYear}€</p>
-                      </div>
-                      
-                      <div className="text-center px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg relative overflow-hidden">
-                        <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
-                          -{offer.prices.savings}€
-                        </div>
-                        <p className="text-sm font-medium">2 Ans</p>
-                        <p className="text-2xl font-bold">{offer.prices.twoYears}€</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Ce que vous obtenez :</h4>
-                      <ul className="space-y-2">
-                        {offer.benefits.map((benefit, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <div className="mt-1">
-                              <Check className="h-4 w-4 text-primary" />
-                            </div>
-                            <span className="text-sm">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
-                        <p className="text-sm">
-                          <strong>Pourquoi choisir 2 ans ? </strong>
-                          Économisez {offer.prices.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="pt-4">
-                    <Button 
-                      className="w-full gap-2" 
-                      variant={offer.id === 'premium' ? 'default' : 'secondary'}
-                      onClick={() => navigate('/e-commerce/subscription', { state: { offer: offer.id } })}
-                    >
-                      Sélectionner cette offre
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
         
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {filteredStores.map(store => (
               <Card key={store.id} className={`overflow-hidden ${store.isPremium ? 'border-2 border-primary' : ''}`}>
                 <div className="h-24 flex items-center justify-center p-4 bg-secondary/30">
@@ -380,6 +306,80 @@ const EcommercePage = () => {
               <p className="text-muted-foreground">Aucun site e-commerce ne correspond à votre recherche.</p>
             </div>
           )}
+        </div>
+
+        <div className="bg-primary/5 rounded-lg p-6 mb-10">
+          <h2 className="text-2xl font-bold mb-6 text-center">Référencez votre site e-commerce CBD</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {subscriptionOffers.map(offer => (
+              <Card 
+                key={offer.id} 
+                className={`border ${offer.id === 'premium' ? 'border-2 border-primary' : 'border-primary/20'} overflow-hidden`}
+              >
+                {offer.id === 'premium' && (
+                  <Badge className="absolute top-4 right-4 bg-primary">Recommandé</Badge>
+                )}
+                
+                <div className={`px-6 py-4 flex items-center justify-between ${offer.id === 'premium' ? 'bg-primary/20' : 'bg-primary/10'}`}>
+                  <div>
+                    <h3 className="text-xl font-bold">{offer.title}</h3>
+                    <p className="text-sm text-muted-foreground">{offer.description}</p>
+                  </div>
+                  <Award className="h-8 w-8 text-primary" />
+                </div>
+                
+                <CardContent className="pt-6">
+                  <div className="flex justify-between mb-6">
+                    <div className="text-center px-4 py-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium">1 An</p>
+                      <p className="text-2xl font-bold">{offer.prices.oneYear}€</p>
+                    </div>
+                    
+                    <div className="text-center px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg relative overflow-hidden">
+                      <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
+                        -{offer.prices.savings}€
+                      </div>
+                      <p className="text-sm font-medium">2 Ans</p>
+                      <p className="text-2xl font-bold">{offer.prices.twoYears}€</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Ce que vous obtenez :</h4>
+                    <ul className="space-y-2">
+                      {offer.benefits.map((benefit, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="mt-1">
+                            <Check className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="text-sm">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
+                      <p className="text-sm">
+                        <strong>Pourquoi choisir 2 ans ? </strong>
+                        Économisez {offer.prices.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-4">
+                  <Button 
+                    className="w-full gap-2" 
+                    variant={offer.id === 'premium' ? 'default' : 'secondary'}
+                    onClick={() => navigate('/e-commerce/subscription', { state: { offer: offer.id } })}
+                  >
+                    Sélectionner cette offre
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>
