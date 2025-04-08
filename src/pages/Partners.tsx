@@ -1,13 +1,15 @@
 
 import { useState } from 'react';
-import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag } from 'lucide-react';
+import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag, Award, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from 'react-router-dom';
 import { PartnerCategory } from '@/types/auth';
+import BecomePartnerCTA from '@/components/partners/BecomePartnerCTA';
 
 // Partner categories data
 const partnerCategories = [
@@ -79,11 +81,55 @@ const mockPartners = [
   },
 ];
 
+// Subscription offers data
+const subscriptionOffers = [
+  {
+    id: 'essential',
+    title: 'Visibilité Essentielle',
+    description: 'Démarrez votre présence en ligne avec des avantages clés',
+    prices: {
+      yearly: 50,
+      biennial: 90,
+    },
+    savings: 10,
+    benefits: [
+      'Backlink de qualité renvoyant vers votre société',
+      'Visibilité accrue avec la possibilité de faire gagner vos produits/services à la loterie du CBD',
+      'Accès au carnet d\'adresses B2B avec coordonnées et contacts',
+      'Récupérez plus d\'avis Google grâce au jeu CBD Quest'
+    ],
+    icon: <Briefcase className="h-8 w-8 text-primary" />
+  },
+  {
+    id: 'premium',
+    title: 'Visibilité Premium',
+    description: 'Maximisez votre impact et votre visibilité',
+    prices: {
+      yearly: 100,
+      biennial: 180,
+    },
+    savings: 20,
+    benefits: [
+      'Tous les avantages de l\'offre Visibilité Essentielle',
+      'Affichage prioritaire dans la recherche',
+      'Accès aux demandes de contacts directs',
+      'Accès au catalogue d\'envoi d\'offres spéciales vers clients/boutiques',
+      'Possibilité de publier un article sponsorisé avec lien retour vers votre site'
+    ],
+    icon: <Award className="h-8 w-8 text-primary" />
+  }
+];
+
 const Partners = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [filteredPartners, setFilteredPartners] = useState(mockPartners);
+  const [selectedDurations, setSelectedDurations] = useState({
+    essential: "1",
+    premium: "1"
+  });
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   
@@ -238,6 +284,105 @@ const Partners = () => {
             </Card>
           ))}
         </div>
+
+        {/* Subscription offers section - Similar to e-commerce page */}
+        <div className="bg-primary/5 rounded-lg p-6 mt-12 mb-10">
+          <h2 className="text-2xl font-bold mb-6 text-center">Référencez votre entreprise sur CBD Connect</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {subscriptionOffers.map(offer => (
+              <Card 
+                key={offer.id} 
+                className={`border ${offer.id === 'premium' ? 'border-2 border-primary' : 'border-primary/20'} overflow-hidden`}
+              >
+                {offer.id === 'premium' && (
+                  <Badge className="absolute top-4 right-4 bg-primary">Recommandé</Badge>
+                )}
+                
+                <div className={`px-6 py-4 flex items-center justify-between ${offer.id === 'premium' ? 'bg-primary/20' : 'bg-primary/10'}`}>
+                  <div>
+                    <h3 className="text-xl font-bold">{offer.title}</h3>
+                    <p className="text-sm text-muted-foreground">{offer.description}</p>
+                  </div>
+                  {offer.icon}
+                </div>
+                
+                <CardContent className="pt-6">
+                  <div className="flex gap-4 mb-6">
+                    <div 
+                      className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border ${
+                        selectedDurations[offer.id as keyof typeof selectedDurations] === "1" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-muted bg-muted/50"
+                      }`}
+                      onClick={() => setSelectedDurations(prev => ({...prev, [offer.id]: "1"}))}
+                    >
+                      <p className="font-medium">1 An</p>
+                      <p className="text-lg font-bold mt-1">{offer.prices.yearly}€</p>
+                    </div>
+                    
+                    <div 
+                      className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border relative overflow-hidden ${
+                        selectedDurations[offer.id as keyof typeof selectedDurations] === "2" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-muted bg-muted/50"
+                      }`}
+                      onClick={() => setSelectedDurations(prev => ({...prev, [offer.id]: "2"}))}
+                    >
+                      <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
+                        -{offer.savings}€
+                      </div>
+                      <p className="font-medium">2 Ans</p>
+                      <p className="text-lg font-bold mt-1">{offer.prices.biennial}€</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        au lieu de {offer.prices.yearly * 2}€
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Ce que vous obtenez :</h4>
+                    <ul className="space-y-2">
+                      {offer.benefits.map((benefit, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="mt-1">
+                            <Check className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="text-sm">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
+                      <p className="text-sm">
+                        <strong>Pourquoi choisir 2 ans ? </strong>
+                        Économisez {offer.savings}€ et assurez une visibilité prolongée pour votre entreprise.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-4">
+                  <Button 
+                    className="w-full gap-2" 
+                    variant={offer.id === 'premium' ? 'default' : 'secondary'}
+                    onClick={() => navigate('/partners/subscription', { 
+                      state: { 
+                        offer: offer.id,
+                        duration: selectedDurations[offer.id as keyof typeof selectedDurations] 
+                      } 
+                    })}
+                  >
+                    Sélectionner cette offre
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        <BecomePartnerCTA />
       </div>
     </div>
   );
