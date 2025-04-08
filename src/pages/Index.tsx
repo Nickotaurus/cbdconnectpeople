@@ -1,9 +1,10 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import ClientDashboard from '@/components/ClientDashboard';
 import StoreDashboard from '@/components/StoreDashboard';
-import { Users, Store, Briefcase, MapPin, Award, Newspaper, MessageCircle, Globe } from 'lucide-react';
+import { Users, Store, Briefcase, MapPin, Award, Newspaper, MessageCircle, Globe, Search, BookmarkCheck, Ticket } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ProfileCard = ({ 
@@ -40,9 +41,16 @@ const ProfileCard = ({
     <CardContent className="flex-grow">
       <CardDescription className="text-center mb-6">
         {Array.isArray(description) ? (
-          <ul className="list-disc list-inside text-left space-y-2">
+          <ul className="list-none text-left space-y-4">
             {description.map((point, index) => (
-              <li key={index}>{point}</li>
+              <li key={index} className="flex items-start">
+                <span className="text-primary mr-2 mt-0.5 flex-shrink-0">
+                  {index === 0 ? <Search size={18} /> : 
+                   index === 1 ? <BookmarkCheck size={18} /> : 
+                   <Ticket size={18} />}
+                </span>
+                <span>{point}</span>
+              </li>
             ))}
           </ul>
         ) : (
@@ -146,10 +154,10 @@ const Index = () => {
             description={[
               "Trouves facilement un cbd shop",
               "Gardes en mémoire tes boutiques et produits CBD préférés",
-              "Débloque des codes promo exclusifs en jouant au jeu \"CBD Quest\" !"
+              "Gagnes des tickets pour la loterie et débloques des avantages exclusifs en jouant à \"CBD Quest\" !"
             ]}
-            primaryAction={() => navigate('/map')}
-            primaryLabel="Trouver une boutique"
+            primaryAction={() => navigate('/register?role=client')}
+            primaryLabel="S'inscrire"
           />
           
           <ProfileCard 
