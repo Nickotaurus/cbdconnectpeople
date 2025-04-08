@@ -6,24 +6,51 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, ArrowRight, Award, Link, Search, MessageSquare, FileText, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+const subscriptionFormSchema = z.object({
+  duration: z.enum(["1", "2"], {
+    required_error: "Veuillez sélectionner une durée",
+  }),
+});
+
+type SubscriptionFormValues = z.infer<typeof subscriptionFormSchema>;
 
 const EcommerceSubscriptionPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
+  const [selectedDurations, setSelectedDurations] = useState({
+    essential: "1",
+    premium: "1"
+  });
 
-  const handleSubscribe = (offer: string) => {
+  const handleSelectDuration = (offerId: string, duration: string) => {
+    setSelectedDurations(prev => ({
+      ...prev,
+      [offerId]: duration
+    }));
+  };
+
+  const handleSubscribe = (offer: string, offerId: string) => {
+    const duration = selectedDurations[offerId as keyof typeof selectedDurations];
     setSelectedOffer(offer);
     toast({
       title: "Offre sélectionnée",
-      description: `Vous avez choisi l'${offer}. Complétez votre inscription pour finaliser.`,
+      description: `Vous avez choisi l'${offer} pour ${duration} an${duration === "2" ? "s" : ""}. Complétez votre inscription pour finaliser.`,
       duration: 5000,
     });
   };
 
   const redirectToSignup = () => {
     if (selectedOffer) {
-      navigate('/register?role=store&type=ecommerce&offer=' + encodeURIComponent(selectedOffer));
+      const offerId = selectedOffer.includes("Visibilité Essentielle") ? "essential" : "premium";
+      const duration = selectedDurations[offerId as keyof typeof selectedDurations];
+      navigate(`/register?role=store&type=ecommerce&offer=${encodeURIComponent(selectedOffer)}&duration=${duration}`);
     }
   };
 
@@ -35,6 +62,7 @@ const EcommerceSubscriptionPage = () => {
         yearly: 50,
         biennial: 90
       },
+      savings: 10,
       features: [
         "Backlink de qualité renvoyant vers votre société",
         "Visibilité accrue avec la possibilité de faire gagner vos produits/services à la loterie du CBD",
@@ -50,6 +78,7 @@ const EcommerceSubscriptionPage = () => {
         yearly: 100,
         biennial: 180
       },
+      savings: 20,
       features: [
         "Tous les avantages de l'Offre 1",
         "Affichage prioritaire dans la recherche",
@@ -143,7 +172,7 @@ const EcommerceSubscriptionPage = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Nos offres de référencement</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Choisissez l'offre qui correspond à vos besoins et à votre budget
+            Choisissez l'offre et la durée qui correspondent à vos besoins
           </p>
         </div>
         
@@ -162,17 +191,44 @@ const EcommerceSubscriptionPage = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <div className="p-4 rounded-lg bg-secondary/30 text-center flex-1">
-                    <div className="text-sm text-muted-foreground mb-1">1 an</div>
-                    <div className="text-3xl font-bold">{offer.prices.yearly}€</div>
+                <div className="flex flex-col justify-center items-center mb-4">
+                  <div className="w-full max-w-xs mb-2">
+                    <label className="text-sm font-medium mb-1 block">Choisir la durée :</label>
+                    <Select 
+                      defaultValue={selectedDurations[offer.id]} 
+                      onValueChange={(value) => handleSelectDuration(offer.id, value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une durée" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 an</SelectItem>
+                        <SelectItem value="2">2 ans (économisez {offer.savings}€)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center flex-1 relative overflow-hidden">
+                </div>
+
+                <div className="flex items-center justify-center p-4 rounded-lg bg-primary/10 border border-primary/20 text-center relative overflow-hidden">
+                  {selectedDurations[offer.id] === "2" && (
                     <div className="absolute -right-8 -top-1 bg-primary text-primary-foreground text-xs py-1 px-6 rotate-45">
-                      -10%
+                      -{offer.savings}€
                     </div>
-                    <div className="text-sm text-muted-foreground mb-1">2 ans</div>
-                    <div className="text-3xl font-bold">{offer.prices.biennial}€</div>
+                  )}
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-1">
+                      {selectedDurations[offer.id] === "1" ? "1 an" : "2 ans"}
+                    </div>
+                    <div className="text-3xl font-bold">
+                      {selectedDurations[offer.id] === "1" 
+                        ? `${offer.prices.yearly}€` 
+                        : `${offer.prices.biennial}€`}
+                    </div>
+                    {selectedDurations[offer.id] === "2" && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        au lieu de {offer.prices.yearly * 2}€
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -194,8 +250,8 @@ const EcommerceSubscriptionPage = () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     <strong>Pourquoi choisir 2 ans ? </strong>
                     {offer.id === "essential" ? 
-                      "Profitez d'un tarif réduit et assurez une visibilité prolongée pour votre e-commerce." :
-                      "La meilleure manière d'obtenir une visibilité constante avec un engagement à long terme à prix réduit."
+                      `Économisez ${offer.savings}€ et assurez une visibilité prolongée pour votre e-commerce.` :
+                      `La meilleure manière d'obtenir une visibilité constante avec un engagement à long terme et une économie de ${offer.savings}€.`
                     }
                   </p>
                 </div>
@@ -203,7 +259,7 @@ const EcommerceSubscriptionPage = () => {
               <CardFooter>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="w-full" onClick={() => setSelectedOffer(offer.name)}>
+                    <Button className="w-full">
                       Souscrire à cette offre
                     </Button>
                   </DialogTrigger>
@@ -211,7 +267,7 @@ const EcommerceSubscriptionPage = () => {
                     <DialogHeader>
                       <DialogTitle>Confirmer votre choix</DialogTitle>
                       <DialogDescription>
-                        Vous avez sélectionné : {offer.name}
+                        Vous avez sélectionné : {offer.name} pour {selectedDurations[offer.id]} an{selectedDurations[offer.id] === "2" ? "s" : ""}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
@@ -223,13 +279,16 @@ const EcommerceSubscriptionPage = () => {
                         <li>Renseigner les informations de votre site</li>
                         <li>Procéder au paiement</li>
                       </ol>
+                      <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+                        <p className="text-sm font-medium">Montant total : {selectedDurations[offer.id] === "1" ? offer.prices.yearly : offer.prices.biennial}€</p>
+                      </div>
                     </div>
                     <DialogFooter className="flex justify-between sm:justify-between">
                       <DialogTrigger asChild>
                         <Button variant="outline">Annuler</Button>
                       </DialogTrigger>
                       <Button onClick={() => {
-                        handleSubscribe(offer.name);
+                        handleSubscribe(offer.name, offer.id);
                         redirectToSignup();
                       }}>
                         Continuer
@@ -257,11 +316,11 @@ const EcommerceSubscriptionPage = () => {
                 size="lg" 
                 onClick={() => {
                   setSelectedOffer(offers[0].name);
-                  navigate('/register?role=store&type=ecommerce&offer=' + encodeURIComponent(offers[0].name));
+                  navigate('/register?role=store&type=ecommerce&offer=' + encodeURIComponent(offers[0].name) + '&duration=' + selectedDurations.essential);
                 }}
                 className="gap-2"
               >
-                Souscrire à l'Offre 1
+                Souscrire à l'Offre Essentielle
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button 
@@ -269,11 +328,11 @@ const EcommerceSubscriptionPage = () => {
                 variant="outline"
                 onClick={() => {
                   setSelectedOffer(offers[1].name);
-                  navigate('/register?role=store&type=ecommerce&offer=' + encodeURIComponent(offers[1].name));
+                  navigate('/register?role=store&type=ecommerce&offer=' + encodeURIComponent(offers[1].name) + '&duration=' + selectedDurations.premium);
                 }}
                 className="gap-2"
               >
-                Souscrire à l'Offre 2
+                Souscrire à l'Offre Premium
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
