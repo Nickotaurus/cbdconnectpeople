@@ -5,8 +5,8 @@ export const subscriptionPlans = [
     name: "Basique",
     price: 0,
     features: [
-      "Fiche boutique simple",
-      "Présence sur la carte",
+      "Fiche partenaire simple",
+      "Présence sur la liste des partenaires",
       "1 coupon de réduction",
     ],
     isPopular: false,
@@ -17,7 +17,7 @@ export const subscriptionPlans = [
     price: 29.99,
     features: [
       "Mise en avant prioritaire",
-      "Fiche boutique enrichie",
+      "Fiche partenaire enrichie",
       "Photos et vidéos illimitées",
       "Statistiques de visite",
       "Coupons illimités",
