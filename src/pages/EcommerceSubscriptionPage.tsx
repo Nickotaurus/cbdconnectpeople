@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -191,69 +190,57 @@ const EcommerceSubscriptionPage = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex flex-col justify-center items-center mb-4">
-                  <div className="w-full max-w-xs mb-2">
-                    <label className="text-sm font-medium mb-1 block">Choisir la durée :</label>
-                    <Select 
-                      defaultValue={selectedDurations[offer.id]} 
-                      onValueChange={(value) => handleSelectDuration(offer.id, value)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner une durée" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 an</SelectItem>
-                        <SelectItem value="2">2 ans (économisez {offer.savings}€)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="flex gap-4 mb-6">
+                  <div 
+                    className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border ${
+                      selectedDurations[offer.id] === "1" 
+                        ? "border-primary bg-primary/10" 
+                        : "border-muted bg-muted/50"
+                    }`}
+                    onClick={() => setSelectedDurations(prev => ({...prev, [offer.id]: "1"}))}
+                  >
+                    <p className="font-medium">1 An</p>
+                    <p className="text-lg font-bold mt-1">{offer.prices.yearly}€</p>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-center p-4 rounded-lg bg-primary/10 border border-primary/20 text-center relative overflow-hidden">
-                  {selectedDurations[offer.id] === "2" && (
-                    <div className="absolute -right-8 -top-1 bg-primary text-primary-foreground text-xs py-1 px-6 rotate-45">
-                      -{offer.savings}€
+                  
+                  <div 
+                    className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border relative overflow-hidden ${
+                      selectedDurations[offer.id] === "2" 
+                        ? "border-primary bg-primary/10" 
+                        : "border-muted bg-muted/50"
+                    }`}
+                    onClick={() => setSelectedDurations(prev => ({...prev, [offer.id]: "2"}))}
+                  >
+                    <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
+                      -{offer.prices.savings}€
                     </div>
-                  )}
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-1">
-                      {selectedDurations[offer.id] === "1" ? "1 an" : "2 ans"}
-                    </div>
-                    <div className="text-3xl font-bold">
-                      {selectedDurations[offer.id] === "1" 
-                        ? `${offer.prices.yearly}€` 
-                        : `${offer.prices.biennial}€`}
-                    </div>
-                    {selectedDurations[offer.id] === "2" && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        au lieu de {offer.prices.yearly * 2}€
-                      </div>
-                    )}
+                    <p className="font-medium">2 Ans</p>
+                    <p className="text-lg font-bold mt-1">{offer.prices.biennial}€</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      au lieu de {offer.prices.yearly * 2}€
+                    </p>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
-                  <h4 className="font-medium">Fonctionnalités incluses :</h4>
+                  <h4 className="font-medium">Ce que vous obtenez :</h4>
                   <ul className="space-y-2">
                     {offer.features.map((feature, index) => (
-                      <li key={index} className="flex gap-2 items-start">
-                        <div className="rounded-full p-1 bg-primary/10 text-primary mt-0.5">
-                          <Check className="h-3 w-3" />
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="mt-1">
+                          <Check className="h-4 w-4 text-primary" />
                         </div>
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                </div>
-                
-                <div className="pt-4">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    <strong>Pourquoi choisir 2 ans ? </strong>
-                    {offer.id === "essential" ? 
-                      `Économisez ${offer.savings}€ et assurez une visibilité prolongée pour votre e-commerce.` :
-                      `La meilleure manière d'obtenir une visibilité constante avec un engagement à long terme et une économie de ${offer.savings}€.`
-                    }
-                  </p>
+                  
+                  <div className="pt-4 bg-muted/30 p-3 rounded-lg mt-4">
+                    <p className="text-sm">
+                      <strong>Pourquoi choisir 2 ans ? </strong>
+                      Économisez {offer.prices.savings}€ et assurez une visibilité prolongée pour votre e-commerce.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
