@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +10,6 @@ const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Show different dashboard based on user role
   if (user) {
     switch (user.role) {
       case 'client':
@@ -29,14 +27,12 @@ const Index = () => {
           </div>
         );
       case 'partner':
-        // All partners now show the same dashboard, regardless of category
         return (
           <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Espace Partenaire</h1>
             <p className="text-muted-foreground mb-6">
               Bienvenue dans votre espace partenaire. Depuis cet espace, vous pouvez gérer votre profil et accéder aux statistiques de visite.
             </p>
-            {/* À implémenter dans une prochaine itération */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <div className="border rounded-xl p-6 flex flex-col items-center">
                 <h3 className="text-xl font-medium mb-3">Profil Partenaire</h3>
@@ -64,7 +60,6 @@ const Index = () => {
     }
   }
   
-  // Default view for non-authenticated users with prominent profile selection
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
@@ -80,16 +75,13 @@ const Index = () => {
           </p>
         </div>
         
-        {/* 3 profils principaux */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <ProfileCard 
             icon={<Users className="h-12 w-12 text-primary" />}
             title="Je suis un Client"
-            description="Trouvez facilement des boutiques physiques, des sites e-commerce et des professionnels du CBD"
+            description="Trouves facilement un cbd shop, gardes en mémoire tes boutiques et produits cbd préférés et débloques des codes promo exclusifs en jouant au jeu "CBD Quest" !"
             primaryAction={() => navigate('/map')}
             primaryLabel="Trouver une boutique"
-            secondaryAction={() => navigate('/partners')}
-            secondaryLabel="Trouver un professionnel"
           />
           
           <ProfileCard 
@@ -111,7 +103,6 @@ const Index = () => {
           />
         </div>
         
-        {/* Services principaux */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
           <FeatureCard 
             icon={<MapPin className="h-8 w-8 text-primary" />}
@@ -139,7 +130,6 @@ const Index = () => {
           />
         </div>
         
-        {/* Actualités */}
         <div className="mb-12 text-center">
           <div className="flex items-center justify-center mb-4 gap-2">
             <Newspaper className="h-6 w-6 text-primary" />
@@ -158,7 +148,6 @@ const Index = () => {
   );
 };
 
-// Composant pour les cartes de profil
 const ProfileCard = ({ 
   icon, 
   title, 
@@ -215,7 +204,6 @@ const ProfileCard = ({
   </Card>
 );
 
-// Composant pour les cartes de fonctionnalités
 const FeatureCard = ({ 
   icon, 
   title, 
