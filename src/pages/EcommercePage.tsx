@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Filter, Search, Globe, ExternalLink, Check, Star, Link as LinkIcon, ArrowRight, Award } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Ecommerce {
   id: string;
@@ -190,13 +189,12 @@ const EcommercePage = () => {
         'Affichage prioritaire dans la recherche',
         'Accès aux demandes de contacts directs',
         'Accès au catalogue d\'envoi d\'offres spéciales vers clients/boutiques',
-        'Un article sponsorisé avec lien retour vers votre site'
+        'Possibilité de publier un article sponsorisé avec lien retour vers votre site'
       ]
     }
   ];
   
-  const getOfferPrice = (offer: typeof subscriptionOffers[0]) => {
-    const duration = subscriptionDurations[offer.id as keyof typeof subscriptionDurations];
+  const getOfferPrice = (offer: typeof subscriptionOffers[0], duration: string) => {
     return duration === "1" ? offer.prices.oneYear : offer.prices.twoYears;
   };
   
@@ -347,37 +345,36 @@ const EcommercePage = () => {
                 </div>
                 
                 <CardContent className="pt-6">
-                  <div className="mb-6">
-                    <label className="text-sm font-medium mb-2 block">Choisir la durée :</label>
-                    <Select 
-                      defaultValue={subscriptionDurations[offer.id]} 
-                      onValueChange={(value) => handleDurationChange(offer.id, value)}
+                  <div className="flex gap-4 mb-6">
+                    <div 
+                      className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border ${
+                        subscriptionDurations[offer.id as keyof typeof subscriptionDurations] === "1" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-muted bg-muted/50"
+                      }`}
+                      onClick={() => setSubscriptionDurations(prev => ({...prev, [offer.id]: "1"}))}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner une durée" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 an</SelectItem>
-                        <SelectItem value="2">2 ans (économisez {offer.prices.savings}€)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className={`text-center px-4 py-3 ${subscriptionDurations[offer.id] === "2" ? "bg-primary/10 border border-primary/20" : "bg-muted/50"} rounded-lg relative overflow-hidden mb-6`}>
-                    {subscriptionDurations[offer.id] === "2" && (
+                      <p className="font-medium">1 An</p>
+                      <p className="text-lg font-bold mt-1">{offer.prices.oneYear}€</p>
+                    </div>
+                    
+                    <div 
+                      className={`cursor-pointer flex-1 text-center px-4 py-3 rounded-lg border relative overflow-hidden ${
+                        subscriptionDurations[offer.id as keyof typeof subscriptionDurations] === "2" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-muted bg-muted/50"
+                      }`}
+                      onClick={() => setSubscriptionDurations(prev => ({...prev, [offer.id]: "2"}))}
+                    >
                       <div className="absolute -right-7 -top-1 bg-primary text-primary-foreground px-8 py-0.5 text-xs rotate-45">
                         -{offer.prices.savings}€
                       </div>
-                    )}
-                    <p className="text-sm font-medium">
-                      {subscriptionDurations[offer.id] === "1" ? "1 An" : "2 Ans"}
-                    </p>
-                    <p className="text-2xl font-bold">{getOfferPrice(offer)}€</p>
-                    {subscriptionDurations[offer.id] === "2" && (
+                      <p className="font-medium">2 Ans</p>
+                      <p className="text-lg font-bold mt-1">{offer.prices.twoYears}€</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         au lieu de {offer.prices.oneYear * 2}€
                       </p>
-                    )}
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
@@ -409,7 +406,7 @@ const EcommercePage = () => {
                     onClick={() => navigate('/e-commerce/subscription', { 
                       state: { 
                         offer: offer.id,
-                        duration: subscriptionDurations[offer.id] 
+                        duration: subscriptionDurations[offer.id as keyof typeof subscriptionDurations] 
                       } 
                     })}
                   >
