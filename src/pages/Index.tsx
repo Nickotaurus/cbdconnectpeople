@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -79,7 +80,7 @@ const Index = () => {
           <ProfileCard 
             icon={<Users className="h-12 w-12 text-primary" />}
             title="Je suis un Client"
-            description="Trouves facilement un cbd shop, gardes en mémoire tes boutiques et produits cbd préférés et débloques des codes promo exclusifs en jouant au jeu "CBD Quest" !"
+            description={"Trouves facilement un cbd shop, gardes en mémoire tes boutiques et produits cbd préférés et débloques des codes promo exclusifs en jouant au jeu \"CBD Quest\" !"}
             primaryAction={() => navigate('/map')}
             primaryLabel="Trouver une boutique"
           />
