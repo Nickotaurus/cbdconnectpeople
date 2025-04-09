@@ -41,7 +41,7 @@ const mockEcommerces: Ecommerce[] = [
     name: "Green Life CBD",
     url: "https://greenlifecbd.com",
     description: "Produits biologiques et certifiés. Expertise et conseils personnalisés pour chaque client.",
-    logo: "https://images.unsplash.com/photo-1571166052181-bdb4647ba46d?q=80&w=1000",
+    logo: "https://images.unsplash.com/photo-1571166052181-bdb4647b7d3f?q=80&w=1000",
     specialties: ["Huiles", "Gélules", "Tisanes"],
     rating: 4.6,
     reviewCount: 876,
@@ -188,8 +188,8 @@ const EcommercePage = () => {
         'Tous les avantages de l\'offre Visibilité Essentielle',
         'Affichage prioritaire dans la recherche',
         'Accès aux demandes de contacts directs',
-        'Accès au catalogue d\'envoi d\'offres spéciales vers clients/boutiques',
-        'Possibilité de publier un article sponsorisé avec lien retour vers votre site'
+        'Publiez un article promotionnel avec lien direct vers votre site',
+        'Sponsorisez votre boutique ou produit dans le Classement CBD et gagnez en visibilité (option payante)'
       ]
     }
   ];
