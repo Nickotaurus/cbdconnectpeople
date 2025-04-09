@@ -1,11 +1,11 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Star, Store, Globe, Leaf, Hash, ExternalLink } from 'lucide-react';
+import { Trophy, Star, Store, Globe, Hash, ExternalLink } from 'lucide-react';
+import FlowerIcon from '/public/lovable-uploads/13409efc-2cd8-488d-84b7-5fea2399a403.png';
 
 // Types
 interface RankedItem {
@@ -146,7 +146,7 @@ const rankings: RankingCategory[] = [
   {
     id: 'flowers',
     name: 'Meilleures fleurs CBD',
-    icon: <Leaf className="h-5 w-5" />,
+    icon: <FlowerIcon className="h-6 w-6" />,
     items: [
       {
         id: '1',
@@ -349,7 +349,17 @@ const RankingPage = () => {
                   value={category.id}
                   className="flex flex-col items-center gap-1 py-3 px-2 md:px-4"
                 >
-                  <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">{category.icon}</span>
+                  {category.id === 'flowers' ? (
+                    <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">
+                      <img 
+                        src={FlowerIcon} 
+                        alt="Meilleures fleurs CBD" 
+                        className="h-6 w-6"
+                      />
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">{category.icon}</span>
+                  )}
                   <span className="hidden md:inline text-xs">{category.name.split(' ').pop()}</span>
                   <span className="inline md:hidden text-xs">
                     {category.id === 'stores' ? 'Boutiques' : 
