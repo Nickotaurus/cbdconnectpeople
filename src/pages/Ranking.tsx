@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Star, Store, Globe, Hash, ExternalLink } from 'lucide-react';
+import { Trophy, Star, Store, Globe, Hash, ExternalLink, Cannabis } from 'lucide-react';
 
 // Types
 interface RankedItem {
@@ -350,7 +349,11 @@ const RankingPage = () => {
                   className="flex flex-col items-center gap-1 py-3 px-2 md:px-4"
                 >
                   <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">
-                    {category.icon}
+                    {category.id === 'flowers' ? (
+                      <Cannabis className="h-6 w-6 text-green-600" />
+                    ) : (
+                      category.icon
+                    )}
                   </span>
                   <span className="hidden md:inline text-xs">{category.name.split(' ').pop()}</span>
                   <span className="inline md:hidden text-xs">
