@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserRole } from "@/types/auth";
-import { ArrowRight, Store, Users, Briefcase } from 'lucide-react';
+import { ArrowRight, Store, Users, Briefcase, Sprout } from 'lucide-react';
 
 interface ProfileContent {
   title: string;
@@ -32,6 +32,16 @@ const profileContents: Record<UserRole, ProfileContent> = {
       "Accédez à un réseau de partenaires et fournisseurs fiables"
     ],
     icon: <Store className="h-12 w-12" />
+  },
+  producer: { // Added missing producer entry
+    title: "Connectez-vous avec les boutiques CBD et développez votre activité !",
+    points: [
+      "Présentez vos produits aux boutiques CBD",
+      "Développez votre réseau professionnel",
+      "Accédez à un marché en pleine croissance",
+      "Gagnez en visibilité auprès des professionnels"
+    ],
+    icon: <Sprout className="h-12 w-12" />
   },
   partner: {
     title: "Connectez-vous avec les acteurs du CBD et développez votre activité !",

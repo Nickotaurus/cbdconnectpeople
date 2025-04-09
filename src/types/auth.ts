@@ -18,6 +18,7 @@ export interface User {
   role: UserRole;
   createdAt: string;
   badges?: Badge[];
+  isVerified?: boolean; // Added isVerified property
 }
 
 export interface ClientUser extends User {
@@ -41,6 +42,7 @@ export interface ProducerUser extends User {
   role: 'producer';
   producerId?: string;
   verified: boolean;
+  certifications?: string[]; // Added certifications property
 }
 
 export interface PartnerUser extends User {
@@ -48,4 +50,5 @@ export interface PartnerUser extends User {
   partnerId?: string;
   partnerCategory: PartnerCategory;
   verified: boolean;
+  certifications?: string[]; // Added certifications property
 }

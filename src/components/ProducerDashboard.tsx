@@ -62,7 +62,7 @@ const ProducerDashboard = () => {
                 <div>
                   <p className="text-sm font-medium">Certifications</p>
                   <p className="text-sm text-muted-foreground">
-                    {producerUser?.certifications?.length || 0} certification(s)
+                    {(producerUser?.certifications?.length || 0)} certification(s)
                   </p>
                 </div>
               </div>
