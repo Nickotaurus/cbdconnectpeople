@@ -77,6 +77,27 @@ const ProfileCard = ({
   </Card>
 );
 
+const FeatureCard = ({ 
+  icon, 
+  title, 
+  description, 
+  onClick 
+}: { 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string;
+  onClick: () => void;
+}) => (
+  <div 
+    className="bg-primary/5 rounded-lg p-4 flex flex-col items-center text-center hover:bg-primary/10 transition-colors cursor-pointer"
+    onClick={onClick}
+  >
+    <div className="mb-3">{icon}</div>
+    <h3 className="text-lg font-semibold mb-1">{title}</h3>
+    <p className="text-sm text-muted-foreground">{description}</p>
+  </div>
+);
+
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -139,7 +160,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
               alt="CBD Connect People Logo" 
-              className="h-16 w-16"
+              className="h-48 w-48"
             />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -226,26 +247,5 @@ const Index = () => {
     </div>
   );
 };
-
-const FeatureCard = ({ 
-  icon, 
-  title, 
-  description, 
-  onClick 
-}: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-  onClick: () => void;
-}) => (
-  <div 
-    className="bg-primary/5 rounded-lg p-4 flex flex-col items-center text-center hover:bg-primary/10 transition-colors cursor-pointer"
-    onClick={onClick}
-  >
-    <div className="mb-3">{icon}</div>
-    <h3 className="text-lg font-semibold mb-1">{title}</h3>
-    <p className="text-sm text-muted-foreground">{description}</p>
-  </div>
-);
 
 export default Index;

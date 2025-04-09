@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Award, MapPin, User, Leaf, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
@@ -58,7 +59,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
               alt="CBD Connect People Logo" 
-              className="h-8 w-8"
+              className="h-16 w-16" // Augmenté de h-8 w-8 à h-16 w-16
             />
             <span className="font-bold">CBD Connect People</span>
           </Link>
