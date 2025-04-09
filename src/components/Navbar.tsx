@@ -149,13 +149,12 @@ const Navbar = () => {
             <SheetContent side="right">
               <div className="px-2">
                 <div className="flex items-center justify-between mb-8">
-                  <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
+                  <Link to="/" className="flex items-center" onClick={() => setIsSheetOpen(false)}>
                     <img 
                       src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
                       alt="Logo" 
-                      className="h-10 w-10"
+                      className="h-40 w-40"
                     />
-                    <span className="font-bold text-primary">CBD Connect People</span>
                   </Link>
                   <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
                     <X className="h-6 w-6" />
