@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, MapPin, Lock } from "lucide-react";
 import { PartnerCategory } from "@/types/auth";
+import { useNavigate } from "react-router-dom";
 
 interface PartnerCardProps {
   partner: {
@@ -31,6 +32,19 @@ const PartnerCard = ({
   hasPremium,
   onContactClick
 }: PartnerCardProps) => {
+  const navigate = useNavigate();
+
+  const handleContactClick = () => {
+    if (isProfessional) {
+      if (hasPremium) {
+        onContactClick(partner.id);
+      } else {
+        // Redirect to subscription page for non-premium users
+        navigate('/partners/subscription');
+      }
+    }
+  };
+
   return (
     <Card key={partner.id} className="overflow-hidden flex flex-col h-full">
       <div className="h-48 overflow-hidden">
@@ -70,7 +84,7 @@ const PartnerCard = ({
         {isProfessional ? (
           <Button 
             className="w-full gap-2"
-            onClick={() => onContactClick(partner.id)}
+            onClick={handleContactClick}
           >
             {!hasPremium && <Lock className="h-4 w-4 mr-1" />}
             {hasPremium ? "Contacter" : "Voir les coordonnées"}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Filter, Search, Briefcase, Users, Building, Calculator, Shield, Package, Tag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +7,6 @@ import PartnerCard from '@/components/partners/PartnerCard';
 import PremiumAccessBanner from '@/components/partners/PremiumAccessBanner';
 import PartnerSearchFilters from '@/components/partners/PartnerSearchFilters';
 import PartnerSubscriptionOffers from '@/components/partners/PartnerSubscriptionOffers';
-import PartnerSubscriptionModal from '@/components/partners/PartnerSubscriptionModal';
 
 // Partner categories data
 const partnerCategories = [
@@ -86,7 +84,6 @@ const Partners = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [filteredPartners, setFilteredPartners] = useState(mockPartners);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
@@ -136,14 +133,8 @@ const Partners = () => {
       console.log(`Showing contact info for partner ${partnerId}`);
       setSelectedPartnerId(partnerId);
     } else {
-      setShowSubscriptionModal(true);
+      console.log('User needs premium to view contact info');
     }
-  };
-  
-  const handleSubscribe = (planId: string) => {
-    setShowSubscriptionModal(false);
-    console.log(`Subscribing to plan: ${planId}`);
-    navigate('/partners/subscription');
   };
   
   return (
@@ -187,13 +178,6 @@ const Partners = () => {
         </div>
 
         <PartnerSubscriptionOffers />
-        
-        {showSubscriptionModal && (
-          <PartnerSubscriptionModal 
-            onClose={() => setShowSubscriptionModal(false)}
-            onSubscribe={handleSubscribe}
-          />
-        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getCategoryIcon } from "./PartnerFilters";
+import { useNavigate } from "react-router-dom";
 
 interface Partner {
   id: string;
@@ -25,6 +26,17 @@ const PartnersTable = ({
   onViewContact,
   getCategoryName 
 }: PartnersTableProps) => {
+  const navigate = useNavigate();
+
+  const handleContactClick = (partnerId: string) => {
+    if (hasPremium) {
+      onViewContact(partnerId);
+    } else {
+      // Redirect non-premium users to subscription page
+      navigate('/partners/subscription');
+    }
+  };
+
   return (
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
       <Table>
@@ -63,7 +75,7 @@ const PartnersTable = ({
                   <Button 
                     variant={hasPremium ? "default" : "outline"} 
                     size="sm" 
-                    onClick={() => onViewContact(partner.id)}
+                    onClick={() => handleContactClick(partner.id)}
                   >
                     {hasPremium ? "Voir contact" : "Contact premium"}
                   </Button>
