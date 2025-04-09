@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -153,14 +154,14 @@ const Index = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-14">
-          <div className="flex justify-center mb-4">
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
               alt="Logo" 
-              className="h-48 w-48"
+              className="h-64 w-64"
             />
           </div>
           <p className="text-xl text-muted-foreground mb-10">
@@ -246,3 +247,4 @@ const Index = () => {
 };
 
 export default Index;
+
