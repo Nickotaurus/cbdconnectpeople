@@ -79,6 +79,38 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
     }
   };
 
+  const handleGoogleReview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté en tant que client pour noter cette boutique.",
+      });
+      return;
+    }
+    
+    if (user.role !== 'client') {
+      toast({
+        title: "Action non disponible",
+        description: "Seuls les clients peuvent laisser des avis.",
+      });
+      return;
+    }
+    
+    // Google review URL - in real world would be dynamic based on actual Google Place ID
+    const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(`place_id_for_${store.name.replace(/\s+/g, '_').toLowerCase()}`)}`;
+    
+    // Open Google review in a new tab
+    window.open(googleReviewUrl, '_blank');
+    
+    toast({
+      title: "Action enregistrée",
+      description: "Merci de contribuer. Cette action compte pour vos quêtes !",
+    });
+  };
+
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group">
       <div className="relative w-full h-48 overflow-hidden">
@@ -138,6 +170,15 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
           </div>
           
           <div className="flex gap-2 mt-3">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1 gap-1"
+              onClick={handleGoogleReview}
+            >
+              <Star className="h-4 w-4" /> Avis Google
+            </Button>
+            
             <Button asChild className="flex-1">
               <Link to={`/store/${store.id}`}>
                 Voir détails

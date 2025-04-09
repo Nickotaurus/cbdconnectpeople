@@ -3,8 +3,10 @@ import { RankedItem } from '@/data/rankingsData';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, Globe, ExternalLink } from 'lucide-react';
+import { Store, Globe, ExternalLink, Star } from 'lucide-react';
 import StarRating from './StarRating';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface RankingItemCardProps {
   item: RankedItem;
@@ -12,6 +14,30 @@ interface RankingItemCardProps {
 }
 
 const RankingItemCard = ({ item, index }: RankingItemCardProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Google review URL - in real world would be dynamic based on actual Google Place ID
+  const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(`place_id_for_${item.name.replace(/\s+/g, '_').toLowerCase()}`)}`;
+
+  const handleReviewClick = () => {
+    if (user && user.role === 'client') {
+      // Open Google review in new tab
+      window.open(googleReviewUrl, '_blank');
+      
+      // Notify user
+      toast({
+        title: "Action enregistrée",
+        description: "Merci de contribuer. Cette action compte pour vos quêtes !",
+      });
+    } else {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté en tant que client pour noter une boutique.",
+      });
+    }
+  };
+
   return (
     <Card 
       className={`overflow-hidden ${item.sponsored ? 'border-amber-300 dark:border-amber-500 shadow-md' : ''}`}
@@ -72,7 +98,17 @@ const RankingItemCard = ({ item, index }: RankingItemCardProps) => {
             {item.description}
           </p>
           
-          <div className="flex justify-end">
+          <div className="flex justify-between">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="gap-1"
+              onClick={handleReviewClick}
+            >
+              <Star className="h-4 w-4" />
+              Laisser un avis Google
+            </Button>
+            
             <Button variant="default" size="sm" className="gap-1">
               {item.category === 'boutique' ? 'Voir la boutique' : 
                item.category === 'ecommerce' ? (

@@ -123,6 +123,38 @@ const StoreDetail = () => {
     }
   };
 
+  const handleGoogleReview = () => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté en tant que client pour noter cette boutique.",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
+    if (user.role !== 'client') {
+      toast({
+        title: "Action non disponible",
+        description: "Seuls les clients peuvent laisser des avis.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Google review URL - in real world would be dynamic based on actual Google Place ID
+    const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(`place_id_for_${store.name.replace(/\s+/g, '_').toLowerCase()}`)}`;
+    
+    // Open Google review in a new tab
+    window.open(googleReviewUrl, '_blank');
+    
+    toast({
+      title: "Action enregistrée",
+      description: "Merci de contribuer. Cette action compte pour vos quêtes !",
+    });
+  };
+
   return (
     <div className="min-h-screen pb-12">
       <div className="relative h-64 md:h-96 overflow-hidden">
@@ -230,6 +262,14 @@ const StoreDetail = () => {
                   <Phone className="mr-2 h-4 w-4" />
                   Appeler
                 </a>
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={handleGoogleReview} 
+                className="w-full md:w-auto"
+              >
+                <Star className="mr-2 h-4 w-4" />
+                Laisser un avis Google
               </Button>
             </div>
           </div>

@@ -42,6 +42,14 @@ const Quests = () => {
       completed: true,
       category: 'daily'
     },
+    { 
+      id: "d3", 
+      title: "Laisser un avis Google", 
+      description: "Noter une boutique ou un site CBD sur Google", 
+      reward: "2 tickets", 
+      completed: false,
+      category: 'daily'
+    },
     
     // Weekly Quests
     { 
