@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -137,7 +136,11 @@ const Index = () => {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-14">
           <div className="flex justify-center mb-4">
-            <Store className="h-16 w-16 text-primary" />
+            <img 
+              src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
+              alt="CBD Connect People Logo" 
+              className="h-16 w-16"
+            />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             CBD Connect People

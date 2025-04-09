@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Award, MapPin, User, Leaf, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
@@ -29,7 +28,6 @@ const Navbar = () => {
     navigate('/');
   };
   
-  // Liens communs à tous les utilisateurs
   const commonLinks = [
     { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
     { href: '/map', label: 'Boutiques CBD', icon: MapPin },
@@ -39,16 +37,11 @@ const Navbar = () => {
     { href: '/news', label: 'Actualité CBD', icon: Newspaper },
   ];
   
-  // Liens supplémentaires selon le rôle
   const getLinks = () => {
     const links = [...commonLinks];
     
-    // Ajout des liens spécifiques au rôle
     if (user) {
-      // Lien vers les producteurs (visible par tous mais avec fonctionnalités différentes selon le rôle)
       links.push({ href: '/producers', label: 'Producteurs', icon: Leaf });
-      
-      // Autres liens spécifiques pourraient être ajoutés ici
     }
     
     return links;
@@ -62,12 +55,15 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center space-x-2">
-            <Network className="h-6 w-6 text-primary" />
+            <img 
+              src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
+              alt="CBD Connect People Logo" 
+              className="h-8 w-8"
+            />
             <span className="font-bold">CBD Connect People</span>
           </Link>
         </div>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           {links.map((link) => {
             const Icon = link.icon;
@@ -145,7 +141,6 @@ const Navbar = () => {
             </Button>
           )}
           
-          {/* Mobile Navigation */}
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button size="icon" variant="ghost" className="md:hidden">
@@ -186,7 +181,6 @@ const Navbar = () => {
                     );
                   })}
                   
-                  {/* Boutons de connexion/inscription pour mobile */}
                   {!user && (
                     <div className="mt-4 flex flex-col gap-2">
                       <Button asChild>
@@ -202,7 +196,6 @@ const Navbar = () => {
                     </div>
                   )}
                   
-                  {/* Bouton de déconnexion pour mobile */}
                   {user && (
                     <Button variant="outline" className="mt-4" onClick={() => {
                       handleLogout();
