@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Award, MapPin, User, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
@@ -151,8 +150,12 @@ const Navbar = () => {
               <div className="px-2">
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center space-x-2" onClick={() => setIsSheetOpen(false)}>
-                    <Network className="h-6 w-6 text-primary" />
-                    <span className="font-bold">CBD Connect People</span>
+                    <img 
+                      src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
+                      alt="Logo" 
+                      className="h-10 w-10"
+                    />
+                    <span className="font-bold text-primary">CBD Connect People</span>
                   </Link>
                   <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
                     <X className="h-6 w-6" />
@@ -215,4 +218,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
