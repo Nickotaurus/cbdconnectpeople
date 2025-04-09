@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Filter, Search, MapPin } from 'lucide-react';
 import { PartnerCategory } from '@/types/auth';
-import { getCategoryIcon } from "@/utils/partnerUtils";
+import { PartnerIcon } from "./PartnerIcon";
 import React from "react";
 
 interface PartnerSearchFiltersProps {
@@ -57,7 +57,7 @@ const PartnerSearchFilters = ({
               onClick={() => handleCategoryFilter(category.value)}
               className="flex items-center gap-2"
             >
-              {getCategoryIcon(category.value as PartnerCategory)}
+              <PartnerIcon category={category.value as PartnerCategory} />
               {category.label}
             </DropdownMenuItem>
           ))}

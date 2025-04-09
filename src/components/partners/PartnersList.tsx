@@ -5,8 +5,6 @@ import { Partner } from '@/data/partnersData';
 
 interface PartnersListProps {
   partners: Partner[];
-  getCategoryIcon: (category: PartnerCategory) => React.ReactNode;
-  getCategoryLabel: (category: PartnerCategory) => string;
   isProfessional: boolean;
   hasPremium: boolean;
   onContactClick: (partnerId: string) => void;
@@ -14,8 +12,6 @@ interface PartnersListProps {
 
 const PartnersList = ({ 
   partners,
-  getCategoryIcon,
-  getCategoryLabel,
   isProfessional,
   hasPremium,
   onContactClick
@@ -26,8 +22,6 @@ const PartnersList = ({
         <PartnerCard
           key={partner.id}
           partner={partner}
-          getCategoryIcon={getCategoryIcon}
-          getCategoryLabel={getCategoryLabel}
           isProfessional={isProfessional}
           hasPremium={hasPremium}
           onContactClick={onContactClick}

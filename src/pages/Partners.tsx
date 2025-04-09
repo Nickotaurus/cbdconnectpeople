@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 
 // Data
 import { mockPartners } from '@/data/partnersData';
-import { partnerCategories } from '@/data/partnerCategoriesData';
 
 // Components
 import PartnersList from '@/components/partners/PartnersList';
@@ -15,7 +14,8 @@ import PartnerSearchFilters from '@/components/partners/PartnerSearchFilters';
 import PartnerSubscriptionOffers from '@/components/partners/PartnerSubscriptionOffers';
 
 // Utilities
-import { getCategoryLabel, getCategoryIcon, filterPartners } from '@/utils/partnerUtils';
+import { getCategoryLabel, filterPartners } from '@/utils/partnerUtils';
+import { partnerCategories } from '@/data/partnerCategoriesData';
 
 const Partners = () => {
   const navigate = useNavigate();
@@ -75,8 +75,6 @@ const Partners = () => {
         
         <PartnersList
           partners={filteredPartners}
-          getCategoryIcon={getCategoryIcon}
-          getCategoryLabel={getCategoryLabel}
           isProfessional={isProfessional}
           hasPremium={hasPremium}
           onContactClick={handleContactClick}

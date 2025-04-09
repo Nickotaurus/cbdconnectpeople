@@ -1,8 +1,6 @@
 
 import { PartnerCategory } from "@/types/auth";
 import { partnerCategories } from "@/data/partnerCategoriesData";
-import { Building, Calculator, Briefcase, Shield, Package, Users, Tag } from "lucide-react";
-import React from "react";
 
 // Get category label based on the category value
 export const getCategoryLabel = (categoryValue: PartnerCategory) => {
@@ -10,29 +8,12 @@ export const getCategoryLabel = (categoryValue: PartnerCategory) => {
   return category ? category.label : categoryValue;
 };
 
-// Get category icon based on the category value
-export const getCategoryIcon = (categoryValue: PartnerCategory) => {
+// Get category icon name based on the category value
+export const getCategoryIconName = (categoryValue: PartnerCategory): string => {
   const category = partnerCategories.find(c => c.value === categoryValue);
-  if (!category) return <Briefcase size={16} />;
+  if (!category) return "Briefcase";
   
-  switch (category.iconName) {
-    case "Building":
-      return <Building size={16} />;
-    case "Calculator":
-      return <Calculator size={16} />;
-    case "Briefcase":
-      return <Briefcase size={16} />;
-    case "Shield":
-      return <Shield size={16} />;
-    case "Package":
-      return <Package size={16} />;
-    case "Users":
-      return <Users size={16} />;
-    case "Tag":
-      return <Tag size={16} />;
-    default:
-      return <Briefcase size={16} />;
-  }
+  return category.iconName || "Briefcase";
 };
 
 // Filter partners based on search term and category

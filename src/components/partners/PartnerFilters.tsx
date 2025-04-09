@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Filter, Search, MapPin } from 'lucide-react';
-import { getCategoryIcon } from "@/utils/partnerUtils";
+import { PartnerIcon } from "./PartnerIcon";
+import { PartnerCategory } from "@/types/auth";
 
 interface PartnerFiltersProps {
   searchTerm: string;
@@ -72,7 +73,7 @@ const PartnerFilters = ({
               {partnerCategories.map((category) => (
                 <SelectItem key={category.value} value={category.value}>
                   <div className="flex items-center gap-2">
-                    {getCategoryIcon(category.value)}
+                    <PartnerIcon category={category.value as PartnerCategory} />
                     {category.label}
                   </div>
                 </SelectItem>

@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, MapPin, Lock } from "lucide-react";
 import { PartnerCategory } from "@/types/auth";
 import { useNavigate } from "react-router-dom";
+import { PartnerIcon } from "./PartnerIcon";
+import { getCategoryLabel } from "@/utils/partnerUtils";
 
 interface PartnerCardProps {
   partner: {
@@ -17,8 +19,6 @@ interface PartnerCardProps {
     distance: number;
     imageUrl: string;
   };
-  getCategoryIcon: (category: PartnerCategory) => React.ReactNode;
-  getCategoryLabel: (category: PartnerCategory) => string;
   isProfessional: boolean;
   hasPremium: boolean;
   onContactClick: (partnerId: string) => void;
@@ -26,8 +26,6 @@ interface PartnerCardProps {
 
 const PartnerCard = ({
   partner,
-  getCategoryIcon,
-  getCategoryLabel,
   isProfessional,
   hasPremium,
   onContactClick
@@ -56,7 +54,7 @@ const PartnerCard = ({
       </div>
       <CardHeader className="pb-2">
         <Badge variant="secondary" className="flex items-center gap-1 text-base px-3 py-1.5 mb-2 font-semibold">
-          {getCategoryIcon(partner.category)}
+          <PartnerIcon category={partner.category} />
           {getCategoryLabel(partner.category)}
         </Badge>
         <CardTitle className="text-xl">{partner.name}</CardTitle>
