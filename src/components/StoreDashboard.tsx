@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
@@ -61,7 +60,7 @@ const StoreDashboard = () => {
               <div className="flex items-center p-3 border rounded-md">
                 <Users className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
                 <div>
-                  <p className="text-sm font-medium">Accès producteurs</p>
+                  <p className="text-sm font-medium">Accès partenaires</p>
                   <p className="text-sm text-muted-foreground">
                     {storeUser?.siretVerified ? 'Disponible' : 'Débloqué après vérification'}
                   </p>
@@ -118,7 +117,6 @@ const StoreDashboard = () => {
         </Card>
       </div>
       
-      {/* New section: Mes partenaires */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -137,7 +135,6 @@ const StoreDashboard = () => {
         <CardContent>
           {partnerFavorites && partnerFavorites.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* Partner cards would go here */}
               <div className="border rounded-lg p-4 flex items-center space-x-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Leaf className="h-5 w-5 text-primary" />
