@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Trophy, Store, Globe, Leaf, Hash, ExternalLink } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Trophy, Star, Store, Globe, Leaf, Hash, ExternalLink } from 'lucide-react';
 
 // Types
 interface RankedItem {
@@ -26,7 +27,7 @@ interface RankingCategory {
   items: RankedItem[];
 }
 
-// Mock data for rankings
+// Using the existing mock data
 const rankings: RankingCategory[] = [
   {
     id: 'stores',
@@ -302,6 +303,7 @@ const rankings: RankingCategory[] = [
 
 const RankingPage = () => {
   const [activeTab, setActiveTab] = useState<string>(rankings[0].id);
+  const navigate = useNavigate();
   
   // Render star ratings
   const renderStars = (rating: number) => {
@@ -322,30 +324,34 @@ const RankingPage = () => {
   const currentRanking = rankings.find(r => r.id === activeTab) || rankings[0];
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <div className="flex justify-center mb-3">
-            <Trophy className="h-16 w-16 text-amber-400" />
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="relative">
+        {/* Hero Section with Gradient Background */}
+        <div className="bg-gradient-to-r from-primary/10 to-amber-100 dark:from-primary/20 dark:to-amber-900/20 rounded-xl p-8 mb-10">
+          <div className="text-center">
+            <div className="inline-block p-4 bg-white dark:bg-black rounded-full shadow-lg mb-4">
+              <Trophy className="h-12 w-12 text-amber-400" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">Classement CBD</h1>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-4">
+              Découvrez les meilleurs produits, boutiques et sites CBD en France, sélectionnés par notre communauté
+            </p>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Classement CBD</h1>
-          <p className="text-muted-foreground mb-6">
-            Découvrez les meilleurs produits, boutiques et sites CBD en France
-          </p>
         </div>
         
-        <Tabs defaultValue={rankings[0].id} onValueChange={setActiveTab} className="w-full mb-10">
-          <div className="overflow-x-auto pb-2">
-            <TabsList className="flex min-w-max w-full md:grid md:grid-cols-5 h-auto">
+        {/* Category Tabs */}
+        <Tabs defaultValue={rankings[0].id} onValueChange={setActiveTab} className="w-full mb-8">
+          <div className="flex justify-center mb-6">
+            <TabsList className="grid grid-cols-3 md:grid-cols-5 gap-1">
               {rankings.map(category => (
                 <TabsTrigger 
                   key={category.id} 
                   value={category.id}
-                  className="flex items-center gap-2 py-3 whitespace-nowrap"
+                  className="flex flex-col items-center gap-1 py-3 px-2 md:px-4"
                 >
-                  {category.icon}
-                  <span className="hidden md:inline">{category.name}</span>
-                  <span className="inline md:hidden">
+                  <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">{category.icon}</span>
+                  <span className="hidden md:inline text-xs">{category.name.split(' ').pop()}</span>
+                  <span className="inline md:hidden text-xs">
                     {category.id === 'stores' ? 'Boutiques' : 
                      category.id === 'ecommerce' ? 'Sites' : 
                      category.id === 'flowers' ? 'Fleurs' : 
@@ -356,105 +362,112 @@ const RankingPage = () => {
             </TabsList>
           </div>
           
-          <div className="mt-10">
-            <h2 className="text-2xl font-bold mb-8 flex items-center">
-              <Trophy className="h-6 w-6 text-amber-400 mr-2" />
-              Top 10 {currentRanking.name}
-            </h2>
-            
-            <div className="space-y-6">
-              {currentRanking.items.map((item, index) => (
-                <Card 
-                  key={item.id} 
-                  className={`overflow-hidden ${item.sponsored ? 'border-2 border-amber-400' : ''}`}
-                >
-                  <div className="md:flex">
-                    <div className="relative md:w-1/5 h-40 md:h-auto">
-                      <span className="absolute top-2 left-2 w-8 h-8 bg-amber-400 text-white rounded-full flex items-center justify-center font-bold text-lg">
-                        {index + 1}
-                      </span>
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    
-                    <div className="flex-1 p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-xl mb-1">{item.name}</CardTitle>
-                          
-                          {(item.location || item.url) && (
-                            <CardDescription className="flex items-center gap-1 mb-2">
-                              {item.location && (
-                                <>
-                                  <Store className="h-3.5 w-3.5" />
-                                  {item.location}
-                                </>
-                              )}
-                              
-                              {item.url && (
-                                <>
-                                  <Globe className="h-3.5 w-3.5 ml-2" />
-                                  <a 
-                                    href={item.url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="hover:underline text-primary"
-                                  >
-                                    {item.url.replace(/(^\w+:|^)\/\//, '')}
-                                  </a>
-                                </>
-                              )}
-                            </CardDescription>
+          {/* Category Title */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center gap-3 bg-primary/5 px-6 py-3 rounded-full">
+              <Trophy className="h-5 w-5 text-amber-400" />
+              <h2 className="text-xl font-bold">{currentRanking.name}</h2>
+            </div>
+          </div>
+          
+          {/* Ranking Items */}
+          <div className="space-y-6">
+            {currentRanking.items.map((item, index) => (
+              <Card 
+                key={item.id} 
+                className={`overflow-hidden ${item.sponsored ? 'border-amber-300 dark:border-amber-500 shadow-md' : ''}`}
+              >
+                <div className="flex flex-col md:flex-row">
+                  <div className="relative md:w-1/4 h-48 md:h-auto">
+                    <span className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">
+                      {index + 1}
+                    </span>
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover"
+                    />
+                    {item.sponsored && (
+                      <div className="absolute top-4 right-4">
+                        <Badge variant="secondary" className="bg-gradient-to-r from-amber-400/90 to-amber-600/90 text-white border-0">
+                          Sponsorisé
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <CardContent className="flex-1 p-6">
+                    <div className="mb-3">
+                      <h3 className="text-xl font-bold mb-1">{item.name}</h3>
+                      {(item.location || item.url) && (
+                        <p className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                          {item.location && (
+                            <span className="flex items-center gap-1">
+                              <Store className="h-3.5 w-3.5" />
+                              {item.location}
+                            </span>
                           )}
                           
-                          <div className="mb-3">
-                            {renderStars(item.rating)}
-                          </div>
-                        </div>
-                        
-                        {item.sponsored && (
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                            Sponsorisé
-                          </Badge>
-                        )}
-                      </div>
+                          {item.url && (
+                            <span className="flex items-center gap-1">
+                              <Globe className="h-3.5 w-3.5" />
+                              <a 
+                                href={item.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="hover:underline text-primary"
+                              >
+                                {item.url.replace(/(^\w+:|^)\/\//, '')}
+                              </a>
+                            </span>
+                          )}
+                        </p>
+                      )}
                       
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {item.description}
-                      </p>
-                      
-                      <div className="flex justify-end">
-                        <Button variant="default" className="gap-2">
-                          {item.category === 'boutique' ? 'Voir la boutique' : 
-                           item.category === 'ecommerce' ? (
-                             <>
-                               Visiter le site <ExternalLink className="h-4 w-4" />
-                             </>
-                           ) : 'Voir le détail'}
-                        </Button>
+                      <div className="mb-3">
+                        {renderStars(item.rating)}
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                    
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {item.description}
+                    </p>
+                    
+                    <div className="flex justify-end">
+                      <Button variant="default" size="sm" className="gap-1">
+                        {item.category === 'boutique' ? 'Voir la boutique' : 
+                         item.category === 'ecommerce' ? (
+                           <>
+                             Visiter le site <ExternalLink className="h-4 w-4" />
+                           </>
+                         ) : 'Voir le détail'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </div>
+              </Card>
+            ))}
           </div>
         </Tabs>
         
         {/* Sponsorship CTA */}
-        <div className="mt-16 bg-primary/5 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            Vous souhaitez apparaître dans nos classements ?
-          </h2>
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Proposez vos produits ou services pour nos classements et gagnez en visibilité auprès de notre communauté.
-          </p>
-          <Button variant="default" size="lg">
-            Devenir partenaire
-          </Button>
+        <div className="mt-16 bg-gradient-to-r from-primary/5 to-amber-50 dark:from-primary/10 dark:to-amber-900/10 rounded-xl p-8 text-center">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold mb-4">
+              Vous souhaitez apparaître dans nos classements ?
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Proposez vos produits ou services pour nos classements et gagnez en visibilité auprès de notre communauté.
+            </p>
+            <Button 
+              variant="default" 
+              size="lg" 
+              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+              onClick={() => navigate("/partners/subscription")}
+            >
+              Devenir partenaire
+            </Button>
+          </div>
         </div>
       </div>
     </div>
