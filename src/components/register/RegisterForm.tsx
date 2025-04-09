@@ -55,7 +55,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     
     setIsLoading(true);
     try {
-      // Pass the additional storeType parameter if the role is store
+      // Register the user - store the storeType in registration data
       await register(
         email, 
         password, 
@@ -69,10 +69,19 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         description: "Votre compte a été créé avec succès",
       });
       
-      // If it's an ecommerce store, redirect to subscription page
-      if (role === 'store' && (storeType === 'ecommerce' || storeType === 'both')) {
-        navigate('/partners/subscription');
+      // For all store types, first go to add store page
+      if (role === 'store') {
+        // If it's a store (any type), redirect to add store page first
+        navigate('/add-store', { 
+          state: { 
+            fromRegistration: true,
+            storeType: storeType,
+            // For e-commerce stores, we'll need to redirect to subscription page after
+            requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
+          }
+        });
       } else {
+        // For non-store users, just go to home
         navigate('/');
       }
     } catch (error) {

@@ -31,6 +31,8 @@ export interface Store {
   };
   isPremium?: boolean;
   premiumUntil?: string;
+  isEcommerce?: boolean;
+  ecommerceUrl?: string;
   reviews: {
     id: string;
     author: string;

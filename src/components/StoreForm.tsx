@@ -9,13 +9,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Gift, Percent } from "lucide-react";
+import { Gift, Percent, Globe } from "lucide-react";
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
+  storeType?: string;
 }
 
-const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
+const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical' }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -35,7 +36,8 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
     couponDiscount: '10% sur tout le magasin',
     lotteryPrizeName: '',
     lotteryPrizeDescription: '',
-    lotteryPrizeValue: ''
+    lotteryPrizeValue: '',
+    ecommerceUrl: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -81,7 +83,10 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
         products: [
           { category: "Fleurs", origin: "France", quality: "Bio" },
           { category: "Huiles", origin: "France", quality: "Premium" },
-        ]
+        ],
+        // Add the store type information
+        isEcommerce: storeType === 'ecommerce' || storeType === 'both',
+        ecommerceUrl: storeType === 'ecommerce' || storeType === 'both' ? formData.ecommerceUrl : undefined,
       };
       
       // Add lottery prize if provided
@@ -125,7 +130,8 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
         couponDiscount: '10% sur tout le magasin',
         lotteryPrizeName: '',
         lotteryPrizeDescription: '',
-        lotteryPrizeValue: ''
+        lotteryPrizeValue: '',
+        ecommerceUrl: ''
       });
       
     } catch (error) {
@@ -273,6 +279,30 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
         </div>
       </div>
       
+      {/* Show e-commerce URL field only for e-commerce or both type stores */}
+      {(storeType === 'ecommerce' || storeType === 'both') && (
+        <div className="space-y-2 border p-4 rounded-lg bg-primary/5 border-primary/20">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Information E-commerce</h3>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ecommerceUrl">URL de votre boutique en ligne</Label>
+            <Input 
+              id="ecommerceUrl" 
+              name="ecommerceUrl" 
+              type="url"
+              placeholder="https://www.votreboutiquecbd.fr" 
+              value={formData.ecommerceUrl} 
+              onChange={handleChange} 
+            />
+            <p className="text-sm text-muted-foreground">
+              Vous pourrez configurer plus de détails sur votre e-commerce après avoir souscrit à un abonnement.
+            </p>
+          </div>
+        </div>
+      )}
+      
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="coupon" className="border-primary/30">
           <AccordionTrigger className="py-4">
@@ -365,7 +395,7 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
           Annuler
         </Button>
         <Button type="submit">
-          Ajouter la boutique
+          {storeType === 'both' ? "Continuer vers la configuration e-commerce" : "Ajouter la boutique"}
         </Button>
       </div>
       
