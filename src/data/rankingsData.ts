@@ -1,5 +1,4 @@
-
-import { Trophy, Star, Store, Globe, Cannabis, Square } from 'lucide-react';
+import { Trophy, Star, Store, Globe, Cannabis, Square, Droplet } from 'lucide-react';
 import React from 'react';
 
 // Types
@@ -18,7 +17,7 @@ export interface RankedItem {
 export interface RankingCategory {
   id: string;
   name: string;
-  icon: React.ElementType; // Changed from ReactNode to ElementType
+  icon: React.ElementType;
   items: RankedItem[];
 }
 
@@ -27,7 +26,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'stores',
     name: 'Meilleures boutiques CBD',
-    icon: Store, // Removed JSX syntax, using the component reference directly
+    icon: Store,
     items: [
       {
         id: '1',
@@ -84,7 +83,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'ecommerce',
     name: 'Meilleurs sites e-commerce CBD',
-    icon: Globe, // Removed JSX syntax
+    icon: Globe,
     items: [
       {
         id: '1',
@@ -141,7 +140,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'flowers',
     name: 'Meilleures fleurs CBD',
-    icon: Cannabis, // Removed JSX syntax
+    icon: Cannabis,
     items: [
       {
         id: '1',
@@ -193,7 +192,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'resins',
     name: 'Meilleures résines CBD',
-    icon: Square, // Removed JSX syntax
+    icon: Square,
     items: [
       {
         id: '1',
@@ -245,7 +244,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'oils',
     name: 'Meilleures huiles CBD',
-    icon: Star, // Removed JSX syntax
+    icon: Droplet,
     items: [
       {
         id: '1',

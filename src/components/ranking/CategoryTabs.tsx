@@ -1,6 +1,6 @@
 
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Cannabis, Square } from 'lucide-react';
+import { Cannabis, Square, Store, Globe, Droplet } from 'lucide-react';
 import { RankingCategory } from '@/data/rankingsData';
 
 interface CategoryTabsProps {
@@ -21,23 +21,17 @@ const CategoryTabs = ({ categories }: CategoryTabsProps) => {
               value={category.id}
               className="flex flex-col items-center gap-1 py-3 px-2 md:px-4"
             >
-              <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">
-                {category.id === 'flowers' ? (
-                  <Cannabis className="h-6 w-6 text-green-600" />
-                ) : category.id === 'resins' ? (
-                  <div className="relative w-6 h-5">
-                    <Square className="h-6 w-6 text-slate-700 fill-slate-200 stroke-[1.5]" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-4 h-[2px] bg-slate-700 rotate-45"></div>
-                      <div className="w-4 h-[2px] bg-slate-700 -rotate-45 ml-[-16px]"></div>
-                    </div>
-                  </div>
-                ) : (
-                  <IconComponent className="h-6 w-6" />
-                )}
+              <span className={`flex items-center justify-center rounded-full p-2
+                ${category.id === 'stores' ? 'bg-violet-100 text-violet-600' :
+                  category.id === 'ecommerce' ? 'bg-blue-100 text-blue-600' :
+                  category.id === 'flowers' ? 'bg-green-100 text-green-600' :
+                  category.id === 'resins' ? 'bg-amber-100 text-amber-700' :
+                  'bg-red-100 text-red-600'}`}
+              >
+                <IconComponent className="h-5 w-5" />
               </span>
-              <span className="hidden md:inline text-xs">{category.name.split(' ').pop()}</span>
-              <span className="inline md:hidden text-xs">
+              <span className="hidden md:inline text-xs font-medium">{category.name.split(' ').pop()}</span>
+              <span className="inline md:hidden text-xs font-medium">
                 {category.id === 'stores' ? 'Boutiques' : 
                  category.id === 'ecommerce' ? 'Sites' : 
                  category.id === 'flowers' ? 'Fleurs' : 
