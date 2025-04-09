@@ -83,8 +83,8 @@ const EcommerceSubscriptionPage = () => {
         "Tous les avantages de l'Offre 1",
         "Affichage prioritaire dans la recherche",
         "Accès aux demandes de contacts directs",
-        "Accès au catalogue d'envoi d'offres spéciales vers clients/boutiques",
-        "Possibilité de publier un article sponsorisé avec lien retour vers votre site"
+        "Publiez un article promotionnel avec lien direct vers votre site",
+        "Sponsorisez votre boutique ou produit dans le Classement CBD et gagnez en visibilité (option payante)"
       ],
       icon: <Award className="h-8 w-8 text-primary" />
     }

@@ -22,6 +22,8 @@ export const subscriptionPlans = [
       "Statistiques de visite",
       "Coupons illimités",
       "Support prioritaire",
+      "Publiez un article promotionnel avec lien direct vers votre site",
+      "Sponsorisez votre boutique ou produit dans le Classement CBD et gagnez en visibilité (option payante)",
     ],
     isPopular: true,
   },

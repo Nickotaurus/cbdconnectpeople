@@ -3,7 +3,7 @@ import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { subscriptionPlans } from "@/utils/data";
+import { subscriptionPlans } from "@/data/subscriptionData";
 
 interface SubscriptionPlansProps {
   onSelectPlan?: (planId: string) => void;
