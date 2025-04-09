@@ -24,6 +24,11 @@ export interface Store {
     usageCount?: number;
     isAffiliate?: boolean;
   };
+  lotteryPrize?: {
+    name: string;
+    description: string;
+    value?: string;
+  };
   isPremium?: boolean;
   premiumUntil?: string;
   reviews: {

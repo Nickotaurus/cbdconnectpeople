@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Gift, Percent } from "lucide-react";
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
@@ -28,7 +30,12 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
     description: '',
     imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000', // Default image
     rating: 4.0,
-    reviewCount: 0
+    reviewCount: 0,
+    couponCode: '',
+    couponDiscount: '10% sur tout le magasin',
+    lotteryPrizeName: '',
+    lotteryPrizeDescription: '',
+    lotteryPrizeValue: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,6 +48,16 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.couponCode) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un code promo pour votre boutique",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
     
     try {
       // Prepare the complete store object
@@ -56,8 +73,8 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
           { day: "Dimanche", hours: "Fermé" },
         ],
         coupon: {
-          code: `${formData.name.substring(0, 5).toUpperCase()}10`,
-          discount: "10% sur tout le magasin",
+          code: formData.couponCode,
+          discount: formData.couponDiscount,
           validUntil: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
         },
         reviews: [],
@@ -66,6 +83,15 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
           { category: "Huiles", origin: "France", quality: "Premium" },
         ]
       };
+      
+      // Add lottery prize if provided
+      if (formData.lotteryPrizeName && formData.lotteryPrizeDescription) {
+        storeData.lotteryPrize = {
+          name: formData.lotteryPrizeName,
+          description: formData.lotteryPrizeDescription,
+          value: formData.lotteryPrizeValue || undefined
+        };
+      }
       
       // Add the store
       const newStore = addStore(storeData);
@@ -94,7 +120,12 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
         description: '',
         imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000',
         rating: 4.0,
-        reviewCount: 0
+        reviewCount: 0,
+        couponCode: '',
+        couponDiscount: '10% sur tout le magasin',
+        lotteryPrizeName: '',
+        lotteryPrizeDescription: '',
+        lotteryPrizeValue: ''
       });
       
     } catch (error) {
@@ -241,6 +272,93 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess }) => {
           />
         </div>
       </div>
+      
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="coupon" className="border-primary/30">
+          <AccordionTrigger className="py-4">
+            <div className="flex items-center gap-2">
+              <Percent className="h-5 w-5 text-primary" />
+              <span className="font-medium">Code Promo (Obligatoire)</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="couponCode">
+                  Code Promo*
+                  <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input 
+                  id="couponCode" 
+                  name="couponCode" 
+                  value={formData.couponCode} 
+                  onChange={handleChange} 
+                  placeholder="Ex: MONCODE10" 
+                  required
+                />
+                <p className="text-sm text-muted-foreground">
+                  Ce code sera utilisé par les clients sur votre boutique ou site web.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="couponDiscount">Description de la remise*</Label>
+                <Input 
+                  id="couponDiscount" 
+                  name="couponDiscount" 
+                  value={formData.couponDiscount} 
+                  onChange={handleChange} 
+                  placeholder="Ex: 10% sur tout le magasin" 
+                  required
+                />
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        
+        <AccordionItem value="lottery" className="border-primary/30">
+          <AccordionTrigger className="py-4">
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <span className="font-medium">Lot pour la loterie (Facultatif)</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="lotteryPrizeName">Nom du lot</Label>
+                <Input 
+                  id="lotteryPrizeName" 
+                  name="lotteryPrizeName" 
+                  value={formData.lotteryPrizeName} 
+                  onChange={handleChange} 
+                  placeholder="Ex: Coffret découverte CBD" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lotteryPrizeDescription">Description du lot</Label>
+                <Textarea 
+                  id="lotteryPrizeDescription" 
+                  name="lotteryPrizeDescription" 
+                  value={formData.lotteryPrizeDescription} 
+                  onChange={handleChange} 
+                  placeholder="Ex: Un coffret contenant 5 échantillons de nos meilleures fleurs CBD" 
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lotteryPrizeValue">Valeur estimée du lot (optionnel)</Label>
+                <Input 
+                  id="lotteryPrizeValue" 
+                  name="lotteryPrizeValue" 
+                  value={formData.lotteryPrizeValue} 
+                  onChange={handleChange} 
+                  placeholder="Ex: 29.99€" 
+                />
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
       
       <div className="pt-6 flex justify-end gap-4">
         <Button type="button" variant="outline" onClick={() => navigate('/map')}>
