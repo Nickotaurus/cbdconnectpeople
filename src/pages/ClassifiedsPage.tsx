@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, MapPin, Search, Tag, Clock, PlusCircle } from 'lucide-react';
+import { Filter, MapPin, Search, Tag, Clock } from 'lucide-react';
+import PublishButton from '@/components/classifieds/PublishButton';
 
 // Types
 type ClassifiedType = 'buy' | 'sell' | 'service';
@@ -98,16 +98,13 @@ const ClassifiedsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredClassifieds, setFilteredClassifieds] = useState(mockClassifieds);
   
-  // Filtrer les annonces en fonction du type et de la recherche
   const filterClassifieds = (type: string, term: string) => {
     let filtered = [...mockClassifieds];
     
-    // Filtre par type
     if (type !== 'all') {
       filtered = filtered.filter(classified => classified.type === type);
     }
     
-    // Filtre par terme de recherche
     if (term.trim()) {
       const lowerTerm = term.toLowerCase();
       filtered = filtered.filter(
@@ -132,7 +129,6 @@ const ClassifiedsPage = () => {
     filterClassifieds(activeType, term);
   };
   
-  // Fonction pour obtenir le label du type
   const getTypeLabel = (type: ClassifiedType) => {
     switch (type) {
       case 'buy': return 'Achat';
@@ -142,7 +138,6 @@ const ClassifiedsPage = () => {
     }
   };
   
-  // Fonction pour obtenir le label de la catégorie
   const getCategoryLabel = (category: ClassifiedCategory) => {
     switch (category) {
       case 'store': return 'Boutique CBD';
@@ -154,7 +149,6 @@ const ClassifiedsPage = () => {
     }
   };
   
-  // Fonction pour obtenir la couleur du badge selon le type
   const getTypeBadgeColor = (type: ClassifiedType) => {
     switch (type) {
       case 'buy': return 'bg-blue-100 text-blue-800';
@@ -205,10 +199,7 @@ const ClassifiedsPage = () => {
           </Tabs>
           
           {user ? (
-            <Button className="bg-primary hover:bg-primary/90 gap-2 mb-10">
-              <PlusCircle className="h-4 w-4" />
-              Publier une annonce
-            </Button>
+            <PublishButton />
           ) : (
             <div className="bg-secondary/30 rounded-lg p-4 mb-10 max-w-lg mx-auto">
               <p className="text-sm">
@@ -296,7 +287,6 @@ const ClassifiedsPage = () => {
   );
 };
 
-// Utility function
 const cn = (...classes: (string | boolean | undefined)[]) => {
   return classes.filter(Boolean).join(' ');
 };

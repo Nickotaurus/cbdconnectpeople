@@ -30,6 +30,8 @@ const EcommercePage = lazy(() => import("./pages/EcommercePage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
 const EcommerceSubscriptionPage = lazy(() => import("./pages/EcommerceSubscriptionPage"));
 const Profile = lazy(() => import("./pages/Profile"));
+const PublishClassifiedPage = lazy(() => import("./pages/PublishClassifiedPage"));
+const AdminClassifiedsPage = lazy(() => import("./pages/AdminClassifiedsPage"));
 
 // Nouveaux ajouts - client interface pages
 const MyFavorites = lazy(() => import("./pages/MyFavorites"));
@@ -65,6 +67,8 @@ const App = () => (
                   <Route path="/partners/subscription" element={<PartnersSubscriptionPage />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/classifieds" element={<ClassifiedsPage />} />
+                  <Route path="/classifieds/publish" element={<PublishClassifiedPage />} />
+                  <Route path="/admin/classifieds" element={<AdminClassifiedsPage />} />
                   <Route path="/e-commerce" element={<EcommercePage />} />
                   <Route path="/e-commerce/subscription" element={<EcommerceSubscriptionPage />} />
                   <Route path="/news" element={<NewsPage />} />
