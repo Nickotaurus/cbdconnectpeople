@@ -9,15 +9,53 @@ interface StoreListProps {
   searchTerm: string;
   userLocation: { latitude: number; longitude: number };
   onSelectStore: (store: Store) => void;
+  activeFilters?: {
+    categories: string[];
+    minRating: number;
+    maxDistance: number | null;
+  };
 }
 
-const StoreList = ({ stores, searchTerm, userLocation, onSelectStore }: StoreListProps) => {
-  const filteredStores = searchTerm
-    ? stores.filter(store => 
-        store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.city.toLowerCase().includes(searchTerm.toLowerCase())
+const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilters }: StoreListProps) => {
+  // Filter stores based on search term and active filters
+  let filteredStores = stores;
+  
+  // Apply search term filter
+  if (searchTerm) {
+    filteredStores = filteredStores.filter(store => 
+      store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      store.city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+  
+  // Apply category filter
+  if (activeFilters?.categories && activeFilters.categories.length > 0) {
+    filteredStores = filteredStores.filter(store => 
+      store.products.some(product => 
+        activeFilters.categories.includes(product.category)
       )
-    : stores;
+    );
+  }
+  
+  // Apply rating filter
+  if (activeFilters?.minRating && activeFilters.minRating > 0) {
+    filteredStores = filteredStores.filter(store => 
+      store.rating >= activeFilters.minRating
+    );
+  }
+  
+  // Apply distance filter
+  if (activeFilters?.maxDistance) {
+    filteredStores = filteredStores.filter(store => {
+      const distance = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        store.latitude,
+        store.longitude
+      );
+      return distance <= activeFilters.maxDistance!;
+    });
+  }
   
   if (filteredStores.length === 0) {
     return (
@@ -25,15 +63,19 @@ const StoreList = ({ stores, searchTerm, userLocation, onSelectStore }: StoreLis
         <p className="text-muted-foreground">
           {searchTerm 
             ? `Aucune boutique trouvée pour "${searchTerm}"`
-            : 'Aucune boutique trouvée dans cette zone'}
+            : 'Aucune boutique ne correspond à vos critères de filtrage'}
         </p>
-        {searchTerm && (
+        {(searchTerm || (activeFilters && (
+          activeFilters.categories.length > 0 || 
+          activeFilters.minRating > 0 || 
+          activeFilters.maxDistance !== null
+        ))) && (
           <Button 
             variant="outline" 
             className="mt-2"
-            onClick={() => window.dispatchEvent(new CustomEvent('reset-search'))}
+            onClick={() => window.dispatchEvent(new CustomEvent('reset-filters'))}
           >
-            Réinitialiser la recherche
+            Réinitialiser les filtres
           </Button>
         )}
       </div>

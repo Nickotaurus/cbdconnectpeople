@@ -21,6 +21,13 @@ const MapView = () => {
   const [stores, setStores] = useState(getStoresByDistance(userLocation.latitude, userLocation.longitude));
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   
+  // Filter states
+  const [activeFilters, setActiveFilters] = useState({
+    categories: [] as string[],
+    minRating: 0,
+    maxDistance: null as number | null,
+  });
+  
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -40,8 +47,20 @@ const MapView = () => {
     const handleResetSearch = () => setSearchTerm('');
     window.addEventListener('reset-search', handleResetSearch);
     
+    // Listen for reset filters event
+    const handleResetFilters = () => {
+      setSearchTerm('');
+      setActiveFilters({
+        categories: [],
+        minRating: 0,
+        maxDistance: null,
+      });
+    };
+    window.addEventListener('reset-filters', handleResetFilters);
+    
     return () => {
       window.removeEventListener('reset-search', handleResetSearch);
+      window.removeEventListener('reset-filters', handleResetFilters);
     };
   }, []);
     
@@ -57,13 +76,23 @@ const MapView = () => {
     setSelectedStore(null);
   };
 
+  const handleApplyFilters = (filters: {
+    categories: string[];
+    minRating: number;
+    maxDistance: number | null;
+  }) => {
+    setActiveFilters(filters);
+    // Clear selected store when applying new filters
+    setSelectedStore(null);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-2">
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           <MapActions />
-          <FiltersSheet />
+          <FiltersSheet onApplyFilters={handleApplyFilters} />
         </div>
       </div>
       
@@ -86,6 +115,32 @@ const MapView = () => {
                   : 'Aucune boutique trouvée'
               }
             </h2>
+            
+            {!selectedStore && activeFilters && (
+              activeFilters.categories.length > 0 || 
+              activeFilters.minRating > 0 || 
+              activeFilters.maxDistance !== null
+            ) && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {activeFilters.categories.length > 0 && (
+                  <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                    {activeFilters.categories.length} catégorie(s)
+                  </div>
+                )}
+                
+                {activeFilters.minRating > 0 && (
+                  <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                    {activeFilters.minRating}+ étoiles
+                  </div>
+                )}
+                
+                {activeFilters.maxDistance !== null && (
+                  <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                    &lt; {activeFilters.maxDistance} km
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {selectedStore ? (
@@ -99,7 +154,8 @@ const MapView = () => {
               stores={stores} 
               searchTerm={searchTerm} 
               userLocation={userLocation} 
-              onSelectStore={handleSelectStore} 
+              onSelectStore={handleSelectStore}
+              activeFilters={activeFilters}
             />
           )}
         </div>
