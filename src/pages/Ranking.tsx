@@ -351,6 +351,8 @@ const RankingPage = () => {
                   <span className="flex items-center justify-center bg-primary/10 rounded-full p-2">
                     {category.id === 'flowers' ? (
                       <Cannabis className="h-6 w-6 text-green-600" />
+                    ) : category.id === 'resins' ? (
+                      <Hash className="h-6 w-6 text-purple-600 transform rotate-45 scale-125" />
                     ) : (
                       category.icon
                     )}
