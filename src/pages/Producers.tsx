@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Filter, Search, Leaf, Award, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from 'react-router-dom';
+import { PartnerCategory } from '@/types/auth';
 
-// Mock data for producers - In a real app, this would come from an API
 const mockProducers = [
   {
     id: "p1",
@@ -78,7 +78,7 @@ const Producers = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Producteurs de CBD en France</h1>
+          <h1 className="text-3xl font-bold mb-2">Annuaire des partenaires</h1>
           <p className="text-muted-foreground">
             {isStore 
               ? "Connectez-vous directement avec les meilleurs producteurs de CBD et de chanvre" 
