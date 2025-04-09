@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Star, Store, Globe, Hash, ExternalLink, Cannabis } from 'lucide-react';
+import { Trophy, Star, Store, Globe, Hash, ExternalLink, Cannabis, Square } from 'lucide-react';
 
 // Types
 interface RankedItem {
@@ -145,7 +146,7 @@ const rankings: RankingCategory[] = [
   {
     id: 'flowers',
     name: 'Meilleures fleurs CBD',
-    icon: <img src="/lovable-uploads/13409efc-2cd8-488d-84b7-5fea2399a403.png" alt="Fleur" className="h-6 w-6" />,
+    icon: <Cannabis className="h-5 w-5" />,
     items: [
       {
         id: '1',
@@ -197,7 +198,7 @@ const rankings: RankingCategory[] = [
   {
     id: 'resins',
     name: 'Meilleures résines CBD',
-    icon: <Hash className="h-5 w-5" />,
+    icon: <Square className="h-5 w-5" />,
     items: [
       {
         id: '1',
@@ -352,7 +353,13 @@ const RankingPage = () => {
                     {category.id === 'flowers' ? (
                       <Cannabis className="h-6 w-6 text-green-600" />
                     ) : category.id === 'resins' ? (
-                      <Hash className="h-6 w-6 text-purple-600 transform rotate-45 scale-125" />
+                      <div className="relative w-6 h-5">
+                        <Square className="h-6 w-6 text-slate-700 fill-slate-200 stroke-[1.5]" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-4 h-[2px] bg-slate-700 rotate-45"></div>
+                          <div className="w-4 h-[2px] bg-slate-700 -rotate-45 ml-[-16px]"></div>
+                        </div>
+                      </div>
                     ) : (
                       category.icon
                     )}
