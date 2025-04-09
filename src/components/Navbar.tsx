@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, User, Leaf, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
+import { Menu, X, Award, MapPin, User, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -49,13 +50,16 @@ const Navbar = () => {
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            aria-label="Retour à la page d'accueil"
+          >
             <img 
               src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
               alt="Logo" 
               className="h-16 w-16"
             />
-            {/* Removed text "CBD Connect People" */}
           </Link>
         </div>
         
@@ -211,3 +215,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
