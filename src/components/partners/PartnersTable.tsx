@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
 import { PartnerIcon } from "@/components/partners/PartnerIcon";
+import { PartnerCategory } from "@/types/auth";
 
 interface Partner {
   id: string;
   name: string;
-  category: string;
+  category: PartnerCategory;  // Changed from string to PartnerCategory
   description: string;
   isPremium: boolean;
   location: string;
