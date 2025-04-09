@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -34,8 +33,8 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
     imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000', // Default image
     rating: 4.0,
     reviewCount: 0,
-    couponCode: '',
-    couponDiscount: '10% sur tout le magasin',
+    originalIncentive: '',
+    incentiveDescription: '10% de réduction sur votre premier achat',
     lotteryPrizeName: '',
     lotteryPrizeDescription: '',
     lotteryPrizeValue: '',
@@ -53,10 +52,10 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.couponCode) {
+    if (!formData.originalIncentive) {
       toast({
         title: "Erreur",
-        description: "Veuillez saisir un code promo pour votre boutique",
+        description: "Veuillez saisir un avantage original pour votre boutique",
         variant: "destructive",
         duration: 5000,
       });
@@ -76,9 +75,10 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
           { day: "Samedi", hours: "10:00 - 19:00" },
           { day: "Dimanche", hours: "Fermé" },
         ],
-        coupon: {
-          code: formData.couponCode,
-          discount: formData.couponDiscount,
+        // Replace coupon with new incentive structure
+        incentive: {
+          title: formData.originalIncentive,
+          description: formData.incentiveDescription,
           validUntil: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
         },
         reviews: [],
@@ -100,7 +100,6 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
         };
       }
       
-      // Add the store
       const newStore = addStore(storeData);
       
       toast({
@@ -109,7 +108,6 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
         duration: 3000,
       });
       
-      // Call the success callback if provided
       if (onSuccess) {
         onSuccess(newStore);
       }
@@ -128,8 +126,8 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
         imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000',
         rating: 4.0,
         reviewCount: 0,
-        couponCode: '',
-        couponDiscount: '10% sur tout le magasin',
+        originalIncentive: '',
+        incentiveDescription: '10% de réduction sur votre premier achat',
         lotteryPrizeName: '',
         lotteryPrizeDescription: '',
         lotteryPrizeValue: '',
