@@ -7,6 +7,7 @@ import { Store, Globe, ExternalLink, Star } from 'lucide-react';
 import StarRating from './StarRating';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import PromoCodePopover from './PromoCodePopover';
 
 interface RankingItemCardProps {
   item: RankedItem;
@@ -98,7 +99,7 @@ const RankingItemCard = ({ item, index }: RankingItemCardProps) => {
             {item.description}
           </p>
           
-          <div className="flex justify-between">
+          <div className="flex flex-wrap gap-2 justify-between">
             <Button 
               variant="secondary" 
               size="sm" 
@@ -109,14 +110,18 @@ const RankingItemCard = ({ item, index }: RankingItemCardProps) => {
               Laisser un avis Google
             </Button>
             
-            <Button variant="default" size="sm" className="gap-1">
-              {item.category === 'boutique' ? 'Voir la boutique' : 
-               item.category === 'ecommerce' ? (
-                 <>
-                   Visiter le site <ExternalLink className="h-4 w-4" />
-                 </>
-               ) : 'Voir le détail'}
-            </Button>
+            <div className="flex gap-2">
+              <PromoCodePopover itemName={item.name} itemType={item.category} />
+              
+              <Button variant="default" size="sm" className="gap-1">
+                {item.category === 'boutique' ? 'Voir la boutique' : 
+                 item.category === 'ecommerce' ? (
+                   <>
+                     Visiter le site <ExternalLink className="h-4 w-4" />
+                   </>
+                 ) : 'Voir le détail'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </div>
