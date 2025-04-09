@@ -1,3 +1,4 @@
+
 import { PartnerCategory } from "@/types/auth";
 import { partnerCategories } from "@/data/partnerCategoriesData";
 import { Building, Calculator, Briefcase, Shield, Package, Users, Tag } from "lucide-react";

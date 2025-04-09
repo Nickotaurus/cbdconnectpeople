@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, Search, MapPin, Building, Calculator, Briefcase, Shield, Package, Tag, Users } from 'lucide-react';
+import { Filter, Search, MapPin } from 'lucide-react';
+import { getCategoryIcon } from "@/utils/partnerUtils";
 
 interface PartnerFiltersProps {
   searchTerm: string;
@@ -98,31 +99,6 @@ const PartnerFilters = ({
       </div>
     </div>
   );
-};
-
-// Utility function to get category icon
-export const getCategoryIcon = (category: string) => {
-  switch(category) {
-    case 'bank':
-      return <Building className="h-4 w-4" />;
-    case 'accountant':
-      return <Calculator className="h-4 w-4" />;
-    case 'legal':
-      return <Briefcase className="h-4 w-4" />;
-    case 'insurance':
-      return <Shield className="h-4 w-4" />;
-    case 'logistics':
-      return <Package className="h-4 w-4" />;
-    case 'laboratory':
-      return <Tag className="h-4 w-4" />;
-    case 'realEstate':
-      return <Building className="h-4 w-4" />;
-    case 'breeder':
-    case 'association':
-      return <Users className="h-4 w-4" />;
-    default:
-      return <Briefcase className="h-4 w-4" />;
-  }
 };
 
 export default PartnerFilters;
