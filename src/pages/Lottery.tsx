@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { ClientUser } from '@/types/auth';
 
 const mockRewards = [
   { id: "1", name: "10% de réduction chez CBD Paris", date: "2024-04-01", claimed: true },
@@ -17,7 +18,8 @@ const Lottery = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const ticketsAvailable = user?.tickets || 0;
+  const clientUser = user as ClientUser;
+  const ticketsAvailable = clientUser?.tickets || 0;
   
   const handleUseLotteryTicket = () => {
     if (ticketsAvailable <= 0) {
