@@ -59,7 +59,7 @@ const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilt
   
   if (filteredStores.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 animate-fade-in">
         <p className="text-muted-foreground">
           {searchTerm 
             ? `Aucune boutique trouvée pour "${searchTerm}"`
@@ -84,11 +84,16 @@ const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilt
   
   return (
     <div className="space-y-4">
-      {filteredStores.map(store => (
+      {filteredStores.map((store, index) => (
         <div 
           key={store.id} 
-          className="cursor-pointer"
+          className="cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
           onClick={() => onSelectStore(store)}
+          style={{ 
+            animationDelay: `${index * 50}ms`,
+            opacity: 0,
+            animation: 'fade-in 0.5s ease-out forwards'
+          }}
         >
           <StoreCard 
             store={store} 

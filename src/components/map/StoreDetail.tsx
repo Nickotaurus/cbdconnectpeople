@@ -11,8 +11,8 @@ interface StoreDetailProps {
 
 const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProps) => {
   return (
-    <div className="animate-fade-in">
-      <div className="bg-background rounded-lg shadow-sm p-4">
+    <div className="animate-[fade-in_0.3s_ease-out,scale-in_0.3s_ease-out]">
+      <div className="bg-background rounded-lg shadow-sm p-4 transition-all duration-300 hover:shadow-md">
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-semibold text-lg">{store.name}</h3>
@@ -21,7 +21,7 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-7"
+            className="h-7 transition-transform duration-200 hover:translate-x-1"
             onClick={() => onViewDetails(store)}
           >
             Détails
@@ -49,7 +49,8 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
             {store.products.map((product, index) => (
               <span 
                 key={index} 
-                className="bg-secondary px-2 py-0.5 rounded text-xs"
+                className="bg-secondary px-2 py-0.5 rounded text-xs animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {product.category}
               </span>
@@ -58,7 +59,11 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
         </div>
       </div>
       
-      <Button variant="link" onClick={onClearSelection} className="p-0 h-auto text-sm">
+      <Button 
+        variant="link" 
+        onClick={onClearSelection} 
+        className="p-0 h-auto text-sm mt-2 transition-all duration-200 hover:translate-x-[-2px]"
+      >
         Voir toutes les boutiques
       </Button>
     </div>

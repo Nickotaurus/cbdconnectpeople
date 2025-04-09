@@ -71,21 +71,32 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           
           <div className="grid gap-3 mt-6">
             <p className="text-sm font-medium">Boutiques à proximité :</p>
-            {stores.slice(0, 5).map((store) => (
+            {stores.slice(0, 5).map((store, index) => (
               <Button
                 key={store.id}
                 variant={store.id === selectedStoreId ? "default" : "outline"}
-                className={`justify-start ${store.id === selectedStoreId ? 'border-primary' : ''}`}
+                className={`justify-start transition-all duration-300 ${
+                  store.id === selectedStoreId 
+                    ? 'border-primary shadow-md scale-105' 
+                    : 'hover:bg-secondary/80'
+                }`}
+                style={{ 
+                  animationDelay: `${index * 100}ms`,
+                  opacity: 0,
+                  animation: 'fade-in 0.5s ease-out forwards'
+                }}
                 onClick={() => handleStoreClick(store)}
               >
-                <MapPin className="h-4 w-4 mr-2" />
+                <MapPin className={`h-4 w-4 mr-2 transition-all duration-300 ${
+                  store.id === selectedStoreId ? 'text-primary' : ''
+                }`} />
                 <span className="truncate">{store.name}</span>
               </Button>
             ))}
           </div>
           
           {userLocation && (
-            <div className="mt-6">
+            <div className="mt-6 animate-fade-in">
               <p className="text-sm mb-2">Votre position :</p>
               <div className="bg-background/50 backdrop-blur-sm p-2 rounded-md flex items-center justify-center text-xs">
                 <Navigation className="h-3.5 w-3.5 mr-1.5 text-primary" />
