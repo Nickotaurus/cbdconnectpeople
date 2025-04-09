@@ -90,10 +90,10 @@ const StoreDashboard = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start" 
-              onClick={() => navigate('/producers')}
+              onClick={() => navigate('/partners')}
             >
               <Leaf className="mr-2 h-4 w-4" />
-              Annuaire des producteurs
+              Annuaire des partenaires
             </Button>
             
             <Button 
