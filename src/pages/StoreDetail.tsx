@@ -16,12 +16,18 @@ import ReviewSection from '@/components/ReviewSection';
 import AdBanner from '@/components/AdBanner';
 import { getStoreById } from '@/utils/data';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ClientUser } from '@/types/auth';
 
 const StoreDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [store, setStore] = useState(id ? getStoreById(id) : null);
   const [activeTab, setActiveTab] = useState("info");
+  const { user, updateUserPreferences } = useAuth();
+  const clientUser = user as ClientUser;
+  
+  // Check if store is in user's favorites
   const [isFavorite, setIsFavorite] = useState(false);
   
   // Animation classes for elements
@@ -38,12 +44,14 @@ const StoreDetail = () => {
       navigate("/");
     }
     
-    // Check if it's in favorites (would use localStorage in a real app)
-    setIsFavorite(false);
+    // Check if it's in favorites
+    if (user && user.role === 'client' && store) {
+      setIsFavorite((clientUser?.favorites || []).includes(store.id));
+    }
     
     // Scroll to top when component loads
     window.scrollTo(0, 0);
-  }, [id, navigate, store]);
+  }, [id, navigate, store, user, clientUser?.favorites]);
   
   if (!store) {
     return (
@@ -55,14 +63,47 @@ const StoreDetail = () => {
     );
   }
   
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
-      description: isFavorite 
-        ? `${store.name} a été retiré de vos favoris.` 
-        : `${store.name} a été ajouté à vos favoris.`
-    });
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour ajouter des favoris.",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
+    if (user.role !== 'client') {
+      toast({
+        title: "Action non disponible",
+        description: "Seuls les clients peuvent ajouter des favoris.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const updatedFavorites = isFavorite
+        ? (clientUser.favorites || []).filter(favId => favId !== store.id)
+        : [...(clientUser.favorites || []), store.id];
+      
+      await updateUserPreferences({ favorites: updatedFavorites });
+      setIsFavorite(!isFavorite);
+      
+      toast({
+        title: isFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
+        description: isFavorite 
+          ? `${store.name} a été retiré de vos favoris.` 
+          : `${store.name} a été ajouté à vos favoris.`
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour vos favoris.",
+        variant: "destructive",
+      });
+    }
   };
   
   const shareStore = () => {
@@ -114,7 +155,7 @@ const StoreDetail = () => {
           <Button 
             variant="outline" 
             size="icon" 
-            className="bg-background/80 backdrop-blur-sm"
+            className={`bg-background/80 backdrop-blur-sm ${isFavorite ? 'border-destructive' : ''}`}
             onClick={toggleFavorite}
           >
             <Heart className={`h-5 w-5 ${isFavorite ? 'fill-destructive text-destructive' : ''}`} />
@@ -170,6 +211,16 @@ const StoreDetail = () => {
             </div>
             
             <div className="flex flex-col gap-2 mt-4 md:mt-0">
+              {user && user.role === 'client' && (
+                <Button 
+                  variant={isFavorite ? "outline" : "default"}
+                  onClick={toggleFavorite}
+                  className={`w-full md:w-auto ${isFavorite ? 'border-destructive text-destructive' : ''}`}
+                >
+                  <Heart className={`mr-2 h-4 w-4 ${isFavorite ? 'fill-destructive' : ''}`} />
+                  {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                </Button>
+              )}
               <Button className="w-full md:w-auto">
                 <MapPin className="mr-2 h-4 w-4" />
                 Itinéraire

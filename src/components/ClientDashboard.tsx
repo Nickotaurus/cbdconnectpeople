@@ -5,13 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import AdBanner from './AdBanner';
 import { useAuth } from '@/contexts/AuthContext';
+import { ClientUser } from '@/types/auth';
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const clientUser = user as any; // Cast for accessing potential client-specific fields
+  const clientUser = user as ClientUser;
   
   const featuredStoreImage = "https://images.unsplash.com/photo-1609784969753-182f10261e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+  
+  const favoriteCount = clientUser?.favorites?.length || 0;
+  const productCount = clientUser?.favoriteProducts?.length || 0;
   
   return (
     <div className="space-y-6">
@@ -80,8 +84,8 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {clientUser?.favorites?.length > 0 
-                ? `Vous avez ${clientUser?.favorites?.length} boutiques favorites` 
+              {favoriteCount > 0 
+                ? `Vous avez ${favoriteCount} favoris` 
                 : "Sélectionnez vos boutiques CBD préférées"}
             </p>
           </CardContent>
@@ -105,7 +109,9 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Consultez les produits CBD que vous avez sélectionnés
+              {productCount > 0
+                ? `Vous avez ${productCount} produits favoris`
+                : "Sélectionnez vos produits CBD préférés"}
             </p>
           </CardContent>
           <CardFooter>

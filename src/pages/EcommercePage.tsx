@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Filter, Search, Globe, ExternalLink, Check, Star, Link as LinkIcon, ArrowRight, Award } from 'lucide-react';
+import { Filter, Search, Globe, ExternalLink, Check, Star, Link as LinkIcon, ArrowRight, Award, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { ClientUser } from '@/types/auth';
 
 interface Ecommerce {
   id: string;
@@ -92,7 +94,9 @@ const mockEcommerces: Ecommerce[] = [
 
 const EcommercePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUserPreferences } = useAuth();
+  const { toast } = useToast();
+  const clientUser = user as ClientUser;
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string | null>(null);
   const [filteredStores, setFilteredStores] = useState(mockEcommerces);
@@ -100,6 +104,14 @@ const EcommercePage = () => {
     essential: "1",
     premium: "1"
   });
+  
+  const [favoriteEcommerces, setFavoriteEcommerces] = useState<string[]>([]);
+  
+  useEffect(() => {
+    if (user?.role === 'client' && clientUser?.favorites) {
+      setFavoriteEcommerces(clientUser.favorites.filter(id => id.startsWith('ec')));
+    }
+  }, [user, clientUser?.favorites]);
   
   const filterStores = (term: string, specialty: string | null) => {
     let result = [...mockEcommerces];
@@ -156,6 +168,55 @@ const EcommercePage = () => {
       ...prev,
       [offerId]: duration
     }));
+  };
+  
+  const toggleFavoriteEcommerce = async (ecommerce: Ecommerce) => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour ajouter des favoris.",
+      });
+      return;
+    }
+    
+    if (user.role !== 'client') {
+      toast({
+        title: "Action non disponible",
+        description: "Seuls les clients peuvent ajouter des favoris.",
+      });
+      return;
+    }
+    
+    try {
+      const isCurrentlyFavorite = favoriteEcommerces.includes(ecommerce.id);
+      let updatedFavorites = [...(clientUser.favorites || [])];
+      
+      if (isCurrentlyFavorite) {
+        updatedFavorites = updatedFavorites.filter(id => id !== ecommerce.id);
+      } else {
+        updatedFavorites.push(ecommerce.id);
+      }
+      
+      await updateUserPreferences({ favorites: updatedFavorites });
+      
+      setFavoriteEcommerces(isCurrentlyFavorite 
+        ? favoriteEcommerces.filter(id => id !== ecommerce.id)
+        : [...favoriteEcommerces, ecommerce.id]
+      );
+      
+      toast({
+        title: isCurrentlyFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
+        description: isCurrentlyFavorite 
+          ? `${ecommerce.name} a été retiré de vos favoris.` 
+          : `${ecommerce.name} a été ajouté à vos favoris.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour vos favoris.",
+        variant: "destructive",
+      });
+    }
   };
   
   const subscriptionOffers = [
@@ -255,11 +316,24 @@ const EcommercePage = () => {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-xl">{store.name}</CardTitle>
-                    {store.isPremium && (
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                        Premium
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {store.isPremium && (
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                          Premium
+                        </Badge>
+                      )}
+                      
+                      {user && user.role === 'client' && (
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className={`h-8 w-8 p-1 ${favoriteEcommerces.includes(store.id) ? 'border-destructive' : ''}`} 
+                          onClick={() => toggleFavoriteEcommerce(store)}
+                        >
+                          <Heart className={`h-4 w-4 ${favoriteEcommerces.includes(store.id) ? 'fill-destructive text-destructive' : ''}`} />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <CardDescription className="flex items-center">
                     <Globe className="h-3.5 w-3.5 mr-1" />

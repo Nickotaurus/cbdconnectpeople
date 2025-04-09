@@ -1,10 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, ExternalLink } from 'lucide-react';
+import { Star, MapPin, ExternalLink, Heart } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from '@/contexts/AuthContext';
+import { ClientUser } from '@/types/auth';
+import { useToast } from '@/hooks/use-toast';
 import type { Store } from '@/utils/data';
 import { handleImageLoad } from '@/utils/animations';
 
@@ -15,10 +18,65 @@ interface StoreCardProps {
 
 const StoreCard = ({ store, distance }: StoreCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { user, updateUserPreferences } = useAuth();
+  const { toast } = useToast();
+  const clientUser = user as ClientUser;
+  
+  // Check if store is already in favorites
+  const [isFavorite, setIsFavorite] = useState(false);
+  
+  useEffect(() => {
+    if (user && user.role === 'client') {
+      setIsFavorite((clientUser?.favorites || []).includes(store.id));
+    }
+  }, [user, clientUser?.favorites, store.id]);
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     handleImageLoad(e);
     setImageLoaded(true);
+  };
+  
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation to store details
+    e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour ajouter des favoris.",
+      });
+      return;
+    }
+    
+    if (user.role !== 'client') {
+      toast({
+        title: "Action non disponible",
+        description: "Seuls les clients peuvent ajouter des favoris.",
+      });
+      return;
+    }
+    
+    try {
+      const updatedFavorites = isFavorite
+        ? (clientUser.favorites || []).filter(id => id !== store.id)
+        : [...(clientUser.favorites || []), store.id];
+      
+      await updateUserPreferences({ favorites: updatedFavorites });
+      setIsFavorite(!isFavorite);
+      
+      toast({
+        title: isFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
+        description: isFavorite 
+          ? `${store.name} a été retiré de vos favoris.` 
+          : `${store.name} a été ajouté à vos favoris.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour vos favoris.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -33,11 +91,22 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
           className="w-full h-full object-cover img-loading transition-transform duration-500 group-hover:scale-105"
           onLoad={onImageLoad}
         />
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex gap-2">
           <Badge className="bg-primary text-primary-foreground font-medium">
             <Star className="h-3 w-3 mr-1 fill-primary-foreground" /> 
             {store.rating.toFixed(1)}
           </Badge>
+          
+          {user && user.role === 'client' && (
+            <Button 
+              size="icon" 
+              variant="secondary" 
+              className={`h-6 w-6 rounded-full p-1 ${isFavorite ? 'bg-destructive/20' : 'bg-background/80'}`} 
+              onClick={toggleFavorite}
+            >
+              <Heart className={`h-4 w-4 ${isFavorite ? 'fill-destructive text-destructive' : ''}`} />
+            </Button>
+          )}
         </div>
       </div>
       
