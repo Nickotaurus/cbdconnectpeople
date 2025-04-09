@@ -264,7 +264,7 @@ const Partners = () => {
               </div>
               <Button 
                 className="ml-auto"
-                onClick={() => setShowSubscriptionModal(true)}
+                onClick={() => navigate('/partners/subscription')}
               >
                 Débloquer l'accès
               </Button>
