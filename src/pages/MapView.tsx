@@ -17,13 +17,17 @@ import {
   filterUserLocation, 
   calculateDistance
 } from '@/utils/data';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MapView = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [userLocation, setUserLocation] = useState(filterUserLocation());
   const [stores, setStores] = useState(getStoresByDistance(userLocation.latitude, userLocation.longitude));
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  
+  const canAddStore = !user || (user && user.role === 'store');
   
   useEffect(() => {
     if (navigator.geolocation) {
@@ -74,16 +78,18 @@ const MapView = () => {
             />
           </div>
           
-          <Button 
-            variant="default" 
-            size="sm"
-            className="gap-1"
-            onClick={() => navigate('/add-store')}
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Ajouter une boutique</span>
-            <span className="sm:hidden">Ajouter</span>
-          </Button>
+          {canAddStore && (
+            <Button 
+              variant="default" 
+              size="sm"
+              className="gap-1"
+              onClick={() => navigate('/add-store')}
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Ajouter une boutique</span>
+              <span className="sm:hidden">Ajouter</span>
+            </Button>
+          )}
           
           <Button 
             variant="outline" 
