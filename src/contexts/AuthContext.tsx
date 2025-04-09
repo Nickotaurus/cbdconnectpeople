@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole } from "@/types/auth";
+import { User, UserRole, ClientUser } from "@/types/auth";
 import { badges } from "@/components/badges/UserBadges";
 
 interface AuthContextType {
@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
+  updateUserPreferences: (preferences: Partial<{ favorites: string[], favoriteProducts: string[] }>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,12 +37,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // For demo purposes, we'll simulate a successful login
       // In a real app, this would make an API call to your backend
-      const mockUser: User = {
+      const mockUser: ClientUser = {
         id: "user-" + Math.floor(Math.random() * 10000),
         email,
         name: email.split("@")[0],
         role: "client",
         createdAt: new Date().toISOString(),
+        favorites: [],
+        favoriteProducts: [],
+        tickets: 3,
+        rewards: 0,
         badges: [
           {
             id: badges[0].id,
@@ -68,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // For demo purposes, we'll simulate a successful registration
       // In a real app, this would make an API call to your backend
-      const mockUser: User = {
+      const mockUser: any = {
         id: "user-" + Math.floor(Math.random() * 10000),
         email,
         name,
@@ -87,6 +92,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ]
       };
       
+      // Add role-specific fields
+      if (role === "client") {
+        mockUser.favorites = [];
+        mockUser.favoriteProducts = [];
+        mockUser.tickets = 3;
+        mockUser.rewards = 0;
+      }
+      
       setUser(mockUser);
       localStorage.setItem("cbdUser", JSON.stringify(mockUser));
     } catch (error) {
@@ -96,6 +109,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
+  
+  const updateUserPreferences = async (preferences: Partial<{ favorites: string[], favoriteProducts: string[] }>) => {
+    if (!user) throw new Error("User not logged in");
+    
+    // Update user preferences
+    const updatedUser = { ...user, ...preferences };
+    setUser(updatedUser);
+    localStorage.setItem("cbdUser", JSON.stringify(updatedUser));
+    
+    return Promise.resolve();
+  };
 
   const logout = () => {
     setUser(null);
@@ -103,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, register, updateUserPreferences }}>
       {children}
     </AuthContext.Provider>
   );

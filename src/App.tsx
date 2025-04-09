@@ -30,6 +30,12 @@ const EcommercePage = lazy(() => import("./pages/EcommercePage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
 const EcommerceSubscriptionPage = lazy(() => import("./pages/EcommerceSubscriptionPage"));
 
+// Nouveaux ajouts - client interface pages
+const MyFavorites = lazy(() => import("./pages/MyFavorites"));
+const MyProducts = lazy(() => import("./pages/MyProducts"));
+const Lottery = lazy(() => import("./pages/Lottery"));
+const Quests = lazy(() => import("./pages/Quests"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -61,6 +67,13 @@ const App = () => (
                   <Route path="/e-commerce" element={<EcommercePage />} />
                   <Route path="/e-commerce/subscription" element={<EcommerceSubscriptionPage />} />
                   <Route path="/news" element={<NewsPage />} />
+                  
+                  {/* Nouvelles routes pour l'interface client */}
+                  <Route path="/my-favorites" element={<MyFavorites />} />
+                  <Route path="/my-products" element={<MyProducts />} />
+                  <Route path="/lottery" element={<Lottery />} />
+                  <Route path="/quests" element={<Quests />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

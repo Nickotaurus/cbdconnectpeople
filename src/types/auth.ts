@@ -21,6 +21,9 @@ export interface StoreUser extends User {
 export interface ClientUser extends User {
   role: "client";
   favorites?: string[];
+  favoriteProducts?: string[];
+  tickets?: number;
+  rewards?: number;
 }
 
 export interface PartnerUser extends User {

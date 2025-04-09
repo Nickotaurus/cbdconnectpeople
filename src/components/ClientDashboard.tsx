@@ -1,12 +1,15 @@
 
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Search, Star, Tag } from 'lucide-react';
+import { MapPin, Search, Star, Tag, Ticket, Award, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import AdBanner from './AdBanner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const clientUser = user as any; // Cast for accessing potential client-specific fields
   
   const featuredStoreImage = "https://images.unsplash.com/photo-1609784969753-182f10261e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
   
@@ -72,21 +75,97 @@ const ClientDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Star className="h-5 w-5 mr-2 text-primary" />
-              Meilleures boutiques
+              Mes meilleures boutiques
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Découvrez les boutiques les mieux notées par la communauté
+              {clientUser?.favorites?.length > 0 
+                ? `Vous avez ${clientUser?.favorites?.length} boutiques favorites` 
+                : "Sélectionnez vos boutiques CBD préférées"}
             </p>
           </CardContent>
           <CardFooter>
             <Button 
               variant="outline" 
               className="w-full" 
-              onClick={() => navigate('/ranking')}
+              onClick={() => navigate('/my-favorites')}
             >
-              Voir le classement
+              Gérer mes favoris
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <BookmarkCheck className="h-5 w-5 mr-2 text-primary" />
+              Mes meilleurs produits
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Consultez les produits CBD que vous avez sélectionnés
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate('/my-products')}
+            >
+              Voir mes produits
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Ticket className="h-5 w-5 mr-2 text-primary" />
+              Loterie
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Tickets disponibles: {clientUser?.tickets || 0}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Gains en attente: {clientUser?.rewards || 0}
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate('/lottery')}
+            >
+              Participer au tirage
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Award className="h-5 w-5 mr-2 text-primary" />
+              CBD Quest
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Accomplissez des missions pour gagner des avantages exclusifs
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate('/quests')}
+            >
+              Voir mes quêtes
             </Button>
           </CardFooter>
         </Card>
