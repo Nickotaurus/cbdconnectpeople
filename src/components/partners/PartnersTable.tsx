@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getCategoryIcon } from "./PartnerFilters";
 import { useNavigate } from "react-router-dom";
+import { PartnerIcon } from "@/components/partners/PartnerIcon";
 
 interface Partner {
   id: string;
@@ -65,7 +65,7 @@ const PartnersTable = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getCategoryIcon(partner.category)}
+                    <PartnerIcon category={partner.category} />
                     {getCategoryName(partner.category)}
                   </div>
                 </TableCell>

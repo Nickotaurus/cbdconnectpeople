@@ -11,8 +11,8 @@ import LotteryPrizeFields from './LotteryPrizeFields';
 
 interface FormAccordionProps {
   formData: {
-    couponCode: string;
-    couponDiscount: string;
+    originalIncentive: string;
+    incentiveDescription: string;
     lotteryPrizeName: string;
     lotteryPrizeDescription: string;
     lotteryPrizeValue: string;

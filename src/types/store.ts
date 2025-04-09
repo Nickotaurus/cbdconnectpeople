@@ -17,7 +17,14 @@ export interface Store {
   imageUrl: string;
   rating: number;
   reviewCount: number;
-  coupon: {
+  incentive?: {
+    title: string;
+    description: string;
+    validUntil: string;
+    usageCount?: number;
+    isAffiliate?: boolean;
+  };
+  coupon?: {
     code: string;
     discount: string;
     validUntil: string;
