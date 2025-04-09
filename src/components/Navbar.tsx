@@ -1,34 +1,23 @@
-import { useState } from 'react';
+
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Award, MapPin, User, LogOut, Network, Briefcase, Globe, Newspaper, MessageCircle } from 'lucide-react';
+import { Award, MapPin, Globe, Newspaper, MessageCircle, Briefcase } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import NavLinks from './navigation/NavLinks';
+import UserMenu from './navigation/UserMenu';
+import MobileMenu from './navigation/MobileMenu';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { user, logout } = useAuth();
-  
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
-  };
   
   const handleLogout = () => {
     logout();
     navigate('/');
   };
   
-  const commonLinks = [
+  const navLinks = [
     { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
     { href: '/map', label: 'Boutiques CBD', icon: MapPin },
     { href: '/e-commerce', label: 'Sites CBD', icon: Globe },
@@ -36,14 +25,6 @@ const Navbar = () => {
     { href: '/ranking', label: 'Classement CBD', icon: Award },
     { href: '/news', label: 'Actualité CBD', icon: Newspaper },
   ];
-  
-  const getLinks = () => {
-    const links = [...commonLinks];
-    return links;
-  };
-  
-  const links = getLinks();
-  const isActive = (path: string) => location.pathname === path;
   
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -62,75 +43,11 @@ const Navbar = () => {
           </Link>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6">
-          {links.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={cn(
-                  "flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary",
-                  isActive(link.href) ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <NavLinks links={navLinks} currentPath={location.pathname} />
         
         <div className="flex items-center gap-2">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative rounded-full h-8 w-8 flex items-center justify-center">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
-                  {user.role !== "client" && (
-                    <Badge
-                      variant={user.isVerified ? "default" : "outline"}
-                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] rounded-full border"
-                    >
-                      {user.isVerified ? "✓" : "!"}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="flex flex-col">
-                  <span>{user.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {user.role === "client" ? "Client" : 
-                     user.role === "store" ? "Boutique" : "Partenaire"}
-                  </span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <User className="h-4 w-4 mr-2" />
-                  Profil
-                </DropdownMenuItem>
-                {user.role === "store" && (
-                  <DropdownMenuItem onClick={() => navigate('/store-dashboard')}>
-                    <Network className="h-4 w-4 mr-2" />
-                    Ma boutique
-                  </DropdownMenuItem>
-                )}
-                {user.role === "partner" && (
-                  <DropdownMenuItem onClick={() => navigate('/partner/profile')}>
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    Mon espace partenaire
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserMenu user={user} onLogout={handleLogout} />
           ) : (
             <Button variant="default" size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Link to="/register">
@@ -139,77 +56,12 @@ const Navbar = () => {
             </Button>
           )}
           
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button size="icon" variant="ghost" className="md:hidden">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="px-2">
-                <div className="flex items-center justify-between mb-8">
-                  <Link to="/" className="flex items-center" onClick={() => setIsSheetOpen(false)}>
-                    <img 
-                      src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
-                      alt="Logo" 
-                      className="h-40 w-40"
-                    />
-                  </Link>
-                  <Button size="icon" variant="ghost" onClick={() => setIsSheetOpen(false)}>
-                    <X className="h-6 w-6" />
-                    <span className="sr-only">Close</span>
-                  </Button>
-                </div>
-                <nav className="flex flex-col gap-4">
-                  {links.map((link) => {
-                    const Icon = link.icon;
-                    return (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className={cn(
-                          "flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-colors",
-                          isActive(link.href) 
-                            ? "bg-primary/10 text-primary" 
-                            : "hover:bg-secondary text-muted-foreground"
-                        )}
-                        onClick={() => setIsSheetOpen(false)}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {link.label}
-                      </Link>
-                    );
-                  })}
-                  
-                  {!user && (
-                    <div className="mt-4 flex flex-col gap-2">
-                      <Button asChild>
-                        <Link to="/register" onClick={() => setIsSheetOpen(false)}>
-                          Référencer ma boutique
-                        </Link>
-                      </Button>
-                      <Button variant="outline" asChild>
-                        <Link to="/login" onClick={() => setIsSheetOpen(false)}>
-                          Se connecter
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {user && (
-                    <Button variant="outline" className="mt-4" onClick={() => {
-                      handleLogout();
-                      setIsSheetOpen(false);
-                    }}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Déconnexion
-                    </Button>
-                  )}
-                </nav>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <MobileMenu 
+            links={navLinks} 
+            currentPath={location.pathname} 
+            isLoggedIn={!!user} 
+            onLogout={handleLogout} 
+          />
         </div>
       </div>
     </header>
