@@ -1,18 +1,16 @@
 
-import { Building, Calculator, Briefcase, Shield, Package, Users, Tag } from 'lucide-react';
-
-// Partner categories data
+// Partner categories data with icon names instead of JSX elements
 export const partnerCategories = [
-  { value: "bank", label: "Banque", icon: <Building className="h-4 w-4" /> },
-  { value: "accountant", label: "Comptable", icon: <Calculator className="h-4 w-4" /> },
-  { value: "legal", label: "Juriste", icon: <Briefcase className="h-4 w-4" /> },
-  { value: "insurance", label: "Assurance", icon: <Shield className="h-4 w-4" /> },
-  { value: "logistics", label: "Logistique", icon: <Package className="h-4 w-4" /> },
-  { value: "breeder", label: "Breeder", icon: <Users className="h-4 w-4" /> },
-  { value: "label", label: "Label", icon: <Tag className="h-4 w-4" /> },
-  { value: "association", label: "Association", icon: <Users className="h-4 w-4" /> },
-  { value: "media", label: "Média", icon: <Briefcase className="h-4 w-4" /> },
-  { value: "laboratory", label: "Laboratoire", icon: <Briefcase className="h-4 w-4" /> },
-  { value: "production", label: "Production", icon: <Package className="h-4 w-4" /> },
-  { value: "realEstate", label: "Agence immobilière", icon: <Building className="h-4 w-4" /> }
+  { value: "bank", label: "Banque", iconName: "Building" },
+  { value: "accountant", label: "Comptable", iconName: "Calculator" },
+  { value: "legal", label: "Juriste", iconName: "Briefcase" },
+  { value: "insurance", label: "Assurance", iconName: "Shield" },
+  { value: "logistics", label: "Logistique", iconName: "Package" },
+  { value: "breeder", label: "Breeder", iconName: "Users" },
+  { value: "label", label: "Label", iconName: "Tag" },
+  { value: "association", label: "Association", iconName: "Users" },
+  { value: "media", label: "Média", iconName: "Briefcase" },
+  { value: "laboratory", label: "Laboratoire", iconName: "Briefcase" },
+  { value: "production", label: "Production", iconName: "Package" },
+  { value: "realEstate", label: "Agence immobilière", iconName: "Building" }
 ];
