@@ -9,9 +9,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 
 import Navbar from "./components/Navbar";
 import Chatbot from "./components/Chatbot";
+import Index from "./pages/Index"; // Import Index directly instead of lazy loading it
 
-// Lazy load pages for better performance
-const Index = lazy(() => import("./pages/Index"));
+// Lazy load pages for better performance (but not Index which is causing issues)
 const MapView = lazy(() => import("./pages/MapView"));
 const StoreDetail = lazy(() => import("./pages/StoreDetail"));
 const CbdGuide = lazy(() => import("./pages/CbdGuide"));
