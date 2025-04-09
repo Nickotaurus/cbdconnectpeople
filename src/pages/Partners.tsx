@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag, Award, ArrowRight } from 'lucide-react';
+import { MapPin, Filter, Search, Briefcase, Check, Users, Building, Calculator, Shield, Package, Tag, Award, ArrowRight, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useNavigate } from 'react-router-dom';
 import { PartnerCategory } from '@/types/auth';
 import BecomePartnerCTA from '@/components/partners/BecomePartnerCTA';
+import PartnerSubscriptionModal from '@/components/partners/PartnerSubscriptionModal';
 
 // Partner categories data
 const partnerCategories = [
@@ -129,10 +130,12 @@ const Partners = () => {
     essential: "1",
     premium: "1"
   });
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
+  const hasPremium = user?.role === "store" && user.isVerified; // Assuming isVerified indicates premium status
   
-  // Filter partners when search term or category changes
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -147,7 +150,6 @@ const Partners = () => {
   const filterPartners = (term: string, category: string) => {
     let filtered = mockPartners;
     
-    // Apply search term filter
     if (term.trim()) {
       filtered = filtered.filter(
         partner => 
@@ -157,7 +159,6 @@ const Partners = () => {
       );
     }
     
-    // Apply category filter
     if (category !== 'all') {
       filtered = filtered.filter(partner => partner.category === category);
     }
@@ -173,6 +174,21 @@ const Partners = () => {
   const getCategoryIcon = (categoryValue: PartnerCategory) => {
     const category = partnerCategories.find(c => c.value === categoryValue);
     return category ? category.icon : <Briefcase className="h-4 w-4" />;
+  };
+  
+  const handleContactClick = (partnerId: string) => {
+    if (hasPremium) {
+      console.log(`Showing contact info for partner ${partnerId}`);
+      setSelectedPartnerId(partnerId);
+    } else {
+      setShowSubscriptionModal(true);
+    }
+  };
+  
+  const handleSubscribe = (planId: string) => {
+    setShowSubscriptionModal(false);
+    console.log(`Subscribing to plan: ${planId}`);
+    navigate('/partners/subscription');
   };
   
   return (
@@ -236,6 +252,26 @@ const Partners = () => {
           </div>
         )}
         
+        {isProfessional && !hasPremium && (
+          <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <Lock className="text-primary h-10 w-10" />
+              <div>
+                <h3 className="font-medium">Accès aux coordonnées des partenaires</h3>
+                <p className="text-sm text-muted-foreground">
+                  Accédez aux coordonnées de nos partenaires avec un abonnement premium.
+                </p>
+              </div>
+              <Button 
+                className="ml-auto"
+                onClick={() => setShowSubscriptionModal(true)}
+              >
+                Débloquer l'accès
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPartners.map(partner => (
             <Card key={partner.id} className="overflow-hidden flex flex-col h-full">
@@ -247,7 +283,6 @@ const Partners = () => {
                 />
               </div>
               <CardHeader className="pb-2">
-                {/* Make category badge more prominent to emphasize profession */}
                 <Badge variant="secondary" className="flex items-center gap-1 text-base px-3 py-1.5 mb-2 font-semibold">
                   {getCategoryIcon(partner.category)}
                   {getCategoryLabel(partner.category)}
@@ -275,7 +310,13 @@ const Partners = () => {
               </CardContent>
               <CardFooter className="pt-2">
                 {isProfessional ? (
-                  <Button className="w-full">Contacter</Button>
+                  <Button 
+                    className="w-full gap-2"
+                    onClick={() => handleContactClick(partner.id)}
+                  >
+                    {!hasPremium && <Lock className="h-4 w-4 mr-1" />}
+                    {hasPremium ? "Contacter" : "Voir les coordonnées"}
+                  </Button>
                 ) : (
                   <Button variant="outline" className="w-full">Voir le détail</Button>
                 )}
@@ -284,7 +325,6 @@ const Partners = () => {
           ))}
         </div>
 
-        {/* Subscription offers section - Similar to e-commerce page */}
         <div className="bg-primary/5 rounded-lg p-6 mt-12 mb-10">
           <h2 className="text-2xl font-bold mb-6 text-center">Référencez votre entreprise sur CBD Connect</h2>
           
@@ -381,6 +421,12 @@ const Partners = () => {
           </div>
         </div>
         
+        {showSubscriptionModal && (
+          <PartnerSubscriptionModal 
+            onClose={() => setShowSubscriptionModal(false)}
+            onSubscribe={handleSubscribe}
+          />
+        )}
       </div>
     </div>
   );
