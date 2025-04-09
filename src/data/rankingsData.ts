@@ -18,7 +18,7 @@ export interface RankedItem {
 export interface RankingCategory {
   id: string;
   name: string;
-  icon: React.ReactNode;
+  icon: React.ElementType; // Changed from ReactNode to ElementType
   items: RankedItem[];
 }
 
@@ -27,7 +27,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'stores',
     name: 'Meilleures boutiques CBD',
-    icon: <Store className="h-5 w-5" />,
+    icon: Store, // Removed JSX syntax, using the component reference directly
     items: [
       {
         id: '1',
@@ -84,7 +84,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'ecommerce',
     name: 'Meilleurs sites e-commerce CBD',
-    icon: <Globe className="h-5 w-5" />,
+    icon: Globe, // Removed JSX syntax
     items: [
       {
         id: '1',
@@ -141,7 +141,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'flowers',
     name: 'Meilleures fleurs CBD',
-    icon: <Cannabis className="h-5 w-5" />,
+    icon: Cannabis, // Removed JSX syntax
     items: [
       {
         id: '1',
@@ -193,7 +193,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'resins',
     name: 'Meilleures résines CBD',
-    icon: <Square className="h-5 w-5" />,
+    icon: Square, // Removed JSX syntax
     items: [
       {
         id: '1',
@@ -245,7 +245,7 @@ export const rankings: RankingCategory[] = [
   {
     id: 'oils',
     name: 'Meilleures huiles CBD',
-    icon: <Star className="h-5 w-5" />,
+    icon: Star, // Removed JSX syntax
     items: [
       {
         id: '1',
