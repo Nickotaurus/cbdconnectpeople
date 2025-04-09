@@ -2,26 +2,24 @@
 export const subscriptionPlans = [
   {
     id: "basic",
-    name: "Basique",
-    price: 0,
+    name: "Visibilité Essentielle",
+    price: 50.00,
     features: [
-      "Fiche partenaire simple",
-      "Présence sur la liste des partenaires",
-      "1 coupon de réduction",
+      "Backlink de qualité renvoyant vers votre société",
+      "Visibilité accrue avec la possibilité de faire gagner vos produits/services à la loterie du CBD",
+      "Accès au carnet d'adresses B2B avec coordonnées et contacts",
+      "Récupérez plus d'avis Google grâce au jeu CBD Quest"
     ],
     isPopular: false,
   },
   {
     id: "premium",
-    name: "Premium",
-    price: 29.99,
+    name: "Visibilité Premium",
+    price: 100.00,
     features: [
-      "Mise en avant prioritaire",
-      "Fiche partenaire enrichie",
-      "Photos et vidéos illimitées",
-      "Statistiques de visite",
-      "Coupons illimités",
-      "Support prioritaire",
+      "Tous les avantages de l'offre Visibilité Essentielle",
+      "Affichage prioritaire dans la recherche",
+      "Accès aux demandes de contacts directs",
       "Publiez un article promotionnel avec lien direct vers votre site",
       "Sponsorisez votre boutique ou produit dans le Classement CBD et gagnez en visibilité (option payante)",
     ],
