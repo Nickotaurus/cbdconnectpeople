@@ -39,11 +39,6 @@ const Navbar = () => {
   
   const getLinks = () => {
     const links = [...commonLinks];
-    
-    if (user) {
-      links.push({ href: '/producers', label: 'Producteurs', icon: Leaf });
-    }
-    
     return links;
   };
   
