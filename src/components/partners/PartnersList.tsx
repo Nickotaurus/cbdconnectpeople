@@ -1,0 +1,40 @@
+
+import PartnerCard from '@/components/partners/PartnerCard';
+import { PartnerCategory } from "@/types/auth";
+import { Partner } from '@/data/partnersData';
+
+interface PartnersListProps {
+  partners: Partner[];
+  getCategoryIcon: (category: PartnerCategory) => React.ReactNode;
+  getCategoryLabel: (category: PartnerCategory) => string;
+  isProfessional: boolean;
+  hasPremium: boolean;
+  onContactClick: (partnerId: string) => void;
+}
+
+const PartnersList = ({ 
+  partners,
+  getCategoryIcon,
+  getCategoryLabel,
+  isProfessional,
+  hasPremium,
+  onContactClick
+}: PartnersListProps) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {partners.map(partner => (
+        <PartnerCard
+          key={partner.id}
+          partner={partner}
+          getCategoryIcon={getCategoryIcon}
+          getCategoryLabel={getCategoryLabel}
+          isProfessional={isProfessional}
+          hasPremium={hasPremium}
+          onContactClick={onContactClick}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default PartnersList;
