@@ -159,13 +159,10 @@ const Index = () => {
           <div className="flex justify-center mb-4">
             <img 
               src="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png" 
-              alt="CBD Connect People Logo" 
+              alt="Logo" 
               className="h-48 w-48"
             />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            CBD Connect People
-          </h1>
           <p className="text-xl text-muted-foreground mb-10">
             La plateforme qui connecte tous les acteurs de l'écosystème CBD
           </p>
