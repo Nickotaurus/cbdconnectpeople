@@ -1,12 +1,14 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, PartnerCategory } from '@/types/auth';
+import { UserRole, PartnerCategory, StoreType } from '@/types/auth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import ClientRegistrationInfo from './ClientRegistrationInfo';
 import StoreRegistrationInfo from './StoreRegistrationInfo';
@@ -27,6 +29,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole>(initialRole);
   const [partnerCategory, setPartnerCategory] = useState<PartnerCategory | ''>('');
+  const [storeType, setStoreType] = useState<StoreType>('physical');
   const [isLoading, setIsLoading] = useState(false);
   
   const handleRegister = async (e: React.FormEvent) => {
@@ -52,12 +55,26 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     
     setIsLoading(true);
     try {
-      await register(email, password, name, role);
+      // Pass the additional storeType parameter if the role is store
+      await register(
+        email, 
+        password, 
+        name, 
+        role, 
+        role === 'store' ? { storeType } : undefined
+      );
+      
       toast({
         title: "Inscription réussie",
         description: "Votre compte a été créé avec succès",
       });
-      navigate('/');
+      
+      // If it's an ecommerce store, redirect to subscription page
+      if (role === 'store' && (storeType === 'ecommerce' || storeType === 'both')) {
+        navigate('/partners/subscription');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast({
         title: "Erreur d'inscription",
@@ -138,6 +155,29 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
             />
           </Tabs>
         </div>
+        
+        {role === 'store' && (
+          <div className="grid gap-2 border-t pt-4">
+            <Label>Type de boutique</Label>
+            <RadioGroup 
+              defaultValue={storeType} 
+              onValueChange={(value) => setStoreType(value as StoreType)}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="physical" id="physical" />
+                <Label htmlFor="physical" className="cursor-pointer">Boutique physique uniquement</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="ecommerce" id="ecommerce" />
+                <Label htmlFor="ecommerce" className="cursor-pointer">E-commerce uniquement (payant)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="both" id="both" />
+                <Label htmlFor="both" className="cursor-pointer">Boutique physique et E-commerce (payant pour l'e-commerce)</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        )}
         
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Création du compte..." : "S'inscrire"}

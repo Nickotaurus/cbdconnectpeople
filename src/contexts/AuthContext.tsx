@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole, ClientUser } from "@/types/auth";
+import { User, UserRole, ClientUser, StoreUser } from "@/types/auth";
 import { badges } from "@/components/badges/UserBadges";
 
 interface AuthContextType {
@@ -8,8 +8,23 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
-  updateUserPreferences: (preferences: Partial<{ favorites: string[], favoriteProducts: string[] }>) => Promise<void>;
+  register: (
+    email: string, 
+    password: string, 
+    name: string, 
+    role: UserRole,
+    roleSpecificData?: {
+      storeType?: string;
+      partnerCategory?: string;
+    }
+  ) => Promise<void>;
+  updateUserPreferences: (
+    preferences: Partial<{ 
+      favorites: string[], 
+      favoriteProducts: string[],
+      partnerFavorites: string[] 
+    }>
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,7 +83,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: UserRole) => {
+  const register = async (
+    email: string, 
+    password: string, 
+    name: string, 
+    role: UserRole,
+    roleSpecificData?: {
+      storeType?: string;
+      partnerCategory?: string;
+    }
+  ) => {
     setIsLoading(true);
     try {
       // For demo purposes, we'll simulate a successful registration
@@ -98,6 +122,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         mockUser.favoriteProducts = [];
         mockUser.tickets = 3;
         mockUser.rewards = 0;
+      } else if (role === "store") {
+        mockUser.storeType = roleSpecificData?.storeType || 'physical';
+        mockUser.siretVerified = false;
+        mockUser.partnerFavorites = [];
+        mockUser.needsSubscription = 
+          mockUser.storeType === 'ecommerce' || mockUser.storeType === 'both';
+      } else if (role === "partner") {
+        mockUser.partnerCategory = roleSpecificData?.partnerCategory || '';
+        mockUser.verified = false;
       }
       
       setUser(mockUser);
@@ -110,7 +143,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
-  const updateUserPreferences = async (preferences: Partial<{ favorites: string[], favoriteProducts: string[] }>) => {
+  const updateUserPreferences = async (
+    preferences: Partial<{ 
+      favorites: string[], 
+      favoriteProducts: string[], 
+      partnerFavorites: string[] 
+    }>
+  ) => {
     if (!user) throw new Error("User not logged in");
     
     // Update user preferences

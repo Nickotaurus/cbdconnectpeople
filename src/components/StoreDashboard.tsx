@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building, Users, BarChart3, ChevronRight, Gift, Leaf } from 'lucide-react';
+import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +16,7 @@ const StoreDashboard = () => {
   const profileCompleteness = 65;
   const storeVerificationStatus = storeUser?.siretVerified ? "Vérifié" : "En attente";
   const storeId = storeUser?.storeId || "new";
+  const partnerFavorites = storeUser?.partnerFavorites || [];
   
   return (
     <div className="space-y-6">
@@ -116,6 +117,51 @@ const StoreDashboard = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* New section: Mes partenaires */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Mes partenaires favoris</CardTitle>
+            <CardDescription>Partenaires et producteurs avec qui vous collaborez</CardDescription>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/partners')} 
+            className="text-primary"
+          >
+            Voir tous
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {partnerFavorites && partnerFavorites.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Partner cards would go here */}
+              <div className="border rounded-lg p-4 flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Leaf className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium">Demo Producteur CBD</h4>
+                  <p className="text-sm text-muted-foreground">Producteur, Isère</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <BookmarkCheck className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h4 className="text-lg font-medium">Aucun partenaire favori</h4>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">
+                Ajoutez des partenaires à vos favoris pour les retrouver facilement ici
+              </p>
+              <Button onClick={() => navigate('/partners')}>
+                Parcourir les partenaires
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
