@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Classified, ClassifiedImage, ClassifiedStatus, ClassifiedType } from "@/types/classified";
+import { Classified, ClassifiedImage, ClassifiedStatus, ClassifiedType, ClassifiedCategory } from "@/types/classified";
 
 export const classifiedService = {
   /**
@@ -25,7 +25,7 @@ export const classifiedService = {
     return data.map(classified => ({
       id: classified.id,
       type: classified.type as ClassifiedType,
-      category: classified.category,
+      category: classified.category as ClassifiedCategory,
       title: classified.title,
       description: classified.description,
       location: classified.location,
@@ -68,7 +68,7 @@ export const classifiedService = {
     return data.map(classified => ({
       id: classified.id,
       type: classified.type as ClassifiedType,
-      category: classified.category,
+      category: classified.category as ClassifiedCategory,
       title: classified.title,
       description: classified.description,
       location: classified.location,
@@ -107,7 +107,7 @@ export const classifiedService = {
     return data.map(classified => ({
       id: classified.id,
       type: classified.type as ClassifiedType,
-      category: classified.category,
+      category: classified.category as ClassifiedCategory,
       title: classified.title,
       description: classified.description,
       location: classified.location,
@@ -139,6 +139,7 @@ export const classifiedService = {
       isPremium: boolean;
     }
   ): Promise<string> => {
+    // Vérifier que la catégorie est valide selon le type ClassifiedCategory
     const { data, error } = await supabase
       .from('classifieds')
       .insert({
