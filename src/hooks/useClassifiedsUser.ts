@@ -32,7 +32,13 @@ export const useClassifiedsUser = () => {
       location,
       price,
       isPremium,
-      images
+      images,
+      jobType,
+      salary,
+      experience,
+      contractType,
+      companyName,
+      contactEmail
     }: {
       type: ClassifiedType;
       category: ClassifiedCategory;
@@ -42,16 +48,44 @@ export const useClassifiedsUser = () => {
       price?: string;
       isPremium: boolean;
       images: File[];
+      jobType?: string;
+      salary?: string;
+      experience?: string;
+      contractType?: string;
+      companyName?: string;
+      contactEmail?: string;
     }) => {
       if (!user) throw new Error("Vous devez être connecté pour publier une annonce");
       
       setIsUploading(true);
       
       try {
+        // Préparer les données supplémentaires pour la description d'emploi si c'est pertinent
+        let enhancedDescription = description;
+        
+        // Si c'est une offre d'emploi, on enrichit la description avec les détails supplémentaires
+        if (type === 'service' && category === 'employer' && jobType) {
+          enhancedDescription = `${description}\n\n` + 
+            `Type de poste : ${jobType}\n` +
+            `${contractType ? `Type de contrat : ${contractType}\n` : ''}` +
+            `${experience ? `Expérience requise : ${experience}\n` : ''}` +
+            `${salary ? `Salaire : ${salary}\n` : ''}` +
+            `${companyName ? `Entreprise : ${companyName}\n` : ''}` +
+            `${contactEmail ? `Contact : ${contactEmail}` : ''}`;
+        }
+        
         // 1. Créer l'annonce
         const classifiedId = await classifiedService.createClassified(
           user.id,
-          { type, category, title, description, location, price, isPremium }
+          { 
+            type, 
+            category, 
+            title, 
+            description: enhancedDescription, 
+            location, 
+            price, 
+            isPremium 
+          }
         );
         
         // 2. Traiter les images si nécessaire

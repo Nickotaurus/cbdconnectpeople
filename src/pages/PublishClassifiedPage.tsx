@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Upload, Info } from "lucide-react";
+import { X, Upload, Info, Briefcase, Building2, Mail } from "lucide-react";
 import { ClassifiedCategory, ClassifiedType } from '@/types/classified';
 import { useToast } from '@/components/ui/use-toast';
+import { useClassifiedsUser } from '@/hooks/useClassifiedsUser';
 
 const PublishClassifiedPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createClassified, isUploading } = useClassifiedsUser();
   
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ClassifiedType | ''>('');
@@ -24,6 +26,24 @@ const PublishClassifiedPage = () => {
   const [price, setPrice] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [premiumPhotos, setPremiumPhotos] = useState(false);
+  
+  // Champs spécifiques pour les offres d'emploi
+  const [jobType, setJobType] = useState('');
+  const [salary, setSalary] = useState('');
+  const [experience, setExperience] = useState('');
+  const [contractType, setContractType] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  
+  // État pour savoir si on est en mode emploi
+  const [isJobOffer, setIsJobOffer] = useState(false);
+  const [isJobSearch, setIsJobSearch] = useState(false);
+  
+  // Mettre à jour le mode d'emploi en fonction du type et de la catégorie
+  useEffect(() => {
+    setIsJobOffer(type === 'service' && category === 'employer');
+    setIsJobSearch(type === 'service' && category === 'employee');
+  }, [type, category]);
   
   // Catégories basées sur les catégories de partenaires + 'autres'
   const categories = [
@@ -44,6 +64,29 @@ const PublishClassifiedPage = () => {
     { value: 'laboratory', label: 'Laboratoire' },
     { value: 'production', label: 'Production' },
     { value: 'realEstate', label: 'Agence immobilière' },
+    { value: 'other', label: 'Autre' }
+  ];
+  
+  // Types de contrat pour les offres d'emploi
+  const contractTypes = [
+    { value: 'cdi', label: 'CDI' },
+    { value: 'cdd', label: 'CDD' },
+    { value: 'interim', label: 'Intérim' },
+    { value: 'freelance', label: 'Freelance' },
+    { value: 'apprentice', label: 'Apprentissage' },
+    { value: 'internship', label: 'Stage' },
+    { value: 'other', label: 'Autre' }
+  ];
+  
+  // Types de poste pour les offres d'emploi
+  const jobTypes = [
+    { value: 'sales', label: 'Commercial / Vente' },
+    { value: 'management', label: 'Direction / Management' },
+    { value: 'production', label: 'Production' },
+    { value: 'communication', label: 'Marketing / Communication' },
+    { value: 'rd', label: 'R&D / Scientifique' },
+    { value: 'delivery', label: 'Livraison / Logistique' },
+    { value: 'admin', label: 'Administration' },
     { value: 'other', label: 'Autre' }
   ];
   
@@ -79,7 +122,7 @@ const PublishClassifiedPage = () => {
   };
   
   // Soumettre le formulaire
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title || !type || !category || !description || !location) {
@@ -91,13 +134,39 @@ const PublishClassifiedPage = () => {
       return;
     }
     
-    // Ici on enverrait normalement les données à l'API
-    toast({
-      title: "Annonce soumise avec succès",
-      description: "Votre annonce est en attente de validation par un administrateur.",
-    });
+    // Si c'est une offre d'emploi, vérifions les champs spécifiques
+    if (isJobOffer && !jobType) {
+      toast({
+        title: "Information manquante",
+        description: "Veuillez préciser le type de poste pour votre offre d'emploi.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    navigate('/classifieds');
+    try {
+      await createClassified({
+        type,
+        category,
+        title,
+        description,
+        location,
+        price,
+        isPremium: premiumPhotos,
+        images,
+        // Champs spécifiques pour les offres d'emploi
+        jobType: isJobOffer ? jobType : undefined,
+        salary: isJobOffer ? salary : undefined,
+        experience: isJobOffer ? experience : undefined,
+        contractType: isJobOffer ? contractType : undefined,
+        companyName: isJobOffer ? companyName : undefined,
+        contactEmail: isJobOffer ? contactEmail : undefined
+      });
+      
+      navigate('/classifieds');
+    } catch (error) {
+      console.error("Erreur lors de la publication de l'annonce:", error);
+    }
   };
   
   return (
@@ -130,18 +199,6 @@ const PublishClassifiedPage = () => {
             </RadioGroup>
           </div>
           
-          {/* Titre */}
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-base">Titre de l'annonce*</Label>
-            <Input 
-              id="title" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              placeholder="Ex: Cession de boutique CBD Paris 3ème" 
-              maxLength={100}
-            />
-          </div>
-          
           {/* Catégorie */}
           <div className="space-y-2">
             <Label htmlFor="category" className="text-base">Catégorie*</Label>
@@ -157,16 +214,146 @@ const PublishClassifiedPage = () => {
             </Select>
           </div>
           
-          {/* Prix (optionnel) */}
+          {/* Titre */}
           <div className="space-y-2">
-            <Label htmlFor="price" className="text-base">Prix (optionnel)</Label>
+            <Label htmlFor="title" className="text-base">
+              {isJobOffer ? "Titre du poste*" : isJobSearch ? "Titre de votre recherche d'emploi*" : "Titre de l'annonce*"}
+            </Label>
             <Input 
-              id="price" 
-              value={price} 
-              onChange={(e) => setPrice(e.target.value)} 
-              placeholder="Ex: 85 000 €"
+              id="title" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder={isJobOffer ? "Ex: Vendeur(se) expérimenté(e) CBD" : isJobSearch ? "Ex: Cherche poste de conseiller CBD" : "Ex: Cession de boutique CBD Paris 3ème"} 
+              maxLength={100}
             />
           </div>
+          
+          {/* Prix (optionnel) - caché pour les offres d'emploi */}
+          {!isJobOffer && !isJobSearch && (
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-base">Prix (optionnel)</Label>
+              <Input 
+                id="price" 
+                value={price} 
+                onChange={(e) => setPrice(e.target.value)} 
+                placeholder="Ex: 85 000 €"
+              />
+            </div>
+          )}
+          
+          {/* Champs spécifiques pour les offres d'emploi */}
+          {isJobOffer && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Briefcase className="text-primary h-5 w-5" />
+                <h3 className="font-medium">Détails de l'offre d'emploi</h3>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Type de poste */}
+                <div className="space-y-2">
+                  <Label htmlFor="jobType" className="text-sm">Type de poste*</Label>
+                  <Select value={jobType} onValueChange={setJobType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un type de poste" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jobTypes.map((job) => (
+                        <SelectItem key={job.value} value={job.value}>{job.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Type de contrat */}
+                <div className="space-y-2">
+                  <Label htmlFor="contractType" className="text-sm">Type de contrat</Label>
+                  <Select value={contractType} onValueChange={setContractType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un type de contrat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contractTypes.map((contract) => (
+                        <SelectItem key={contract.value} value={contract.value}>{contract.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Expérience */}
+                  <div className="space-y-2">
+                    <Label htmlFor="experience" className="text-sm">Expérience requise</Label>
+                    <Input
+                      id="experience"
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      placeholder="Ex: 2 ans minimum"
+                    />
+                  </div>
+                  
+                  {/* Salaire */}
+                  <div className="space-y-2">
+                    <Label htmlFor="salary" className="text-sm">Salaire proposé</Label>
+                    <Input
+                      id="salary"
+                      value={salary}
+                      onChange={(e) => setSalary(e.target.value)}
+                      placeholder="Ex: 30-35K€ selon expérience"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Nom de l'entreprise */}
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-sm">Nom de l'entreprise</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        id="companyName"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Votre entreprise"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Email de contact */}
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail" className="text-sm">Email de contact</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="contact@entreprise.com"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Champs spécifiques pour les recherches d'emploi */}
+          {isJobSearch && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Briefcase className="text-primary h-5 w-5" />
+                <h3 className="font-medium">Détails de votre recherche d'emploi</h3>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                Décrivez votre profil, votre expérience, et le type de poste recherché dans le champ "Description" ci-dessous.
+                N'hésitez pas à mentionner vos compétences, formations, et disponibilités.
+              </p>
+            </div>
+          )}
           
           {/* Images */}
           <div className="space-y-3">
@@ -243,12 +430,18 @@ const PublishClassifiedPage = () => {
           
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-base">Description*</Label>
+            <Label htmlFor="description" className="text-base">
+              {isJobOffer ? "Description du poste*" : isJobSearch ? "Description de votre profil et attentes*" : "Description*"}
+            </Label>
             <Textarea 
               id="description" 
               value={description} 
               onChange={(e) => setDescription(e.target.value)} 
-              placeholder="Décrivez votre annonce en détail..." 
+              placeholder={
+                isJobOffer ? "Décrivez le poste, les missions, et les compétences recherchées..." :
+                isJobSearch ? "Décrivez votre profil, votre expérience, et le type de poste recherché..." :
+                "Décrivez votre annonce en détail..."
+              } 
               rows={6}
             />
           </div>
@@ -275,13 +468,14 @@ const PublishClassifiedPage = () => {
           
           {/* Boutons de soumission */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button type="submit" className="gap-2">
-              Soumettre l'annonce
+            <Button type="submit" className="gap-2" disabled={isUploading}>
+              {isUploading ? "Publication en cours..." : "Soumettre l'annonce"}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => navigate('/classifieds')}
+              disabled={isUploading}
             >
               Annuler
             </Button>

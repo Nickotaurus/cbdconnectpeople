@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Classified, ClassifiedImage, ClassifiedStatus, ClassifiedType } from "@/types/classified";
-import { User } from "@/types/auth";
 
 export const classifiedService = {
   /**
