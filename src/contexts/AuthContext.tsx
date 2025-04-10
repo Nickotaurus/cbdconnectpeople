@@ -1,7 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole, ClientUser, StoreUser } from "@/types/auth";
+import { User, UserRole, ClientUser, StoreUser, PartnerUser } from "@/types/auth";
 import { badges } from "@/components/badges/UserBadges";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -32,51 +34,176 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Fonction pour charger les données du profil utilisateur depuis Supabase
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error("Erreur lors du chargement du profil:", error);
+        return null;
+      }
+
+      if (!data) return null;
+
+      // Construction de l'objet utilisateur en fonction du rôle
+      let userObj: User;
+      
+      switch (data.role) {
+        case 'client':
+          userObj = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: 'client',
+            createdAt: data.created_at,
+            favorites: data.favorites || [],
+            favoriteProducts: data.favorite_products || [],
+            tickets: data.tickets || 3,
+            rewards: data.rewards || 0,
+            badges: [
+              {
+                id: badges[0].id,
+                name: badges[0].name,
+                description: badges[0].description,
+                icon: badges[0].icon,
+                earnedAt: new Date().toISOString()
+              }
+            ]
+          } as ClientUser;
+          break;
+        case 'store':
+          userObj = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: 'store',
+            createdAt: data.created_at,
+            storeType: data.store_type || 'physical',
+            siretVerified: data.siret_verified || false,
+            partnerFavorites: data.partner_favorites || [],
+            isVerified: data.is_verified || false,
+            needsSubscription: data.store_type === 'ecommerce' || data.store_type === 'both'
+          } as StoreUser;
+          break;
+        case 'partner':
+          userObj = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: 'partner',
+            createdAt: data.created_at,
+            partnerCategory: data.partner_category || '',
+            verified: data.is_verified || false,
+            certifications: data.certifications || []
+          } as PartnerUser;
+          break;
+        default:
+          userObj = {
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: data.role as UserRole,
+            createdAt: data.created_at,
+            isVerified: data.is_verified || false
+          };
+      }
+
+      return userObj;
+    } catch (error) {
+      console.error("Erreur lors du chargement du profil:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    // Check if user is already logged in from localStorage
-    const storedUser = localStorage.getItem("cbdUser");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Error parsing stored user:", error);
-        localStorage.removeItem("cbdUser");
+    // Configurer l'écouteur d'événements d'authentification Supabase
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setIsLoading(true);
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user?.id) {
+            const userProfile = await loadUserProfile(session.user.id);
+            if (userProfile) {
+              setUser(userProfile);
+              localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+            }
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem("cbdUser");
+        }
+        
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    );
+
+    // Vérifier si l'utilisateur est déjà connecté
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user?.id) {
+        const userProfile = await loadUserProfile(session.user.id);
+        if (userProfile) {
+          setUser(userProfile);
+          localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+        }
+      } else {
+        // Vérifier si les données sont stockées localement (pour la rétrocompatibilité)
+        const storedUser = localStorage.getItem("cbdUser");
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (error) {
+            console.error("Erreur lors de l'analyse de l'utilisateur stocké:", error);
+            localStorage.removeItem("cbdUser");
+          }
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // For demo purposes, we'll simulate a successful login
-      // In a real app, this would make an API call to your backend
-      const mockUser: ClientUser = {
-        id: "user-" + Math.floor(Math.random() * 10000),
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        name: email.split("@")[0],
-        role: "client",
-        createdAt: new Date().toISOString(),
-        favorites: [],
-        favoriteProducts: [],
-        tickets: 3,
-        rewards: 0,
-        badges: [
-          {
-            id: badges[0].id,
-            name: badges[0].name,
-            description: badges[0].description,
-            icon: badges[0].icon,
-            earnedAt: new Date().toISOString()
-          }
-        ]
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem("cbdUser", JSON.stringify(mockUser));
+        password
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        const userProfile = await loadUserProfile(data.user.id);
+        if (userProfile) {
+          setUser(userProfile);
+          localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+        }
+      }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Erreur de connexion:", error);
+      toast({
+        title: "Erreur de connexion",
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive",
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -95,48 +222,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     setIsLoading(true);
     try {
-      // For demo purposes, we'll simulate a successful registration
-      // In a real app, this would make an API call to your backend
-      const mockUser: any = {
-        id: "user-" + Math.floor(Math.random() * 10000),
-        email,
+      // Préparation des métadonnées utilisateur pour la création du profil via le trigger
+      const userData = {
         name,
         role,
-        createdAt: new Date().toISOString(),
-        profileCompleted: false,
-        isVerified: role === "client", // Clients are verified by default, stores and producers need verification
-        badges: [
-          {
-            id: badges[0].id,
-            name: badges[0].name,
-            description: badges[0].description,
-            icon: badges[0].icon,
-            earnedAt: new Date().toISOString()
-          }
-        ]
+        ...(roleSpecificData?.storeType && { storeType: roleSpecificData.storeType }),
+        ...(roleSpecificData?.partnerCategory && { partnerCategory: roleSpecificData.partnerCategory }),
       };
-      
-      // Add role-specific fields
-      if (role === "client") {
-        mockUser.favorites = [];
-        mockUser.favoriteProducts = [];
-        mockUser.tickets = 3;
-        mockUser.rewards = 0;
-      } else if (role === "store") {
-        mockUser.storeType = roleSpecificData?.storeType || 'physical';
-        mockUser.siretVerified = false;
-        mockUser.partnerFavorites = [];
-        mockUser.needsSubscription = 
-          mockUser.storeType === 'ecommerce' || mockUser.storeType === 'both';
-      } else if (role === "partner") {
-        mockUser.partnerCategory = roleSpecificData?.partnerCategory || '';
-        mockUser.verified = false;
+
+      // Inscription avec Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+        }
+      });
+
+      if (error) {
+        throw error;
       }
-      
-      setUser(mockUser);
-      localStorage.setItem("cbdUser", JSON.stringify(mockUser));
+
+      if (data.user) {
+        // Attendre un moment pour permettre au trigger de créer le profil
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Mettre à jour le profil avec les données spécifiques au rôle
+        if (role === 'store' && roleSpecificData?.storeType) {
+          await supabase
+            .from('profiles')
+            .update({ 
+              store_type: roleSpecificData.storeType,
+              siret_verified: false,
+              needs_subscription: roleSpecificData.storeType === 'ecommerce' || roleSpecificData.storeType === 'both',
+              is_verified: role === 'client' // Les clients sont vérifiés par défaut
+            })
+            .eq('id', data.user.id);
+        } else if (role === 'partner' && roleSpecificData?.partnerCategory) {
+          await supabase
+            .from('profiles')
+            .update({ 
+              partner_category: roleSpecificData.partnerCategory,
+              is_verified: false
+            })
+            .eq('id', data.user.id);
+        }
+        
+        // Charger le profil complet
+        const userProfile = await loadUserProfile(data.user.id);
+        if (userProfile) {
+          setUser(userProfile);
+          localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+        }
+      }
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Erreur d'inscription:", error);
+      toast({
+        title: "Erreur d'inscription",
+        description: "Une erreur est survenue lors de l'inscription",
+        variant: "destructive",
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -150,19 +295,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       partnerFavorites: string[] 
     }>
   ) => {
-    if (!user) throw new Error("User not logged in");
+    if (!user) throw new Error("Utilisateur non connecté");
     
-    // Update user preferences
-    const updatedUser = { ...user, ...preferences };
-    setUser(updatedUser);
-    localStorage.setItem("cbdUser", JSON.stringify(updatedUser));
-    
-    return Promise.resolve();
+    try {
+      // Mise à jour dans Supabase
+      const updateData: Record<string, any> = {};
+      
+      if (preferences.favorites !== undefined) {
+        updateData.favorites = preferences.favorites;
+      }
+      
+      if (preferences.favoriteProducts !== undefined) {
+        updateData.favorite_products = preferences.favoriteProducts;
+      }
+      
+      if (preferences.partnerFavorites !== undefined) {
+        updateData.partner_favorites = preferences.partnerFavorites;
+      }
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      // Mise à jour de l'état local
+      const updatedUser = { ...user, ...preferences };
+      setUser(updatedUser);
+      localStorage.setItem("cbdUser", JSON.stringify(updatedUser));
+      
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour des préférences:", error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("cbdUser");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      localStorage.removeItem("cbdUser");
+    } catch (error) {
+      console.error("Erreur de déconnexion:", error);
+    }
   };
 
   return (

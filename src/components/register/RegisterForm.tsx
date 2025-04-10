@@ -55,13 +55,17 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     
     setIsLoading(true);
     try {
-      // Register the user - store the storeType in registration data
+      // Register the user with Supabase
       await register(
         email, 
         password, 
         name, 
         role, 
-        role === 'store' ? { storeType } : undefined
+        role === 'store' 
+          ? { storeType } 
+          : role === 'partner' 
+            ? { partnerCategory } 
+            : undefined
       );
       
       toast({
@@ -85,11 +89,8 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         navigate('/');
       }
     } catch (error) {
-      toast({
-        title: "Erreur d'inscription",
-        description: "Une erreur est survenue lors de l'inscription",
-        variant: "destructive",
-      });
+      console.error("Erreur d'inscription:", error);
+      // Le toast d'erreur est déjà géré dans la fonction register du contexte
     } finally {
       setIsLoading(false);
     }

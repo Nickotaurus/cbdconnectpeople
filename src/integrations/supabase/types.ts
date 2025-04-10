@@ -9,7 +9,78 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          certifications: string[] | null
+          created_at: string
+          email: string | null
+          favorite_products: string[] | null
+          favorites: string[] | null
+          id: string
+          is_verified: boolean | null
+          name: string | null
+          partner_category: string | null
+          partner_favorites: string[] | null
+          rewards: number | null
+          role: string | null
+          siret_verified: boolean | null
+          store_type: string | null
+          tickets: number | null
+          updated_at: string
+        }
+        Insert: {
+          certifications?: string[] | null
+          created_at?: string
+          email?: string | null
+          favorite_products?: string[] | null
+          favorites?: string[] | null
+          id: string
+          is_verified?: boolean | null
+          name?: string | null
+          partner_category?: string | null
+          partner_favorites?: string[] | null
+          rewards?: number | null
+          role?: string | null
+          siret_verified?: boolean | null
+          store_type?: string | null
+          tickets?: number | null
+          updated_at?: string
+        }
+        Update: {
+          certifications?: string[] | null
+          created_at?: string
+          email?: string | null
+          favorite_products?: string[] | null
+          favorites?: string[] | null
+          id?: string
+          is_verified?: boolean | null
+          name?: string | null
+          partner_category?: string | null
+          partner_favorites?: string[] | null
+          rewards?: number | null
+          role?: string | null
+          siret_verified?: boolean | null
+          store_type?: string | null
+          tickets?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      Profiles: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

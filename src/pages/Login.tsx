@@ -29,11 +29,8 @@ const Login = () => {
       });
       navigate('/');
     } catch (error) {
-      toast({
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
-        variant: "destructive",
-      });
+      console.error("Erreur de connexion:", error);
+      // Le toast d'erreur est déjà géré dans la fonction login du contexte
     } finally {
       setIsLoading(false);
     }
