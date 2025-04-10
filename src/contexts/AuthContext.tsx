@@ -4,6 +4,10 @@ import { User, UserRole, ClientUser, StoreUser, PartnerUser } from "@/types/auth
 import { badges } from "@/components/badges/UserBadges";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Database } from "@/integrations/supabase/types";
+
+// Définition du type pour les profils Supabase
+type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthContextType {
   user: User | null;
@@ -55,18 +59,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Construction de l'objet utilisateur en fonction du rôle
       let userObj: User;
       
-      switch (data.role) {
+      const profile = data as ProfilesRow;
+      
+      switch (profile.role) {
         case 'client':
           userObj = {
-            id: data.id,
-            email: data.email,
-            name: data.name,
+            id: profile.id,
+            email: profile.email || '',
+            name: profile.name || '',
             role: 'client',
-            createdAt: data.created_at,
-            favorites: data.favorites || [],
-            favoriteProducts: data.favorite_products || [],
-            tickets: data.tickets || 3,
-            rewards: data.rewards || 0,
+            createdAt: profile.created_at,
+            favorites: profile.favorites || [],
+            favoriteProducts: profile.favorite_products || [],
+            tickets: profile.tickets || 3,
+            rewards: profile.rewards || 0,
             badges: [
               {
                 id: badges[0].id,
@@ -80,38 +86,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           break;
         case 'store':
           userObj = {
-            id: data.id,
-            email: data.email,
-            name: data.name,
+            id: profile.id,
+            email: profile.email || '',
+            name: profile.name || '',
             role: 'store',
-            createdAt: data.created_at,
-            storeType: data.store_type || 'physical',
-            siretVerified: data.siret_verified || false,
-            partnerFavorites: data.partner_favorites || [],
-            isVerified: data.is_verified || false,
-            needsSubscription: data.store_type === 'ecommerce' || data.store_type === 'both'
+            createdAt: profile.created_at,
+            storeType: profile.store_type || 'physical',
+            siretVerified: profile.siret_verified || false,
+            partnerFavorites: profile.partner_favorites || [],
+            isVerified: profile.is_verified || false,
+            needsSubscription: profile.store_type === 'ecommerce' || profile.store_type === 'both'
           } as StoreUser;
           break;
         case 'partner':
           userObj = {
-            id: data.id,
-            email: data.email,
-            name: data.name,
+            id: profile.id,
+            email: profile.email || '',
+            name: profile.name || '',
             role: 'partner',
-            createdAt: data.created_at,
-            partnerCategory: data.partner_category || '',
-            verified: data.is_verified || false,
-            certifications: data.certifications || []
+            createdAt: profile.created_at,
+            partnerCategory: profile.partner_category || '',
+            verified: profile.is_verified || false,
+            certifications: profile.certifications || []
           } as PartnerUser;
           break;
         default:
           userObj = {
-            id: data.id,
-            email: data.email,
-            name: data.name,
-            role: data.role as UserRole,
-            createdAt: data.created_at,
-            isVerified: data.is_verified || false
+            id: profile.id,
+            email: profile.email || '',
+            name: profile.name || '',
+            role: (profile.role as UserRole) || 'client',
+            createdAt: profile.created_at,
+            isVerified: profile.is_verified || false
           };
       }
 
@@ -255,7 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               store_type: roleSpecificData.storeType,
               siret_verified: false,
               needs_subscription: roleSpecificData.storeType === 'ecommerce' || roleSpecificData.storeType === 'both',
-              is_verified: role === 'client' // Les clients sont vérifiés par défaut
+              is_verified: false
             })
             .eq('id', data.user.id);
         } else if (role === 'partner' && roleSpecificData?.partnerCategory) {
