@@ -1,13 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole, ClientUser, StoreUser, PartnerUser } from "@/types/auth";
-import { badges } from "@/components/badges/UserBadges";
+import { User, UserRole } from "@/types/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Database } from "@/integrations/supabase/types";
-
-// Définition du type pour les profils Supabase
-type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
+import { authService } from "@/services/authService";
+import { loadUserProfile } from "@/hooks/useUserProfile";
+import { updateUserPreferences } from "@/hooks/useUserPreferences";
 
 interface AuthContextType {
   user: User | null;
@@ -40,96 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fonction pour charger les données du profil utilisateur depuis Supabase
-  const loadUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error("Erreur lors du chargement du profil:", error);
-        return null;
-      }
-
-      if (!data) return null;
-
-      // Construction de l'objet utilisateur en fonction du rôle
-      let userObj: User;
-      
-      const profile = data as ProfilesRow;
-      
-      switch (profile.role) {
-        case 'client':
-          userObj = {
-            id: profile.id,
-            email: profile.email || '',
-            name: profile.name || '',
-            role: 'client',
-            createdAt: profile.created_at,
-            favorites: profile.favorites || [],
-            favoriteProducts: profile.favorite_products || [],
-            tickets: profile.tickets || 3,
-            rewards: profile.rewards || 0,
-            badges: [
-              {
-                id: badges[0].id,
-                name: badges[0].name,
-                description: badges[0].description,
-                icon: badges[0].icon,
-                earnedAt: new Date().toISOString()
-              }
-            ]
-          } as ClientUser;
-          break;
-        case 'store':
-          userObj = {
-            id: profile.id,
-            email: profile.email || '',
-            name: profile.name || '',
-            role: 'store',
-            createdAt: profile.created_at,
-            storeType: profile.store_type || 'physical',
-            siretVerified: profile.siret_verified || false,
-            partnerFavorites: profile.partner_favorites || [],
-            isVerified: profile.is_verified || false,
-            needsSubscription: profile.store_type === 'ecommerce' || profile.store_type === 'both'
-          } as StoreUser;
-          break;
-        case 'partner':
-          userObj = {
-            id: profile.id,
-            email: profile.email || '',
-            name: profile.name || '',
-            role: 'partner',
-            createdAt: profile.created_at,
-            partnerCategory: profile.partner_category || '',
-            verified: profile.is_verified || false,
-            certifications: profile.certifications || []
-          } as PartnerUser;
-          break;
-        default:
-          userObj = {
-            id: profile.id,
-            email: profile.email || '',
-            name: profile.name || '',
-            role: (profile.role as UserRole) || 'client',
-            createdAt: profile.created_at,
-            isVerified: profile.is_verified || false
-          };
-      }
-
-      return userObj;
-    } catch (error) {
-      console.error("Erreur lors du chargement du profil:", error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    // Configurer l'écouteur d'événements d'authentification Supabase
+    // Set up Supabase auth event listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setIsLoading(true);
@@ -151,9 +61,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Vérifier si l'utilisateur est déjà connecté
+    // Check if user is already logged in
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await authService.getSession();
       
       if (session?.user?.id) {
         const userProfile = await loadUserProfile(session.user.id);
@@ -162,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem("cbdUser", JSON.stringify(userProfile));
         }
       } else {
-        // Vérifier si les données sont stockées localement (pour la rétrocompatibilité)
+        // Check if user data is stored locally (for backward compatibility)
         const storedUser = localStorage.getItem("cbdUser");
         if (storedUser) {
           try {
@@ -187,21 +97,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        const userProfile = await loadUserProfile(data.user.id);
-        if (userProfile) {
-          setUser(userProfile);
-          localStorage.setItem("cbdUser", JSON.stringify(userProfile));
-        }
+      const userProfile = await authService.login(email, password);
+      
+      if (userProfile) {
+        setUser(userProfile);
+        localStorage.setItem("cbdUser", JSON.stringify(userProfile));
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
@@ -228,58 +128,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     setIsLoading(true);
     try {
-      // Préparation des métadonnées utilisateur pour la création du profil via le trigger
-      const userData = {
-        name,
-        role,
-        ...(roleSpecificData?.storeType && { storeType: roleSpecificData.storeType }),
-        ...(roleSpecificData?.partnerCategory && { partnerCategory: roleSpecificData.partnerCategory }),
-      };
-
-      // Inscription avec Supabase
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData,
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        // Attendre un moment pour permettre au trigger de créer le profil
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Mettre à jour le profil avec les données spécifiques au rôle
-        if (role === 'store' && roleSpecificData?.storeType) {
-          await supabase
-            .from('profiles')
-            .update({ 
-              store_type: roleSpecificData.storeType,
-              siret_verified: false,
-              needs_subscription: roleSpecificData.storeType === 'ecommerce' || roleSpecificData.storeType === 'both',
-              is_verified: false
-            })
-            .eq('id', data.user.id);
-        } else if (role === 'partner' && roleSpecificData?.partnerCategory) {
-          await supabase
-            .from('profiles')
-            .update({ 
-              partner_category: roleSpecificData.partnerCategory,
-              is_verified: false
-            })
-            .eq('id', data.user.id);
-        }
-        
-        // Charger le profil complet
-        const userProfile = await loadUserProfile(data.user.id);
-        if (userProfile) {
-          setUser(userProfile);
-          localStorage.setItem("cbdUser", JSON.stringify(userProfile));
-        }
+      const userProfile = await authService.register(
+        email, 
+        password, 
+        name, 
+        role, 
+        roleSpecificData
+      );
+      
+      if (userProfile) {
+        setUser(userProfile);
+        localStorage.setItem("cbdUser", JSON.stringify(userProfile));
       }
     } catch (error) {
       console.error("Erreur d'inscription:", error);
@@ -294,43 +153,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
-  const updateUserPreferences = async (
+  const handleUpdateUserPreferences = async (
     preferences: Partial<{ 
       favorites: string[], 
       favoriteProducts: string[], 
       partnerFavorites: string[] 
     }>
   ) => {
-    if (!user) throw new Error("Utilisateur non connecté");
-    
     try {
-      // Mise à jour dans Supabase
-      const updateData: Record<string, any> = {};
-      
-      if (preferences.favorites !== undefined) {
-        updateData.favorites = preferences.favorites;
-      }
-      
-      if (preferences.favoriteProducts !== undefined) {
-        updateData.favorite_products = preferences.favoriteProducts;
-      }
-      
-      if (preferences.partnerFavorites !== undefined) {
-        updateData.partner_favorites = preferences.partnerFavorites;
-      }
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-        
-      if (error) throw error;
-      
-      // Mise à jour de l'état local
-      const updatedUser = { ...user, ...preferences };
+      const updatedUser = await updateUserPreferences(user, preferences);
       setUser(updatedUser);
       localStorage.setItem("cbdUser", JSON.stringify(updatedUser));
-      
     } catch (error) {
       console.error("Erreur lors de la mise à jour des préférences:", error);
       throw error;
@@ -339,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      await authService.logout();
       setUser(null);
       localStorage.removeItem("cbdUser");
     } catch (error) {
@@ -348,7 +181,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, register, updateUserPreferences }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      logout, 
+      register, 
+      updateUserPreferences: handleUpdateUserPreferences 
+    }}>
       {children}
     </AuthContext.Provider>
   );
