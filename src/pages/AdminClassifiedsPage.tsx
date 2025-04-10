@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -23,123 +22,37 @@ import {
   XCircle, 
   Filter, 
   Image, 
-  ExternalLink,
   Search,
   Eye
 } from "lucide-react";
+import { useState } from 'react';
+import { useClassifiedsAdmin } from "@/hooks/useClassifiedsAdmin";
+import { ClassifiedStatus, Classified } from '@/types/classified';
 import { useToast } from '@/components/ui/use-toast';
-import { Classified, ClassifiedStatus } from '@/types/classified';
-
-// Données mock pour les annonces en attente de validation
-const mockPendingClassifieds: Classified[] = [
-  {
-    id: "ad1",
-    type: "sell",
-    category: "store",
-    title: "Cession de boutique CBD Paris 3ème",
-    description: "Boutique de 55m² dans quartier passant, clientèle fidèle, CA en hausse. Vente cause départ à l'étranger.",
-    location: "Paris, France",
-    price: "85 000 €",
-    date: "2023-10-15",
-    status: "pending",
-    user: { 
-      name: "John Doe", 
-      id: "u1",
-      email: "john.doe@example.com"
-    },
-    isPremium: true,
-    images: [
-      { id: "img1", url: "https://images.unsplash.com/photo-1567449303183-ae0d6ed1c14e?q=80&w=1000", name: "facade.jpg" }
-    ],
-  },
-  {
-    id: "ad2",
-    type: "buy",
-    category: "ecommerce",
-    title: "Recherche dropshipping CBD",
-    description: "Nous recherchons un partenaire pour nos activités de e-commerce en dropshipping pour des produits de qualité.",
-    location: "Lyon, France",
-    date: "2023-10-18",
-    status: "pending",
-    user: { 
-      name: "Jane Smith", 
-      id: "u2",
-      email: "jane.smith@example.com"
-    },
-    isPremium: false,
-    images: [],
-  },
-  {
-    id: "ad3",
-    type: "service",
-    category: "employer",
-    title: "Recrute vendeur/vendeuse CBD",
-    description: "Boutique CBD à Bordeaux recrute vendeur(se) avec expérience dans le secteur. Temps plein, CDI après période d'essai.",
-    location: "Bordeaux, France",
-    date: "2023-10-20",
-    status: "pending",
-    user: {
-      name: "Pierre Dupont",
-      id: "u3",
-      email: "pierre.dupont@example.com"
-    },
-    isPremium: true,
-    images: [
-      { id: "img2", url: "https://images.unsplash.com/photo-1533392151650-269f96231f65?q=80&w=1000", name: "boutique.jpg" },
-      { id: "img3", url: "https://images.unsplash.com/photo-1589244159943-460088ed5c83?q=80&w=1000", name: "produits.jpg" }
-    ],
-  }
-];
 
 const AdminClassifiedsPage = () => {
   const { toast } = useToast();
-  const [classifieds, setClassifieds] = useState<Classified[]>(mockPendingClassifieds);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ClassifiedStatus | 'all'>('pending');
   
-  // Filtrer les annonces
-  const filteredClassifieds = classifieds.filter(classified => {
+  const {
+    classifieds,
+    isLoading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    approveClassified,
+    rejectClassified
+  } = useClassifiedsAdmin();
+  
+  // Filtrer les annonces par recherche
+  const filteredClassifieds = classifieds?.filter(classified => {
     const matchesSearch = 
       classified.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       classified.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      classified.user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      classified.user.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || classified.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-  
-  // Approuver une annonce
-  const approveClassified = (id: string) => {
-    setClassifieds(
-      classifieds.map(classified => 
-        classified.id === id 
-          ? { ...classified, status: 'approved' as const } 
-          : classified
-      )
-    );
-    
-    toast({
-      title: "Annonce approuvée",
-      description: "L'annonce a été publiée avec succès."
-    });
-  };
-  
-  // Rejeter une annonce
-  const rejectClassified = (id: string) => {
-    setClassifieds(
-      classifieds.map(classified => 
-        classified.id === id 
-          ? { ...classified, status: 'rejected' as const } 
-          : classified
-      )
-    );
-    
-    toast({
-      title: "Annonce rejetée",
-      description: "L'annonce a été rejetée et ne sera pas publiée."
-    });
-  };
+    return matchesSearch;
+  }) || [];
   
   // Formatter le statut pour l'affichage
   const getStatusBadge = (status: ClassifiedStatus) => {
@@ -168,6 +81,25 @@ const AdminClassifiedsPage = () => {
         return null;
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center">
+        <p>Chargement des annonces...</p>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-3xl font-bold text-red-600">Une erreur est survenue</h1>
+          <p className="mt-4">Impossible de charger les annonces. Veuillez réessayer plus tard.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -255,8 +187,8 @@ const AdminClassifiedsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{classified.user.name}</div>
-                        <div className="text-xs text-muted-foreground">{classified.user.email}</div>
+                        <div>{classified.user.name || 'Utilisateur inconnu'}</div>
+                        <div className="text-xs text-muted-foreground">{classified.user.email || ''}</div>
                       </div>
                     </TableCell>
                     <TableCell>
