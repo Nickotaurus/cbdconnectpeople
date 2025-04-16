@@ -1,3 +1,4 @@
+
 import { UserRole } from "@/types/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { loadUserProfile } from "@/hooks/useUserProfile";
@@ -25,13 +26,21 @@ export const authService = {
       console.log("Supabase auth success for user:", data.user.id);
       
       // Specific debug for checking if this user exists in profiles
-      const { data: profileCheck } = await supabase
-        .from('profiles')
-        .select('id, role, partner_id')
-        .eq('id', data.user.id)
-        .single();
-      
-      console.log("Direct profile check:", profileCheck);
+      try {
+        const { data: profileCheck, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, role, partner_id')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) {
+          console.error("Error fetching profile directly:", profileError);
+        } else {
+          console.log("Direct profile check result:", profileCheck);
+        }
+      } catch (e) {
+        console.error("Exception during profile check:", e);
+      }
       
       const userProfile = await loadUserProfile(data.user.id);
       console.log("Full user profile loaded:", userProfile);

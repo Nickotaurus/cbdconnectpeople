@@ -38,7 +38,10 @@ const Login = () => {
       // Redirect based on user role or redirectTo path
       if (user?.role === 'partner') {
         console.log("Partner login detected, redirecting to profile page");
-        navigate('/partner/profile');
+        // Force a slight delay to ensure state is properly saved
+        setTimeout(() => {
+          navigate('/partner/profile');
+        }, 100);
       } else if (user?.role === 'store') {
         navigate('/store-dashboard');
       } else {
