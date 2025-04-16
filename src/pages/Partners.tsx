@@ -55,7 +55,7 @@ const Partners = () => {
           const formattedProfiles = data.map(profile => ({
             id: profile.id,
             name: profile.name || 'Unknown Partner',
-            category: profile.partner_category || 'unknown',
+            category: (profile.partner_category || 'other') as PartnerCategory, // Cast to PartnerCategory
             location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
             description: profile.partner_favorites ? profile.partner_favorites[6] : 'No description available',
             certifications: profile.certifications || [],
