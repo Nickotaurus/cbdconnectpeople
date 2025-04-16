@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,7 +54,6 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     
     setIsLoading(true);
     try {
-      // Register the user with Supabase
       await register(
         email, 
         password, 
@@ -73,24 +71,21 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         description: "Votre compte a été créé avec succès",
       });
       
-      // For all store types, first go to add store page
       if (role === 'store') {
-        // If it's a store (any type), redirect to add store page first
         navigate('/add-store', { 
           state: { 
             fromRegistration: true,
             storeType: storeType,
-            // For e-commerce stores, we'll need to redirect to subscription page after
             requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
           }
         });
+      } else if (role === 'partner') {
+        navigate('/add-partner');
       } else {
-        // For non-store users, just go to home
         navigate('/');
       }
     } catch (error) {
       console.error("Erreur d'inscription:", error);
-      // Le toast d'erreur est déjà géré dans la fonction register du contexte
     } finally {
       setIsLoading(false);
     }

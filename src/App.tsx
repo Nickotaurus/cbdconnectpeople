@@ -38,6 +38,8 @@ const MyProducts = lazy(() => import("./pages/MyProducts"));
 const Lottery = lazy(() => import("./pages/Lottery"));
 const Quests = lazy(() => import("./pages/Quests"));
 
+const AddPartner = lazy(() => import("./pages/AddPartner"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -79,6 +81,7 @@ const App = () => (
                   <Route path="/my-products" element={<MyProducts />} />
                   <Route path="/lottery" element={<Lottery />} />
                   <Route path="/quests" element={<Quests />} />
+                  <Route path="/add-partner" element={<AddPartner />} />
                   
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
