@@ -10,6 +10,7 @@ export const authService = {
    * Sign in with email and password
    */
   login: async (email: string, password: string) => {
+    console.log(`Attempting login for email: ${email}`);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -22,8 +23,18 @@ export const authService = {
 
     if (data.user) {
       console.log("Supabase auth success for user:", data.user.id);
+      
+      // Specific debug for checking if this user exists in profiles
+      const { data: profileCheck } = await supabase
+        .from('profiles')
+        .select('id, role, partner_id')
+        .eq('id', data.user.id)
+        .single();
+      
+      console.log("Direct profile check:", profileCheck);
+      
       const userProfile = await loadUserProfile(data.user.id);
-      console.log("Loaded user profile:", userProfile);
+      console.log("Full user profile loaded:", userProfile);
       return userProfile;
     }
     

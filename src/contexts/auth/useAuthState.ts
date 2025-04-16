@@ -14,10 +14,11 @@ export const useAuthState = () => {
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log(`Login attempt initiated for: ${email}`);
       const userProfile = await authService.login(email, password);
       
       if (userProfile) {
-        console.log("User profile loaded:", userProfile);
+        console.log("Login successful, user profile data:", userProfile);
         setUser(userProfile);
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
         return userProfile;

@@ -14,6 +14,8 @@ const PartnerProfile = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("PartnerProfile component loaded, current user:", user);
+    
     // If user is not logged in, redirect to login
     if (!user) {
       toast({
@@ -36,7 +38,8 @@ const PartnerProfile = () => {
 
     // If user is a partner without a partnerId, redirect to add-partner
     const partnerUser = user as PartnerUser;
-    console.log("Partner user:", partnerUser);
+    console.log("Partner user details:", partnerUser);
+    
     if (user.role === 'partner' && !partnerUser.partnerId) {
       console.log("Partner has no partnerId, redirecting to add-partner");
       navigate('/add-partner', {
@@ -54,8 +57,8 @@ const PartnerProfile = () => {
 
   // Check if the partner has a partnerId
   const partnerUser = user as PartnerUser;
-  const hasPartnerId = partnerUser.partnerId;
-  console.log("Has partnerId:", hasPartnerId);
+  const hasPartnerId = Boolean(partnerUser.partnerId);
+  console.log("Has partnerId:", hasPartnerId, "value:", partnerUser.partnerId);
 
   return (
     <div className="container mx-auto px-4 py-8">

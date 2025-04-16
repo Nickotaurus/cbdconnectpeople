@@ -26,7 +26,9 @@ const Login = () => {
     
     setIsLoading(true);
     try {
+      console.log("Login form submitted for:", email);
       const user = await login(email, password);
+      console.log("Login successful, user data:", user);
       
       toast({
         title: "Connexion réussie",
@@ -35,8 +37,8 @@ const Login = () => {
       
       // Redirect based on user role or redirectTo path
       if (user?.role === 'partner') {
+        console.log("Partner login detected, redirecting to profile page");
         navigate('/partner/profile');
-        console.log("Redirecting partner to profile page");
       } else if (user?.role === 'store') {
         navigate('/store-dashboard');
       } else {
