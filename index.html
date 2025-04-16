@@ -9,6 +9,12 @@
     <meta name="description" content="Votre plateforme de connexion entre boutiques CBD et producteurs" />
     <meta name="author" content="CBDConnectWorld" />
     <meta property="og:image" content="/og-image.png" />
+    <script>
+      // Correction pour les problèmes de chargement sur Netlify
+      if (window.location.href.indexOf('netlify') > -1 && window.location.pathname !== '/') {
+        window.history.replaceState(null, document.title, '/');
+      }
+    </script>
   </head>
 
   <body>
