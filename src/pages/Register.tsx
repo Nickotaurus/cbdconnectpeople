@@ -24,7 +24,7 @@ const Register = () => {
         <CardHeader>
           <CardTitle>Créer votre compte</CardTitle>
           <CardDescription>
-            Rejoignez la plus grande communauté CBD en France
+            Rejoignez la communauté CBD Connect People
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -42,7 +42,7 @@ const Login = () => {
         <CardHeader>
           <CardTitle>Connexion</CardTitle>
           <CardDescription>
-            Accédez à votre compte CBD Boutique Finder
+            Accédez à votre compte CBD Connect People
           </CardDescription>
         </CardHeader>
         <CardContent>
