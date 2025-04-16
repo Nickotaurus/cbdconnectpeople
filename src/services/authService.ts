@@ -1,4 +1,3 @@
-
 import { UserRole } from "@/types/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { loadUserProfile } from "@/hooks/useUserProfile";
@@ -17,11 +16,14 @@ export const authService = {
     });
 
     if (error) {
+      console.error("Supabase auth error:", error);
       throw error;
     }
 
     if (data.user) {
+      console.log("Supabase auth success for user:", data.user.id);
       const userProfile = await loadUserProfile(data.user.id);
+      console.log("Loaded user profile:", userProfile);
       return userProfile;
     }
     

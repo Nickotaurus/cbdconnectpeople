@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Briefcase } from "lucide-react";
+import { PartnerUser } from "@/types/auth";
 import PartnerDashboard from "@/components/dashboards/PartnerDashboard";
 
 const PartnerProfile = () => {
@@ -34,8 +35,10 @@ const PartnerProfile = () => {
     }
 
     // If user is a partner without a partnerId, redirect to add-partner
-    const partnerUser = user as any;
+    const partnerUser = user as PartnerUser;
+    console.log("Partner user:", partnerUser);
     if (user.role === 'partner' && !partnerUser.partnerId) {
+      console.log("Partner has no partnerId, redirecting to add-partner");
       navigate('/add-partner', {
         state: { 
           fromRegistration: false,
@@ -50,7 +53,9 @@ const PartnerProfile = () => {
   }
 
   // Check if the partner has a partnerId
-  const hasPartnerId = (user as any).partnerId;
+  const partnerUser = user as PartnerUser;
+  const hasPartnerId = partnerUser.partnerId;
+  console.log("Has partnerId:", hasPartnerId);
 
   return (
     <div className="container mx-auto px-4 py-8">

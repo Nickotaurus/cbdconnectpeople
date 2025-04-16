@@ -34,9 +34,10 @@ const Login = () => {
       });
       
       // Redirect based on user role or redirectTo path
-      if (user?.role === 'partner' && !location.state?.redirectTo) {
+      if (user?.role === 'partner') {
         navigate('/partner/profile');
-      } else if (user?.role === 'store' && !location.state?.redirectTo) {
+        console.log("Redirecting partner to profile page");
+      } else if (user?.role === 'store') {
         navigate('/store-dashboard');
       } else {
         navigate(redirectTo);

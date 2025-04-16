@@ -17,6 +17,7 @@ export const useAuthState = () => {
       const userProfile = await authService.login(email, password);
       
       if (userProfile) {
+        console.log("User profile loaded:", userProfile);
         setUser(userProfile);
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
         return userProfile;

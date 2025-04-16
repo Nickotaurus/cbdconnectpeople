@@ -12,6 +12,7 @@ type ProfilesRow = Database['public']['Tables']['profiles']['Row'];
  */
 export const loadUserProfile = async (userId: string): Promise<User | null> => {
   try {
+    console.log("Loading profile for user:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -23,8 +24,13 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
       return null;
     }
 
-    if (!data) return null;
+    if (!data) {
+      console.log("No profile found for user:", userId);
+      return null;
+    }
 
+    console.log("Profile data loaded:", data);
+    
     // Build user object based on role
     let userObj: User;
     
@@ -80,6 +86,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           certifications: profile.certifications || [],
           partnerId: (profile as any).partner_id
         } as PartnerUser;
+        console.log("Created partner user object:", userObj);
         break;
       default:
         userObj = {
