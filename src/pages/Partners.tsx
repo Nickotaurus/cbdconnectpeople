@@ -29,41 +29,56 @@ const Partners = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>(mockPartners);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
-  const [partnerProfiles, setPartnerProfiles] = useState<any[]>([]);
+  const [partnerProfiles, setPartnerProfiles] = useState<Partner[]>([]);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   const hasPremium = user?.role === "store" && user.isVerified;
   
   useEffect(() => {
     const fetchPartnerProfiles = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .not('partner_id', 'is', null)  // Changed from .eq('partner_id', null, { foreignTable: false })
-        .not('name', 'is', null);
-      
-      if (error) {
-        console.error("Error fetching partner profiles:", error);
-        return;
+      try {
+        console.log("Fetching partner profiles from database");
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .not('partner_id', 'is', null)  // Get profiles that have a partner_id
+          .not('name', 'is', null);
+        
+        if (error) {
+          console.error("Error fetching partner profiles:", error);
+          return;
+        }
+
+        console.log("Partner profiles fetched:", data);
+        
+        if (data && data.length > 0) {
+          const formattedProfiles = data.map(profile => ({
+            id: profile.id,
+            name: profile.name || 'Unknown Partner',
+            category: profile.partner_category || 'unknown',
+            location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
+            description: profile.partner_favorites ? profile.partner_favorites[6] : 'No description available',
+            certifications: profile.certifications || [],
+            distance: Math.floor(Math.random() * 300),
+            imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+          }));
+
+          console.log("Formatted partner profiles:", formattedProfiles);
+          setPartnerProfiles(formattedProfiles);
+          
+          // Update filtered partners with both mock data and real profiles
+          const combined = [...mockPartners, ...formattedProfiles];
+          setFilteredPartners(filterPartners(combined, searchTerm, categoryFilter));
+        }
+      } catch (err) {
+        console.error("Error in partner profiles fetch logic:", err);
       }
-
-      const formattedProfiles = data.map(profile => ({
-        id: profile.id,
-        name: profile.name,
-        category: profile.partner_category || 'unknown',
-        location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
-        description: profile.partner_favorites ? profile.partner_favorites[6] : '',
-        certifications: profile.certifications || [],
-        distance: Math.floor(Math.random() * 300),
-        imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
-      }));
-
-      setPartnerProfiles(formattedProfiles);
     };
 
     fetchPartnerProfiles();
-  }, []);
+  }, [searchTerm, categoryFilter]);
 
+  // Combine mock data and real profiles from database
   const combinedPartners = [...mockPartners, ...partnerProfiles];
   
   const handleSearch = (term: string) => {
