@@ -30,6 +30,13 @@ const Login = () => {
     redirectionAttempted 
   });
   
+  // Reset loading state when component unmounts
+  useEffect(() => {
+    return () => {
+      setIsLoading(false);
+    };
+  }, []);
+  
   // Effect to handle redirect after successful login
   useEffect(() => {
     console.log("Login useEffect - user:", user, "authLoading:", authLoading, "isLoading:", isLoading, "redirectionAttempted:", redirectionAttempted);
@@ -63,6 +70,9 @@ const Login = () => {
         console.log("Client user detected, redirecting to:", redirectTo);
         navigate(redirectTo);
       }
+    } else if (!user && !authLoading) {
+      // Ensure loading state is reset when auth is finished and no user
+      setIsLoading(false);
     }
   }, [user, authLoading, navigate, redirectTo, redirectionAttempted]);
   

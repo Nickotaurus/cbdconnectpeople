@@ -23,6 +23,7 @@ export const useAuthState = () => {
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
         return userProfile;
       }
+      setIsLoading(false); // Ensure loading state is reset if no profile
       return null;
     } catch (error) {
       console.error("Erreur de connexion:", error);
@@ -31,19 +32,21 @@ export const useAuthState = () => {
         description: "Email ou mot de passe incorrect",
         variant: "destructive",
       });
+      setIsLoading(false); // Reset loading state on error
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleLogout = async () => {
+    setIsLoading(true);
     try {
       await authService.logout();
       setUser(null);
       localStorage.removeItem("cbdUser");
     } catch (error) {
       console.error("Erreur de déconnexion:", error);
+    } finally {
+      setIsLoading(false); // Reset loading state after logout attempt
     }
   };
 
@@ -82,7 +85,7 @@ export const useAuthState = () => {
       });
       throw error;
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Always reset loading state when finished
     }
   };
 
@@ -93,6 +96,7 @@ export const useAuthState = () => {
       partnerFavorites: string[] 
     }>
   ) => {
+    setIsLoading(true);
     try {
       const updatedUser = await updatePreferences(user, preferences);
       setUser(updatedUser);
@@ -100,6 +104,8 @@ export const useAuthState = () => {
     } catch (error) {
       console.error("Erreur lors de la mise à jour des préférences:", error);
       throw error;
+    } finally {
+      setIsLoading(false); // Always reset loading state when finished
     }
   };
 
