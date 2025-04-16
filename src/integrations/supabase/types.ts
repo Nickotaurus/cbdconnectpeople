@@ -101,9 +101,11 @@ export type Database = {
           name: string | null
           partner_category: string | null
           partner_favorites: string[] | null
+          partner_id: string | null
           rewards: number | null
           role: string | null
           siret_verified: boolean | null
+          store_id: string | null
           store_type: string | null
           tickets: number | null
           updated_at: string
@@ -119,9 +121,11 @@ export type Database = {
           name?: string | null
           partner_category?: string | null
           partner_favorites?: string[] | null
+          partner_id?: string | null
           rewards?: number | null
           role?: string | null
           siret_verified?: boolean | null
+          store_id?: string | null
           store_type?: string | null
           tickets?: number | null
           updated_at?: string
@@ -137,9 +141,11 @@ export type Database = {
           name?: string | null
           partner_category?: string | null
           partner_favorites?: string[] | null
+          partner_id?: string | null
           rewards?: number | null
           role?: string | null
           siret_verified?: boolean | null
+          store_id?: string | null
           store_type?: string | null
           tickets?: number | null
           updated_at?: string
