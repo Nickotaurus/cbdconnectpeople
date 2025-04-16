@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -50,6 +51,8 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     
     setIsLoading(true);
     try {
+      console.log("Registering with role:", role, "and partner category:", partnerCategory);
+      
       await register(
         email, 
         password, 
@@ -67,24 +70,28 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         description: "Votre compte a été créé avec succès",
       });
       
-      if (role === 'store') {
-        navigate('/add-store', { 
-          state: { 
-            fromRegistration: true,
-            storeType: storeType,
-            requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
-          }
-        });
-      } else if (role === 'partner') {
-        navigate('/add-partner', {
-          state: {
-            fromRegistration: true,
-            partnerCategory: partnerCategory
-          }
-        });
-      } else {
-        navigate('/');
-      }
+      // Add small delay to ensure state updates
+      setTimeout(() => {
+        if (role === 'store') {
+          navigate('/add-store', { 
+            state: { 
+              fromRegistration: true,
+              storeType: storeType,
+              requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
+            }
+          });
+        } else if (role === 'partner') {
+          console.log("Navigating to add-partner after registration");
+          navigate('/add-partner', {
+            state: {
+              fromRegistration: true,
+              partnerCategory: partnerCategory
+            }
+          });
+        } else {
+          navigate('/');
+        }
+      }, 100);
     } catch (error) {
       console.error("Erreur d'inscription:", error);
       toast({

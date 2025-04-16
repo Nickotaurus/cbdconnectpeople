@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { PartnerUser } from "@/types/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,10 +38,23 @@ const Login = () => {
       
       // Redirect based on user role or redirectTo path
       if (user?.role === 'partner') {
-        console.log("Partner login detected, redirecting to profile page");
+        const partnerUser = user as PartnerUser;
+        console.log("Partner login detected with partnerId:", partnerUser.partnerId);
+        
         // Force a slight delay to ensure state is properly saved
         setTimeout(() => {
-          navigate('/partner/profile');
+          if (partnerUser.partnerId) {
+            console.log("Redirecting to partner profile");
+            navigate('/partner/profile');
+          } else {
+            console.log("Redirecting to add-partner");
+            navigate('/add-partner', {
+              state: { 
+                fromRegistration: false,
+                partnerCategory: partnerUser.partnerCategory || ''
+              }
+            });
+          }
         }, 100);
       } else if (user?.role === 'store') {
         navigate('/store-dashboard');
@@ -48,8 +62,12 @@ const Login = () => {
         navigate(redirectTo);
       }
     } catch (error) {
-      console.error("Erreur de connexion:", error);
-      // Error toast is handled in the auth context
+      console.error("Login error:", error);
+      toast({
+        title: "Erreur de connexion",
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

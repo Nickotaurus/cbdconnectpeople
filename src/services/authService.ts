@@ -29,7 +29,7 @@ export const authService = {
       try {
         const { data: profileCheck, error: profileError } = await supabase
           .from('profiles')
-          .select('id, role, partner_id')
+          .select('id, role, partner_id, partner_category')
           .eq('id', data.user.id)
           .single();
         
@@ -63,6 +63,8 @@ export const authService = {
       partnerCategory?: string;
     }
   ) => {
+    console.log("Registration data:", { email, name, role, roleSpecificData });
+    
     // Prepare user metadata for profile creation via trigger
     const userData = {
       name,
@@ -70,6 +72,8 @@ export const authService = {
       ...(roleSpecificData?.storeType && { storeType: roleSpecificData.storeType }),
       ...(roleSpecificData?.partnerCategory && { partnerCategory: roleSpecificData.partnerCategory }),
     };
+
+    console.log("Sending user metadata:", userData);
 
     // Sign up with Supabase
     const { data, error } = await supabase.auth.signUp({
@@ -81,10 +85,13 @@ export const authService = {
     });
 
     if (error) {
+      console.error("Registration error:", error);
       throw error;
     }
 
     if (data.user) {
+      console.log("User registered successfully:", data.user.id);
+      
       // Wait for the trigger to create the profile
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -104,13 +111,15 @@ export const authService = {
           .from('profiles')
           .update({ 
             partner_category: roleSpecificData.partnerCategory,
-            is_verified: false
+            is_verified: false,
+            partner_id: null // Explicitly set to null at registration
           })
           .eq('id', data.user.id);
       }
       
       // Load the complete profile
       const userProfile = await loadUserProfile(data.user.id);
+      console.log("User profile after registration:", userProfile);
       return userProfile;
     }
     

@@ -1,10 +1,10 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Loader } from "lucide-react";
 import { PartnerUser } from "@/types/auth";
 import PartnerDashboard from "@/components/dashboards/PartnerDashboard";
 
@@ -12,6 +12,7 @@ const PartnerProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     console.log("PartnerProfile component loaded, current user:", user);
@@ -39,8 +40,9 @@ const PartnerProfile = () => {
     // If user is a partner without a partnerId, redirect to add-partner
     const partnerUser = user as PartnerUser;
     console.log("Partner user details:", partnerUser);
+    console.log("Partner ID value:", partnerUser.partnerId);
     
-    if (user.role === 'partner' && !partnerUser.partnerId) {
+    if (user.role === 'partner' && partnerUser.partnerId === null) {
       console.log("Partner has no partnerId, redirecting to add-partner");
       navigate('/add-partner', {
         state: { 
@@ -49,7 +51,17 @@ const PartnerProfile = () => {
         }
       });
     }
+    
+    setIsLoading(false);
   }, [user, navigate, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!user || user.role !== 'partner') {
     return null; // Will be redirected by useEffect
@@ -57,7 +69,7 @@ const PartnerProfile = () => {
 
   // Check if the partner has a partnerId
   const partnerUser = user as PartnerUser;
-  const hasPartnerId = Boolean(partnerUser.partnerId);
+  const hasPartnerId = partnerUser.partnerId !== null;
   console.log("Has partnerId:", hasPartnerId, "value:", partnerUser.partnerId);
 
   return (

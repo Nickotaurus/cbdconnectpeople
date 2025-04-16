@@ -50,5 +50,5 @@ export interface PartnerUser extends User {
   partnerCategory: PartnerCategory;
   verified: boolean;
   certifications: string[];
-  partnerId?: string | null;
+  partnerId: string | null;
 }

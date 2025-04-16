@@ -20,7 +20,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
       .single();
 
     if (error) {
-      console.error("Erreur lors du chargement du profil:", error);
+      console.error("Error loading profile:", error);
       return null;
     }
 
@@ -69,7 +69,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerFavorites: data.partner_favorites || [],
           isVerified: data.is_verified || false,
           needsSubscription: data.store_type === 'ecommerce' || data.store_type === 'both',
-          storeId: (data as any).store_id // Use type assertion to fix TypeScript error
+          storeId: data.store_id
         } as StoreUser;
         break;
       case 'partner':
@@ -82,7 +82,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerCategory: data.partner_category || '',
           verified: data.is_verified || false,
           certifications: data.certifications || [],
-          partnerId: (data as any).partner_id // Use type assertion to fix TypeScript error
+          partnerId: data.partner_id || null // Ensure we handle null case
         } as PartnerUser;
         console.log("Created partner user object:", userObj);
         break;
@@ -99,7 +99,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
 
     return userObj;
   } catch (error) {
-    console.error("Erreur lors du chargement du profil:", error);
+    console.error("Error loading profile:", error);
     return null;
   }
 };
