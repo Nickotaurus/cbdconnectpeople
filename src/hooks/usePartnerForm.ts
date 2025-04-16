@@ -45,6 +45,26 @@ export const usePartnerForm = (initialCategory: string = '') => {
       console.log("Creating partner profile with data:", formData);
       const partnerId = crypto.randomUUID();
 
+      // Check required fields
+      const requiredFields = {
+        'nom de l\'entreprise': formData.companyName,
+        'description': formData.description,
+        'email': formData.email, 
+        'téléphone': formData.phone,
+        'catégorie': formData.category,
+        'adresse': formData.address,
+        'ville': formData.city,
+        'code postal': formData.postalCode
+      };
+      
+      const missingFields = Object.entries(requiredFields)
+        .filter(([_key, value]) => !value || value.trim() === '')
+        .map(([key]) => key);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Veuillez remplir les champs obligatoires: ${missingFields.join(', ')}`);
+      }
+
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -70,20 +90,21 @@ export const usePartnerForm = (initialCategory: string = '') => {
         throw profileError;
       }
 
-      console.log("Partner profile created successfully");
+      console.log("Partner profile created successfully with ID:", partnerId);
       toast({
         title: "Profil créé avec succès",
         description: "Votre profil partenaire a été enregistré",
       });
 
+      // Give a longer delay to ensure Supabase update completes
       setTimeout(() => {
         navigate('/partner/profile');
-      }, 1500);
-    } catch (error) {
+      }, 2000);
+    } catch (error: any) {
       console.error('Erreur lors de la création du profil:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la création de votre profil",
+        description: error.message || "Une erreur est survenue lors de la création de votre profil",
         variant: "destructive"
       });
     } finally {

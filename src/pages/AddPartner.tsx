@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -32,10 +33,12 @@ const AddPartner = () => {
     handleSubmit
   } = usePartnerForm(initialCategory || (user?.role === 'partner' ? (user as any).partnerCategory || '' : ''));
 
+  // Handle unauthorized user
   if (user && user?.role !== 'partner') {
     return <UnauthorizedAccess />;
   }
 
+  // Handle not logged in user
   if (!user && !fromRegistration) {
     useEffect(() => {
       toast({

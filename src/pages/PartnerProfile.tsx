@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Loader } from "lucide-react";
 import { PartnerUser } from "@/types/auth";
+import { supabase } from "@/integrations/supabase/client";
 import PartnerDashboard from "@/components/dashboards/PartnerDashboard";
 
 const PartnerProfile = () => {
@@ -13,6 +15,8 @@ const PartnerProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [partnerData, setPartnerData] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     console.log("PartnerProfile component loaded, current user:", user);
@@ -39,27 +43,41 @@ const PartnerProfile = () => {
       return;
     }
 
-    // Cast to partner user type for access to partner-specific properties
-    const partnerUser = user as PartnerUser;
-    console.log("Partner user details:", partnerUser);
-    
-    // Check for partnerId explicitly
-    const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
-    console.log("Has partnerId:", hasPartnerId, "partnerId value:", partnerUser.partnerId);
-    
-    if (!hasPartnerId) {
-      console.log("Partner has no partnerId, redirecting to add-partner");
-      navigate('/add-partner', {
-        state: { 
-          fromRegistration: false,
-          partnerCategory: partnerUser.partnerCategory || ''
+    // Check partner profile and refresh data
+    const fetchPartnerData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching partner profile:", error);
+          setError("Impossible de charger votre profil partenaire");
+          return;
         }
-      });
-    } else {
-      console.log("Partner has partnerId, showing dashboard");
-    }
-    
-    setIsLoading(false);
+
+        console.log("Partner data from database:", data);
+        setPartnerData(data);
+        
+        // If no partnerId exists, redirect to create profile
+        if (!data.partner_id) {
+          console.log("Partner has no partnerId, suggesting profile creation");
+          toast({
+            title: "Profil incomplet",
+            description: "Veuillez compléter votre profil partenaire pour accéder à toutes les fonctionnalités",
+          });
+        }
+      } catch (err) {
+        console.error("Error in partner data fetch:", err);
+        setError("Une erreur est survenue lors du chargement de votre profil");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPartnerData();
   }, [user, navigate, toast]);
 
   if (isLoading) {
@@ -70,19 +88,29 @@ const PartnerProfile = () => {
     );
   }
 
-  if (!user || user.role !== 'partner') {
-    // Will be redirected by useEffect
+  if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-xl">Erreur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{error}</p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
-  // Check if the partner has a partnerId
+  // If the partner has no partnerId, show the profile creation suggestion
   const partnerUser = user as PartnerUser;
   const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
-  console.log("Rendering with partnerId:", hasPartnerId, "value:", partnerUser.partnerId);
 
   return (
     <div className="container mx-auto px-4 py-8">
