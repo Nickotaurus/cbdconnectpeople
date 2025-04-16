@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -33,16 +32,6 @@ const profileContents: Record<UserRole, ProfileContent> = {
     ],
     icon: <Store className="h-12 w-12" />
   },
-  producer: { // Added missing producer entry
-    title: "Connectez-vous avec les boutiques CBD et développez votre activité !",
-    points: [
-      "Présentez vos produits aux boutiques CBD",
-      "Développez votre réseau professionnel",
-      "Accédez à un marché en pleine croissance",
-      "Gagnez en visibilité auprès des professionnels"
-    ],
-    icon: <Sprout className="h-12 w-12" />
-  },
   partner: {
     title: "Connectez-vous avec les acteurs du CBD et développez votre activité !",
     points: [
@@ -53,6 +42,16 @@ const profileContents: Record<UserRole, ProfileContent> = {
       "Inclut désormais : producteurs, banques, comptables, juristes, assurances, logistique, breeders, labels, associations, médias, laboratoires, agences immobilières"
     ],
     icon: <Briefcase className="h-12 w-12" />
+  },
+  admin: {
+    title: "Gérez la plateforme et supervisez les activités !",
+    points: [
+      "Administrez les utilisateurs et leurs profils",
+      "Validez les boutiques et les partenaires",
+      "Gérez le contenu et les fonctionnalités de la plateforme",
+      "Accédez aux statistiques et aux rapports"
+    ],
+    icon: <Sprout className="h-12 w-12" />
   }
 };
 
