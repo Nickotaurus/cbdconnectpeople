@@ -1,6 +1,5 @@
-
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import { usePartnerForm } from '@/hooks/usePartnerForm';
 
 const AddPartner = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -91,7 +91,11 @@ const AddPartner = () => {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate('/partners')}>
+            <Button 
+              variant="outline" 
+              type="button" 
+              onClick={() => navigate('/partners')}
+            >
               Annuler
             </Button>
             <Button type="submit" disabled={isSubmitting}>
