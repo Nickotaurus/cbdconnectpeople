@@ -42,14 +42,17 @@ const PartnerProfile = () => {
     console.log("Partner user details:", partnerUser);
     console.log("Partner ID value:", partnerUser.partnerId);
     
-    if (user.role === 'partner' && partnerUser.partnerId === null) {
+    if (partnerUser.partnerId === null) {
       console.log("Partner has no partnerId, redirecting to add-partner");
-      navigate('/add-partner', {
-        state: { 
-          fromRegistration: false,
-          partnerCategory: partnerUser.partnerCategory || ''
-        }
-      });
+      setTimeout(() => {
+        navigate('/add-partner', {
+          state: { 
+            fromRegistration: false,
+            partnerCategory: partnerUser.partnerCategory || ''
+          }
+        });
+      }, 100);
+      return;
     }
     
     setIsLoading(false);

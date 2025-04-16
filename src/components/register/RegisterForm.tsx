@@ -53,7 +53,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     try {
       console.log("Registering with role:", role, "and partner category:", partnerCategory);
       
-      await register(
+      const user = await register(
         email, 
         password, 
         name, 
@@ -70,6 +70,8 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         description: "Votre compte a été créé avec succès",
       });
       
+      console.log("Registration successful, user data:", user);
+      
       // Add small delay to ensure state updates
       setTimeout(() => {
         if (role === 'store') {
@@ -81,7 +83,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
             }
           });
         } else if (role === 'partner') {
-          console.log("Navigating to add-partner after registration");
+          console.log("Navigating to add-partner after registration with category:", partnerCategory);
           navigate('/add-partner', {
             state: {
               fromRegistration: true,
@@ -91,7 +93,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         } else {
           navigate('/');
         }
-      }, 100);
+      }, 500);
     } catch (error) {
       console.error("Erreur d'inscription:", error);
       toast({

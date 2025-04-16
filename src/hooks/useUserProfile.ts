@@ -17,7 +17,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error loading profile:", error);
@@ -73,6 +73,9 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         } as StoreUser;
         break;
       case 'partner':
+        const partnerId = data.partner_id;
+        console.log("Creating partner user with partner_id:", partnerId);
+        
         userObj = {
           id: data.id,
           email: data.email || '',
@@ -82,7 +85,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerCategory: data.partner_category || '',
           verified: data.is_verified || false,
           certifications: data.certifications || [],
-          partnerId: data.partner_id
+          partnerId: partnerId
         } as PartnerUser;
         console.log("Created partner user object:", userObj);
         break;

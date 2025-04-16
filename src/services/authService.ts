@@ -31,7 +31,7 @@ export const authService = {
           .from('profiles')
           .select('id, role, partner_id, partner_category')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
         
         if (profileError) {
           console.error("Error fetching profile directly:", profileError);
@@ -41,6 +41,9 @@ export const authService = {
       } catch (e) {
         console.error("Exception during profile check:", e);
       }
+      
+      // Add a small delay to ensure database trigger has completed
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const userProfile = await loadUserProfile(data.user.id);
       console.log("Full user profile loaded:", userProfile);
@@ -93,7 +96,7 @@ export const authService = {
       console.log("User registered successfully:", data.user.id);
       
       // Wait for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Update profile with role-specific data
       if (role === 'store' && roleSpecificData?.storeType) {
@@ -107,7 +110,8 @@ export const authService = {
           })
           .eq('id', data.user.id);
       } else if (role === 'partner' && roleSpecificData?.partnerCategory) {
-        await supabase
+        console.log("Updating partner profile with category:", roleSpecificData.partnerCategory);
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
             partner_category: roleSpecificData.partnerCategory,
@@ -115,6 +119,10 @@ export const authService = {
             partner_id: null // Explicitly set to null at registration
           })
           .eq('id', data.user.id);
+        
+        if (updateError) {
+          console.error("Error updating partner profile:", updateError);
+        }
       }
       
       // Load the complete profile

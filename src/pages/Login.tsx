@@ -41,7 +41,7 @@ const Login = () => {
         const partnerUser = user as PartnerUser;
         console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
         
-        // Force a slight delay to ensure state is properly saved
+        // Force a longer delay to ensure state is properly saved
         setTimeout(() => {
           if (partnerUser.partnerId === null) {
             console.log("Partner has no partnerId, redirecting to add-partner");
@@ -55,7 +55,7 @@ const Login = () => {
             console.log("Partner has partnerId, redirecting to partner profile");
             navigate('/partner/profile');
           }
-        }, 300);
+        }, 500);
       } else if (user?.role === 'store') {
         navigate('/store-dashboard');
       } else {
