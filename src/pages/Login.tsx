@@ -30,10 +30,11 @@ const Login = () => {
     redirectionAttempted 
   });
   
-  // Reset loading state when component unmounts
+  // Reset loading state when component unmounts or route changes
   useEffect(() => {
     return () => {
       setIsLoading(false);
+      setRedirectionAttempted(false);
     };
   }, []);
   
@@ -78,6 +79,9 @@ const Login = () => {
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Only proceed if not already loading
+    if (isLoading || authLoading) return;
     
     setIsLoading(true);
     try {

@@ -23,28 +23,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("🔐 AuthProvider initialized");
     console.log("Current user:", user);
     console.log("Loading state:", isLoading);
+    
+    let isAuthenticated = false;
 
     // Set up Supabase auth event listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log(`🔐 Auth State Change: ${event}`);
-        setIsLoading(true);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setIsLoading(true);
+          isAuthenticated = true;
+          
           if (session?.user?.id) {
             console.log("🔐 User session detected, loading profile");
-            const userProfile = await loadUserProfile(session.user.id);
-            if (userProfile) {
-              console.log("🔐 User profile loaded successfully");
-              setUser(userProfile);
-              localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+            try {
+              const userProfile = await loadUserProfile(session.user.id);
+              if (userProfile) {
+                console.log("🔐 User profile loaded successfully");
+                setUser(userProfile);
+                localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+              }
+            } catch (error) {
+              console.error("Error loading user profile:", error);
+            } finally {
+              setIsLoading(false); // Always reset loading state
             }
+          } else {
+            setIsLoading(false);
           }
-          setIsLoading(false); // Make sure loading state is reset after profile load
         } else if (event === 'SIGNED_OUT') {
           console.log("🔐 User signed out");
           setUser(null);
           localStorage.removeItem("cbdUser");
+          isAuthenticated = false;
           setIsLoading(false); // Reset loading state after signout
         } else {
           // For any other auth events, ensure loading state is reset
@@ -60,12 +72,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user?.id) {
+          isAuthenticated = true;
           console.log("🔐 Existing session found");
-          const userProfile = await loadUserProfile(session.user.id);
-          if (userProfile) {
-            console.log("🔐 Existing user profile loaded");
-            setUser(userProfile);
-            localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+          try {
+            const userProfile = await loadUserProfile(session.user.id);
+            if (userProfile) {
+              console.log("🔐 Existing user profile loaded");
+              setUser(userProfile);
+              localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+            }
+          } catch (error) {
+            console.error("Error loading user profile:", error);
           }
         } else {
           console.log("🔐 No existing session found");
@@ -82,7 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error("🔐 Error initializing auth:", error);
       } finally {
-        setIsLoading(false); // Important: always reset loading state
+        // Always reset loading state when initialization completes
+        setIsLoading(false);
       }
     };
 
