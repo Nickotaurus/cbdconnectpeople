@@ -58,6 +58,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         } as ClientUser;
         break;
       case 'store':
+        // Safely access store_id with type assertion
+        const storeId = (data as any).store_id;
         userObj = {
           id: data.id,
           email: data.email || '',
@@ -69,10 +71,12 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerFavorites: data.partner_favorites || [],
           isVerified: data.is_verified || false,
           needsSubscription: data.store_type === 'ecommerce' || data.store_type === 'both',
-          storeId: data.store_id
+          storeId: storeId
         } as StoreUser;
         break;
       case 'partner':
+        // Safely access partner_id with type assertion
+        const partnerId = (data as any).partner_id;
         userObj = {
           id: data.id,
           email: data.email || '',
@@ -82,7 +86,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerCategory: data.partner_category || '',
           verified: data.is_verified || false,
           certifications: data.certifications || [],
-          partnerId: data.partner_id || null // Ensure we handle null case
+          partnerId: partnerId // Handle as nullable
         } as PartnerUser;
         console.log("Created partner user object:", userObj);
         break;
