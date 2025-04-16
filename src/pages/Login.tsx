@@ -55,11 +55,15 @@ const Login = () => {
             console.log("Partner has partnerId, redirecting to partner profile");
             navigate('/partner/profile');
           }
-        }, 500);
+        }, 1500);
       } else if (user?.role === 'store') {
-        navigate('/store-dashboard');
+        setTimeout(() => {
+          navigate('/store-dashboard');
+        }, 1000);
       } else {
-        navigate(redirectTo);
+        setTimeout(() => {
+          navigate(redirectTo);
+        }, 1000);
       }
     } catch (error) {
       console.error("Login error:", error);

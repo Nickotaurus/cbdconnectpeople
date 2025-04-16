@@ -73,8 +73,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         } as StoreUser;
         break;
       case 'partner':
-        const partnerId = data.partner_id;
-        console.log("Creating partner user with partner_id:", partnerId);
+        console.log("Creating partner user with partner_id:", data.partner_id);
         
         userObj = {
           id: data.id,
@@ -85,7 +84,7 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           partnerCategory: data.partner_category || '',
           verified: data.is_verified || false,
           certifications: data.certifications || [],
-          partnerId: partnerId
+          partnerId: data.partner_id
         } as PartnerUser;
         console.log("Created partner user object:", userObj);
         break;

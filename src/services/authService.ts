@@ -42,8 +42,8 @@ export const authService = {
         console.error("Exception during profile check:", e);
       }
       
-      // Add a small delay to ensure database trigger has completed
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Add a larger delay to ensure database trigger has completed
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       const userProfile = await loadUserProfile(data.user.id);
       console.log("Full user profile loaded:", userProfile);
@@ -96,7 +96,7 @@ export const authService = {
       console.log("User registered successfully:", data.user.id);
       
       // Wait for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Update profile with role-specific data
       if (role === 'store' && roleSpecificData?.storeType) {
@@ -122,6 +122,8 @@ export const authService = {
         
         if (updateError) {
           console.error("Error updating partner profile:", updateError);
+        } else {
+          console.log("Successfully updated partner profile with partner_id: null");
         }
       }
       

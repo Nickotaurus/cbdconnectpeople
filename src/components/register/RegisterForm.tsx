@@ -71,10 +71,12 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
       });
       
       console.log("Registration successful, user data:", user);
+      console.log("User role is:", user?.role);
       
-      // Add small delay to ensure state updates
-      setTimeout(() => {
-        if (role === 'store') {
+      // Ensure a longer delay for state to be properly initialized
+      if (role === 'store') {
+        console.log("Navigating to add-store after registration");
+        setTimeout(() => {
           navigate('/add-store', { 
             state: { 
               fromRegistration: true,
@@ -82,18 +84,22 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
               requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
             }
           });
-        } else if (role === 'partner') {
-          console.log("Navigating to add-partner after registration with category:", partnerCategory);
+        }, 1000);
+      } else if (role === 'partner') {
+        console.log("Navigating to add-partner after registration with category:", partnerCategory);
+        setTimeout(() => {
           navigate('/add-partner', {
             state: {
               fromRegistration: true,
               partnerCategory: partnerCategory
             }
           });
-        } else {
+        }, 1000);
+      } else {
+        setTimeout(() => {
           navigate('/');
-        }
-      }, 500);
+        }, 1000);
+      }
     } catch (error) {
       console.error("Erreur d'inscription:", error);
       toast({

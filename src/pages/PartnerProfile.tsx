@@ -37,13 +37,18 @@ const PartnerProfile = () => {
       return;
     }
 
-    // If user is a partner without a partnerId, redirect to add-partner
+    // Cast to partner user type for access to partner-specific properties
     const partnerUser = user as PartnerUser;
     console.log("Partner user details:", partnerUser);
-    console.log("Partner ID value:", partnerUser.partnerId);
     
-    if (partnerUser.partnerId === null) {
-      console.log("Partner has no partnerId, redirecting to add-partner");
+    // Check for partnerId explicitly
+    // Access partnerId directly
+    const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
+    console.log("Has partnerId:", hasPartnerId, "partnerId value:", partnerUser.partnerId);
+    
+    if (!hasPartnerId) {
+      console.log("Partner has no partnerId, will redirect to add-partner");
+      // Add delay to ensure UI updates first
       setTimeout(() => {
         navigate('/add-partner', {
           state: { 
@@ -51,8 +56,9 @@ const PartnerProfile = () => {
             partnerCategory: partnerUser.partnerCategory || ''
           }
         });
-      }, 100);
-      return;
+      }, 500);
+    } else {
+      console.log("Partner has partnerId, showing dashboard");
     }
     
     setIsLoading(false);
@@ -67,13 +73,18 @@ const PartnerProfile = () => {
   }
 
   if (!user || user.role !== 'partner') {
-    return null; // Will be redirected by useEffect
+    // Will be redirected by useEffect
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   // Check if the partner has a partnerId
   const partnerUser = user as PartnerUser;
-  const hasPartnerId = partnerUser.partnerId !== null;
-  console.log("Has partnerId:", hasPartnerId, "value:", partnerUser.partnerId);
+  const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
+  console.log("Rendering with partnerId:", hasPartnerId, "value:", partnerUser.partnerId);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -83,7 +94,15 @@ const PartnerProfile = () => {
           <p className="text-muted-foreground mb-6">
             Pour être visible sur notre plateforme, veuillez compléter votre profil partenaire.
           </p>
-          <Button onClick={() => navigate('/add-partner')} className="flex items-center">
+          <Button 
+            onClick={() => navigate('/add-partner', {
+              state: { 
+                fromRegistration: false,
+                partnerCategory: partnerUser.partnerCategory || ''
+              }
+            })} 
+            className="flex items-center"
+          >
             <Briefcase className="mr-2 h-4 w-4" />
             Référencer mon activité
           </Button>
