@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { PartnerCategory } from '@/types/auth';
 import { useToast } from "@/components/ui/use-toast";
@@ -11,17 +11,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, Building, FileText, Link2 } from 'lucide-react';
+import { partnerCategories } from '@/data/partnerCategoriesData';
 
 const AddPartner = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Check if we've come from registration
+  const fromRegistration = location.state?.fromRegistration || false;
+  const initialCategory = location.state?.partnerCategory || '';
 
   const [formData, setFormData] = useState({
     companyName: '',
     description: '',
     website: '',
-    category: user?.role === 'partner' ? (user as any).partnerCategory || '' : '',
+    category: initialCategory || (user?.role === 'partner' ? (user as any).partnerCategory || '' : ''),
     address: '',
     city: '',
     postalCode: '',
@@ -50,7 +56,8 @@ const AddPartner = () => {
     }, 1500);
   };
 
-  if (user?.role !== 'partner') {
+  // If user is logged in but not a partner, show access denied
+  if (user && user?.role !== 'partner') {
     return (
       <div className="container max-w-md mx-auto py-16">
         <Card>
@@ -71,6 +78,24 @@ const AddPartner = () => {
             </Button>
           </CardFooter>
         </Card>
+      </div>
+    );
+  }
+
+  // If not logged in at all, redirect to login
+  if (!user && !fromRegistration) {
+    useEffect(() => {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez vous connecter pour référencer votre activité",
+      });
+      navigate('/login', { state: { redirectTo: '/add-partner' } });
+    }, []);
+    
+    // Show loading state while redirecting
+    return (
+      <div className="container max-w-md mx-auto py-16 flex justify-center">
+        <p>Redirection vers la page de connexion...</p>
       </div>
     );
   }
@@ -118,17 +143,11 @@ const AddPartner = () => {
                     <SelectValue placeholder="Sélectionnez votre secteur" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bank">Banque</SelectItem>
-                    <SelectItem value="accountant">Comptable</SelectItem>
-                    <SelectItem value="lawyer">Juriste</SelectItem>
-                    <SelectItem value="insurance">Assurance</SelectItem>
-                    <SelectItem value="logistics">Logistique</SelectItem>
-                    <SelectItem value="breeder">Breeder</SelectItem>
-                    <SelectItem value="label">Label</SelectItem>
-                    <SelectItem value="association">Association</SelectItem>
-                    <SelectItem value="media">Média</SelectItem>
-                    <SelectItem value="laboratory">Laboratoire</SelectItem>
-                    <SelectItem value="realEstate">Agence immobilière</SelectItem>
+                    {partnerCategories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

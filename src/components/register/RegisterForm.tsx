@@ -77,7 +77,12 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
           }
         });
       } else if (role === 'partner') {
-        navigate('/add-partner');
+        navigate('/add-partner', {
+          state: {
+            fromRegistration: true,
+            partnerCategory: partnerCategory
+          }
+        });
       } else {
         navigate('/');
       }
