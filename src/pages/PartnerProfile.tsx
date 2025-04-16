@@ -11,10 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import PartnerDashboard from "@/components/dashboards/PartnerDashboard";
 
 const PartnerProfile = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [partnerData, setPartnerData] = useState(null);
   const [error, setError] = useState("");
 
@@ -22,7 +22,7 @@ const PartnerProfile = () => {
     console.log("PartnerProfile component loaded, current user:", user);
     
     // If user is not logged in, redirect to login
-    if (!user) {
+    if (!isLoading && !user) {
       console.log("No user found, redirecting to login");
       toast({
         title: "Connexion requise",
@@ -33,7 +33,7 @@ const PartnerProfile = () => {
     }
 
     // If user is not a partner, redirect to homepage
-    if (user.role !== 'partner') {
+    if (!isLoading && user && user.role !== 'partner') {
       console.log("User is not a partner, redirecting to homepage");
       toast({
         title: "Accès refusé",
@@ -45,7 +45,10 @@ const PartnerProfile = () => {
 
     // Check partner profile and refresh data
     const fetchPartnerData = async () => {
+      if (!user) return;
+      
       try {
+        setIsLoadingProfile(true);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -60,27 +63,21 @@ const PartnerProfile = () => {
 
         console.log("Partner data from database:", data);
         setPartnerData(data);
-        
-        // If no partnerId exists, redirect to create profile
-        if (!data.partner_id) {
-          console.log("Partner has no partnerId, suggesting profile creation");
-          toast({
-            title: "Profil incomplet",
-            description: "Veuillez compléter votre profil partenaire pour accéder à toutes les fonctionnalités",
-          });
-        }
       } catch (err) {
         console.error("Error in partner data fetch:", err);
         setError("Une erreur est survenue lors du chargement de votre profil");
       } finally {
-        setIsLoading(false);
+        setIsLoadingProfile(false);
       }
     };
 
-    fetchPartnerData();
-  }, [user, navigate, toast]);
+    if (user) {
+      fetchPartnerData();
+    }
+  }, [user, isLoading, navigate, toast]);
 
-  if (isLoading) {
+  // Loading state for the entire page
+  if (isLoading || isLoadingProfile) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader className="h-8 w-8 animate-spin" />
@@ -88,6 +85,7 @@ const PartnerProfile = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -110,11 +108,11 @@ const PartnerProfile = () => {
 
   // If the partner has no partnerId, show the profile creation suggestion
   const partnerUser = user as PartnerUser;
-  const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
+  const hasCompleteProfile = partnerData?.partner_id !== null && partnerData?.partner_id !== undefined;
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {!hasPartnerId ? (
+  if (!hasCompleteProfile) {
+    return (
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center max-w-md mx-auto py-12">
           <h1 className="text-2xl font-bold mb-4">Complétez votre profil</h1>
           <p className="text-muted-foreground mb-6">
@@ -133,9 +131,14 @@ const PartnerProfile = () => {
             Référencer mon activité
           </Button>
         </div>
-      ) : (
-        <PartnerDashboard />
-      )}
+      </div>
+    );
+  }
+
+  // If everything is loaded and the partner has a profile, show the dashboard
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <PartnerDashboard />
     </div>
   );
 };

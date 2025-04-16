@@ -9,7 +9,7 @@ const LoadingRedirect = () => {
     // Redirect to login page after a short delay
     const timer = setTimeout(() => {
       navigate('/login', { state: { redirectTo: '/add-partner' } });
-    }, 1500);
+    }, 2000); // Augmentation du délai pour assurer que la redirection fonctionne
     
     return () => clearTimeout(timer);
   }, [navigate]);

@@ -65,6 +65,19 @@ export const usePartnerForm = (initialCategory: string = '') => {
         throw new Error(`Veuillez remplir les champs obligatoires: ${missingFields.join(', ')}`);
       }
 
+      // Fetch current user profile to ensure we're not overwriting data
+      const { data: currentProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (fetchError) {
+        console.error("Error fetching profile:", fetchError);
+        throw fetchError;
+      }
+
+      // Update profile with partner information
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -72,7 +85,7 @@ export const usePartnerForm = (initialCategory: string = '') => {
           partner_category: formData.category,
           logo_url: formData.logoUrl,
           partner_id: partnerId,
-          certifications: [],
+          certifications: currentProfile.certifications || [],
           partner_favorites: [
             formData.email,
             formData.phone,
@@ -93,13 +106,14 @@ export const usePartnerForm = (initialCategory: string = '') => {
       console.log("Partner profile created successfully with ID:", partnerId);
       toast({
         title: "Profil créé avec succès",
-        description: "Votre profil partenaire a été enregistré",
+        description: "Votre profil partenaire est désormais visible par tous les acteurs CBD",
       });
 
       // Give a longer delay to ensure Supabase update completes
       setTimeout(() => {
-        navigate('/partner/profile');
-      }, 2000);
+        // Force reload user data and navigate to partner profile
+        window.location.href = '/partner/profile';
+      }, 2500);
     } catch (error: any) {
       console.error('Erreur lors de la création du profil:', error);
       toast({
