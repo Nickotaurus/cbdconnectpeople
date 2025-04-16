@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { PartnerUser } from "@/types/auth";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   
   // Get redirect path from location state if it exists
@@ -22,27 +22,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setIsLoading(true);
-    try {
-      console.log("Login form submitted for:", email);
-      const user = await login(email, password);
-      console.log("Login successful, user data:", user);
+  // Effect to handle redirect after successful login
+  useEffect(() => {
+    if (user && !authLoading && !isLoading) {
+      console.log("User authenticated, redirecting based on role:", user.role);
       
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté",
-      });
-      
-      // Redirect based on user role or redirectTo path
-      if (user?.role === 'partner') {
-        const partnerUser = user as PartnerUser;
-        console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
-        
-        // Force a longer delay to ensure state is properly saved
-        setTimeout(() => {
+      const timer = setTimeout(() => {
+        if (user.role === 'partner') {
+          const partnerUser = user as PartnerUser;
+          console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
+          
           if (partnerUser.partnerId === null) {
             console.log("Partner has no partnerId, redirecting to add-partner");
             navigate('/add-partner', {
@@ -55,16 +44,34 @@ const Login = () => {
             console.log("Partner has partnerId, redirecting to partner profile");
             navigate('/partner/profile');
           }
-        }, 1500);
-      } else if (user?.role === 'store') {
-        setTimeout(() => {
+        } else if (user.role === 'store') {
+          console.log("Store user detected, redirecting to store dashboard");
           navigate('/store-dashboard');
-        }, 1000);
-      } else {
-        setTimeout(() => {
+        } else {
+          console.log("Client user detected, redirecting to:", redirectTo);
           navigate(redirectTo);
-        }, 1000);
-      }
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, authLoading, isLoading, navigate, redirectTo]);
+  
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    setIsLoading(true);
+    try {
+      console.log("Login form submitted for:", email);
+      await login(email, password);
+      
+      toast({
+        title: "Connexion réussie",
+        description: "Vous êtes maintenant connecté",
+      });
+      
+      // Redirection is now handled by the useEffect
+      
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -72,10 +79,21 @@ const Login = () => {
         description: "Email ou mot de passe incorrect",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
+  
+  // If already authenticated, we can show a loading state
+  if (user && !authLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Redirection en cours...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container max-w-md mx-auto py-8">
@@ -113,8 +131,8 @@ const Login = () => {
                 />
               </div>
               
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Connexion en cours..." : "Se connecter"}
+              <Button type="submit" disabled={isLoading || authLoading}>
+                {(isLoading || authLoading) ? "Connexion en cours..." : "Se connecter"}
               </Button>
             </div>
           </form>
