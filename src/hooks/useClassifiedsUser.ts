@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -81,18 +80,25 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
         throw new Error("User not authenticated.");
       }
 
+      // Format the data to match the database schema
       const classifiedData = {
-        ...data,
-        userId: user.id,
-        images: images.map(img => img.url),
+        type: data.type,
+        category: data.category,
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        price: data.price,
+        is_premium: data.isPremium,
+        user_id: user.id,
+        // Other fields can be added here
       };
 
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('classifieds')
         .insert([classifiedData]);
 
-      if (error) {
-        console.error("Error submitting classified:", error);
+      if (insertError) {
+        console.error("Error submitting classified:", insertError);
         throw new Error("Failed to submit classified.");
       }
 

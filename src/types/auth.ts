@@ -1,4 +1,7 @@
+
 export type UserRole = 'client' | 'store' | 'partner' | 'admin';
+export type StoreType = 'physical' | 'ecommerce' | 'both';
+export type PartnerCategory = 'bank' | 'accountant' | 'legal' | 'insurance' | 'logistics' | 'breeder' | 'label' | 'association' | 'media' | 'laboratory' | 'production' | 'realEstate' | 'other';
 
 export interface UserBadge {
   id: string;
@@ -17,6 +20,7 @@ export interface User {
   createdAt: string;
   isVerified?: boolean;
   favoriteProducts?: string[];
+  badges?: UserBadge[];
 }
 
 // Extend the base User interface for client-specific properties
@@ -32,17 +36,19 @@ export interface ClientUser extends User {
 // Extend the base User interface for store-specific properties
 export interface StoreUser extends User {
   role: 'store';
-  storeType: 'physical' | 'ecommerce' | 'both';
+  storeType: StoreType;
   siretVerified: boolean;
   partnerFavorites: string[];
   isVerified: boolean;
   needsSubscription: boolean;
+  storeId?: string; // Add storeId property
 }
 
 // Extend the base User interface for partner-specific properties
 export interface PartnerUser extends User {
   role: 'partner';
-  partnerCategory: string;
+  partnerCategory: PartnerCategory;
   verified: boolean;
   certifications: string[];
+  partnerId?: string; // Add partnerId property
 }
