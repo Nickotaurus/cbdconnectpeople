@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ const Login = () => {
     if (user && !authLoading && !redirectionAttempted) {
       console.log("User authenticated, attempting redirection based on role:", user.role);
       setRedirectionAttempted(true);
+      setIsLoading(false); // Reset loading state before navigation
       
       // Redirection immédiate sans délai
       if (user.role === 'partner') {
@@ -71,34 +72,14 @@ const Login = () => {
     setIsLoading(true);
     try {
       console.log("Login form submitted for:", email);
-      const userResult = await login(email, password);
-      console.log("Login result:", userResult);
+      await login(email, password);
       
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
       
-      // Pour les redirections manuelles après login
-      if (userResult) {
-        if (userResult.role === 'partner') {
-          const partnerUser = userResult as PartnerUser;
-          if (partnerUser.partnerId === null) {
-            navigate('/add-partner', {
-              state: { 
-                fromRegistration: false,
-                partnerCategory: partnerUser.partnerCategory || ''
-              }
-            });
-          } else {
-            navigate('/partner/profile');
-          }
-        } else if (userResult.role === 'store') {
-          navigate('/store-dashboard');
-        } else {
-          navigate(redirectTo);
-        }
-      }
+      // No manual navigation here - let the useEffect handle it based on user role
       
     } catch (error) {
       console.error("Login error:", error);
@@ -107,7 +88,7 @@ const Login = () => {
         description: "Email ou mot de passe incorrect",
         variant: "destructive",
       });
-      setIsLoading(false);
+      setIsLoading(false); // Reset loading state on error
     }
   };
   
@@ -170,7 +151,7 @@ const Login = () => {
         </CardContent>
         <CardFooter>
           <p className="text-sm text-center w-full">
-            Pas encore de compte? <a href="/register" className="text-primary hover:underline">S'inscrire</a>
+            Pas encore de compte? <Link to="/register" className="text-primary hover:underline">S'inscrire</Link>
           </p>
         </CardFooter>
       </Card>
