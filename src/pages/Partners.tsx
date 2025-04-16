@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { PartnerCategory } from '@/types/auth';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { UserPlus } from 'lucide-react';
 
 // Data
 import { mockPartners } from '@/data/partnersData';
+import { supabase } from '@/integrations/supabase/client';
 
 // Components
 import PartnersList from '@/components/partners/PartnersList';
@@ -19,26 +20,60 @@ import BecomePartnerCTA from '@/components/partners/BecomePartnerCTA';
 // Utilities
 import { getCategoryLabel, filterPartners } from '@/utils/partnerUtils';
 import { partnerCategories } from '@/data/partnerCategoriesData';
+import { Partner } from '@/data/partnersData';
 
 const Partners = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [filteredPartners, setFilteredPartners] = useState(mockPartners);
+  const [filteredPartners, setFilteredPartners] = useState<Partner[]>(mockPartners);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [partnerProfiles, setPartnerProfiles] = useState<any[]>([]);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
-  const hasPremium = user?.role === "store" && user.isVerified; // Assuming isVerified indicates premium status
+  const hasPremium = user?.role === "store" && user.isVerified;
+  
+  useEffect(() => {
+    const fetchPartnerProfiles = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('partner_id', null, { foreignTable: false })
+        .not('name', 'is', null);
+      
+      if (error) {
+        console.error("Error fetching partner profiles:", error);
+        return;
+      }
+
+      const formattedProfiles = data.map(profile => ({
+        id: profile.id,
+        name: profile.name,
+        category: profile.partner_category || 'unknown',
+        location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
+        description: profile.partner_favorites ? profile.partner_favorites[6] : '',
+        certifications: profile.certifications || [],
+        distance: Math.floor(Math.random() * 300),
+        imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+      }));
+
+      setPartnerProfiles(formattedProfiles);
+    };
+
+    fetchPartnerProfiles();
+  }, []);
+
+  const combinedPartners = [...mockPartners, ...partnerProfiles];
   
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setFilteredPartners(filterPartners(mockPartners, term, categoryFilter));
+    setFilteredPartners(filterPartners(combinedPartners, term, categoryFilter));
   };
   
   const handleCategoryFilter = (category: string) => {
     setCategoryFilter(category);
-    setFilteredPartners(filterPartners(mockPartners, searchTerm, category));
+    setFilteredPartners(filterPartners(combinedPartners, searchTerm, category));
   };
   
   const handleContactClick = (partnerId: string) => {
@@ -92,10 +127,6 @@ const Partners = () => {
           hasPremium={hasPremium}
           onContactClick={handleContactClick}
         />
-
-        <BecomePartnerCTA />
-        
-        <PartnerSubscriptionOffers />
       </div>
     </div>
   );
