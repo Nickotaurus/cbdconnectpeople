@@ -98,6 +98,7 @@ export type Database = {
           favorites: string[] | null
           id: string
           is_verified: boolean | null
+          logo_url: string | null
           name: string | null
           partner_category: string | null
           partner_favorites: string[] | null
@@ -118,6 +119,7 @@ export type Database = {
           favorites?: string[] | null
           id: string
           is_verified?: boolean | null
+          logo_url?: string | null
           name?: string | null
           partner_category?: string | null
           partner_favorites?: string[] | null
@@ -138,6 +140,7 @@ export type Database = {
           favorites?: string[] | null
           id?: string
           is_verified?: boolean | null
+          logo_url?: string | null
           name?: string | null
           partner_category?: string | null
           partner_favorites?: string[] | null

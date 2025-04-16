@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -12,6 +11,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, Building, FileText, Link2 } from 'lucide-react';
 import { partnerCategories } from '@/data/partnerCategoriesData';
+import LogoUpload from '@/components/partners/LogoUpload';
+import { supabase } from "@/integrations/supabase/client";
 
 const AddPartner = () => {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ const AddPartner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Check if we've come from registration
   const fromRegistration = location.state?.fromRegistration || false;
   const initialCategory = location.state?.partnerCategory || '';
 
@@ -31,6 +31,7 @@ const AddPartner = () => {
     address: '',
     city: '',
     postalCode: '',
+    logoUrl: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -42,21 +43,53 @@ const AddPartner = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleLogoUpload = (url: string) => {
+    setFormData(prev => ({ ...prev, logoUrl: url }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Pour l'instant, nous simulons juste le succès
-    toast({
-      title: "Profil créé avec succès",
-      description: "Votre profil partenaire a été enregistré",
-    });
-    
-    setTimeout(() => {
-      navigate('/partners');
-    }, 1500);
+    try {
+      const { data: partnerData, error: partnerError } = await supabase
+        .from('partners')
+        .insert([{
+          user_id: user?.id,
+          ...formData
+        }])
+        .select()
+        .single();
+
+      if (partnerError) throw partnerError;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          logo_url: formData.logoUrl,
+          partner_id: partnerData.id
+        })
+        .eq('id', user?.id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Profil créé avec succès",
+        description: "Votre profil partenaire a été enregistré",
+      });
+
+      setTimeout(() => {
+        navigate('/partner/profile');
+      }, 1500);
+    } catch (error) {
+      console.error('Erreur lors de la création du profil:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création de votre profil",
+        variant: "destructive"
+      });
+    }
   };
 
-  // If user is logged in but not a partner, show access denied
   if (user && user?.role !== 'partner') {
     return (
       <div className="container max-w-md mx-auto py-16">
@@ -82,7 +115,6 @@ const AddPartner = () => {
     );
   }
 
-  // If not logged in at all, redirect to login
   if (!user && !fromRegistration) {
     useEffect(() => {
       toast({
@@ -92,7 +124,6 @@ const AddPartner = () => {
       navigate('/login', { state: { redirectTo: '/add-partner' } });
     }, []);
     
-    // Show loading state while redirecting
     return (
       <div className="container max-w-md mx-auto py-16 flex justify-center">
         <p>Redirection vers la page de connexion...</p>
@@ -116,6 +147,8 @@ const AddPartner = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <LogoUpload onUploadComplete={handleLogoUpload} />
+
             <div className="grid gap-2">
               <Label htmlFor="companyName">Nom de l'entreprise</Label>
               <div className="flex gap-2">
