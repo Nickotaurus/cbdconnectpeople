@@ -1,17 +1,14 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, PartnerCategory, StoreType } from '@/types/auth';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-import ClientRegistrationInfo from './ClientRegistrationInfo';
-import StoreRegistrationInfo from './StoreRegistrationInfo';
-import PartnerRegistrationInfo from './PartnerRegistrationInfo';
+import BasicFields from './BasicFields';
+import PasswordFields from './PasswordFields';
+import RoleSelector from './RoleSelector';
 
 interface RegisterFormProps {
   initialRole: UserRole;
@@ -86,6 +83,11 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
       }
     } catch (error) {
       console.error("Erreur d'inscription:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'inscription",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -94,95 +96,28 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
   return (
     <form onSubmit={handleRegister}>
       <div className="grid gap-6">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Nom</Label>
-          <Input
-            id="name"
-            placeholder="Votre nom"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
+        <BasicFields
+          name={name}
+          email={email}
+          setName={setName}
+          setEmail={setEmail}
+        />
         
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="exemple@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
+        <PasswordFields
+          password={password}
+          confirmPassword={confirmPassword}
+          setPassword={setPassword}
+          setConfirmPassword={setConfirmPassword}
+        />
         
-        <div className="grid gap-2">
-          <Label htmlFor="password">Mot de passe</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label>Type de compte</Label>
-          <Tabs defaultValue={role} onValueChange={(value) => setRole(value as UserRole)}>
-            <TabsList className="grid grid-cols-3">
-              <TabsTrigger value="client">Client</TabsTrigger>
-              <TabsTrigger value="store">Boutique</TabsTrigger>
-              <TabsTrigger value="partner">Partenaire</TabsTrigger>
-            </TabsList>
-            
-            <ClientRegistrationInfo />
-            <StoreRegistrationInfo />
-            <PartnerRegistrationInfo
-              partnerCategory={partnerCategory}
-              setPartnerCategory={setPartnerCategory}
-            />
-          </Tabs>
-        </div>
-        
-        {role === 'store' && (
-          <div className="grid gap-2 border-t pt-4">
-            <Label>Type de boutique</Label>
-            <RadioGroup 
-              defaultValue={storeType} 
-              onValueChange={(value) => setStoreType(value as StoreType)}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="physical" id="physical" />
-                <Label htmlFor="physical" className="cursor-pointer">Boutique physique uniquement</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="ecommerce" id="ecommerce" />
-                <Label htmlFor="ecommerce" className="cursor-pointer">E-commerce uniquement (payant)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="both" id="both" />
-                <Label htmlFor="both" className="cursor-pointer">Boutique physique et E-commerce (payant pour l'e-commerce)</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        )}
+        <RoleSelector
+          role={role}
+          storeType={storeType}
+          partnerCategory={partnerCategory}
+          setRole={setRole}
+          setStoreType={setStoreType}
+          setPartnerCategory={setPartnerCategory}
+        />
         
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Création du compte..." : "S'inscrire"}
