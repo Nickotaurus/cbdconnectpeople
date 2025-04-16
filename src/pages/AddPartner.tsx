@@ -175,7 +175,6 @@ const AddPartner = () => {
             <PartnerCategorySelect
               category={formData.category}
               handleSelectChange={handleSelectChange}
-              required
             />
             
             <PartnerDescriptionField

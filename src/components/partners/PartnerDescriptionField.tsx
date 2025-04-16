@@ -23,7 +23,7 @@ const PartnerDescriptionField = ({ description, handleChange }: PartnerDescripti
           value={description}
           onChange={handleChange}
           className="flex-1"
-          placeholder="Dites-nous quel service vous pouvez apporter à d'autres entreprises liée au CBD"
+          placeholder="Dites-nous quel service vous pouvez apporter à d'autres entreprises liées au CBD"
           rows={4}
           required
         />
