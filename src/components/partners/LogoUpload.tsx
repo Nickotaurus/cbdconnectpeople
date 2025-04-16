@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
+import { useToast } from "@/components/ui/use-toast";
 
 interface LogoUploadProps {
   onUploadComplete: (url: string) => void;
@@ -13,6 +14,7 @@ interface LogoUploadProps {
 const LogoUpload = ({ onUploadComplete }: LogoUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -20,13 +22,21 @@ const LogoUpload = ({ onUploadComplete }: LogoUploadProps) => {
 
     // Vérifier le type de fichier
     if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner une image');
+      toast({
+        title: "Type de fichier non valide",
+        description: "Veuillez sélectionner une image",
+        variant: "destructive"
+      });
       return;
     }
 
     // Vérifier la taille du fichier (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'image ne doit pas dépasser 5MB');
+      toast({
+        title: "Fichier trop volumineux",
+        description: "L'image ne doit pas dépasser 5MB",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -41,22 +51,40 @@ const LogoUpload = ({ onUploadComplete }: LogoUploadProps) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
 
+      console.log("Uploading file:", fileName);
+      
       // Uploader le fichier
       const { data, error } = await supabase.storage
         .from('partner-logos')
         .upload(fileName, file);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Upload error:", error);
+        throw error;
+      }
+
+      console.log("Upload successful:", data);
 
       // Obtenir l'URL publique
       const { data: { publicUrl } } = supabase.storage
         .from('partner-logos')
         .getPublicUrl(fileName);
 
+      console.log("Public URL:", publicUrl);
+      
+      toast({
+        title: "Logo téléchargé",
+        description: "Votre logo a été téléchargé avec succès",
+      });
+
       onUploadComplete(publicUrl);
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
-      alert('Erreur lors du téléchargement du logo');
+      toast({
+        title: "Erreur de téléchargement",
+        description: "Une erreur est survenue lors du téléchargement du logo",
+        variant: "destructive"
+      });
     } finally {
       setIsUploading(false);
     }

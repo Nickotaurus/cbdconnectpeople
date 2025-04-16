@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Loader2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import LogoUpload from '@/components/partners/LogoUpload';
 import PartnerBasicFields from '@/components/partners/PartnerBasicFields';
@@ -31,6 +32,8 @@ const AddPartner = () => {
     postalCode: '',
     logoUrl: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,13 +45,17 @@ const AddPartner = () => {
   };
 
   const handleLogoUpload = (url: string) => {
+    console.log("Logo uploaded, setting URL:", url);
     setFormData(prev => ({ ...prev, logoUrl: url }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setIsSubmitting(true);
+    
     try {
+      console.log("Creating partner profile with data:", formData);
       const partnerId = crypto.randomUUID();
 
       const { error: profileError } = await supabase
@@ -69,8 +76,12 @@ const AddPartner = () => {
         })
         .eq('id', user?.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw profileError;
+      }
 
+      console.log("Partner profile created successfully");
       toast({
         title: "Profil créé avec succès",
         description: "Votre profil partenaire a été enregistré",
@@ -86,6 +97,8 @@ const AddPartner = () => {
         description: "Une erreur est survenue lors de la création de votre profil",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -175,9 +188,18 @@ const AddPartner = () => {
             <Button variant="outline" type="button" onClick={() => navigate('/partners')}>
               Annuler
             </Button>
-            <Button type="submit">
-              <Briefcase className="mr-2 h-4 w-4" />
-              Créer mon profil
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Création en cours...
+                </>
+              ) : (
+                <>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Créer mon profil
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>
