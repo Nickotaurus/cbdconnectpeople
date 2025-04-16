@@ -10,7 +10,7 @@ import { updateUserPreferences } from "@/hooks/useUserPreferences";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
   register: (
     email: string, 
@@ -102,7 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userProfile) {
         setUser(userProfile);
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
+        return userProfile;
       }
+      return null;
     } catch (error) {
       console.error("Erreur de connexion:", error);
       toast({

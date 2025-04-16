@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,6 +40,7 @@ const Lottery = lazy(() => import("./pages/Lottery"));
 const Quests = lazy(() => import("./pages/Quests"));
 
 const AddPartner = lazy(() => import("./pages/AddPartner"));
+const PartnerProfile = lazy(() => import("./pages/PartnerProfile"));
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,7 @@ const App = () => (
                   <Route path="/lottery" element={<Lottery />} />
                   <Route path="/quests" element={<Quests />} />
                   <Route path="/add-partner" element={<AddPartner />} />
+                  <Route path="/partner/profile" element={<PartnerProfile />} />
                   
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

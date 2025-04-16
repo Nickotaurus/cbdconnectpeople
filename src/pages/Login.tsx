@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
+  
+  // Get redirect path from location state if it exists
+  const redirectTo = location.state?.redirectTo || '/';
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,15 +26,23 @@ const Login = () => {
     
     setIsLoading(true);
     try {
-      await login(email, password);
+      const user = await login(email, password);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
-      navigate('/');
+      
+      // Redirect based on user role or redirectTo path
+      if (user?.role === 'partner' && !location.state?.redirectTo) {
+        navigate('/partner/profile');
+      } else if (user?.role === 'store' && !location.state?.redirectTo) {
+        navigate('/store-dashboard');
+      } else {
+        navigate(redirectTo);
+      }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      // Le toast d'erreur est déjà géré dans la fonction login du contexte
+      // Error toast is handled in the auth context
     } finally {
       setIsLoading(false);
     }
