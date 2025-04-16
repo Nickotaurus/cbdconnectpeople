@@ -1,5 +1,4 @@
 
-
 [build]
   command = "npm run build"
   publish = "dist"
@@ -7,9 +6,15 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# Règle de redirection pour SPA React
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = true
 
+# Configuration pour les headers CORS
+[[headers]]
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"

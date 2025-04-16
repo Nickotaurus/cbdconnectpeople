@@ -7,8 +7,14 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   build: {
-    outDir: 'dist', // Dossier de sortie standard pour le build
-    sourcemap: mode === 'production' // Générer des sourcemaps en production
+    outDir: 'dist',
+    sourcemap: mode === 'production',
+    // Ajout de la configuration pour éviter les problèmes de hachage
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
   },
   server: {
     host: "::",
