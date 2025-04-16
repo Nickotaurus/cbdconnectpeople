@@ -59,7 +59,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         role === 'store' 
           ? { storeType } 
           : role === 'partner' 
-            ? { partnerCategory } 
+            ? { partnerCategory: partnerCategory as PartnerCategory } 
             : undefined
       );
       
@@ -93,6 +93,11 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     }
   };
   
+  // Helper function to handle partner category changes with proper typing
+  const handlePartnerCategoryChange = (category: string) => {
+    setPartnerCategory(category as PartnerCategory | '');
+  };
+  
   return (
     <form onSubmit={handleRegister}>
       <div className="grid gap-6">
@@ -116,7 +121,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
           partnerCategory={partnerCategory}
           setRole={setRole}
           setStoreType={setStoreType}
-          setPartnerCategory={setPartnerCategory}
+          setPartnerCategory={handlePartnerCategoryChange}
         />
         
         <Button type="submit" disabled={isLoading}>

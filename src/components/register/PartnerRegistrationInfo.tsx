@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
 import { TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PartnerCategory } from '@/types/auth';
+import { partnerCategories } from '@/data/partnerCategoriesData';
 
 interface PartnerRegistrationInfoProps {
   partnerCategory: PartnerCategory | '';
@@ -11,21 +11,6 @@ interface PartnerRegistrationInfoProps {
 }
 
 const PartnerRegistrationInfo = ({ partnerCategory, setPartnerCategory }: PartnerRegistrationInfoProps) => {
-  const partnerCategories = [
-    { value: "bank", label: "Banque" },
-    { value: "accountant", label: "Comptable" },
-    { value: "legal", label: "Juriste" },
-    { value: "insurance", label: "Assurance" },
-    { value: "logistics", label: "Logistique" },
-    { value: "breeder", label: "Breeder" },
-    { value: "label", label: "Label" },
-    { value: "association", label: "Association" },
-    { value: "media", label: "Média" },
-    { value: "laboratory", label: "Laboratoire" },
-    { value: "production", label: "Production" },
-    { value: "realEstate", label: "Agence immobilière" }
-  ];
-
   return (
     <TabsContent value="partner" className="mt-2">
       <div className="space-y-4">
@@ -37,7 +22,10 @@ const PartnerRegistrationInfo = ({ partnerCategory, setPartnerCategory }: Partne
           <Label htmlFor="partnerCategory">Catégorie de partenaire</Label>
           <Select 
             value={partnerCategory} 
-            onValueChange={(value) => setPartnerCategory(value as PartnerCategory)}
+            onValueChange={(value) => {
+              // Ensure value is cast to the correct type
+              setPartnerCategory(value as PartnerCategory | '');
+            }}
           >
             <SelectTrigger id="partnerCategory">
               <SelectValue placeholder="Sélectionnez votre activité" />

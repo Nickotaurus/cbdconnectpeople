@@ -38,8 +38,8 @@ const RoleSelector = ({
           <ClientRegistrationInfo />
           <StoreRegistrationInfo />
           <PartnerRegistrationInfo
-            partnerCategory={partnerCategory}
-            setPartnerCategory={setPartnerCategory}
+            partnerCategory={partnerCategory as '' | import('@/types/auth').PartnerCategory}
+            setPartnerCategory={(value) => setPartnerCategory(value)}
           />
         </Tabs>
       </div>
