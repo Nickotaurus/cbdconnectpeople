@@ -33,12 +33,13 @@ const PartnerProfile = () => {
       return;
     }
 
-    // If user is a partner without a profile, redirect to add-partner
-    if (user.role === 'partner' && !(user as any).partnerProfile) {
+    // If user is a partner without a partnerId, redirect to add-partner
+    const partnerUser = user as any;
+    if (user.role === 'partner' && !partnerUser.partnerId) {
       navigate('/add-partner', {
         state: { 
           fromRegistration: false,
-          partnerCategory: (user as any).partnerCategory || ''
+          partnerCategory: partnerUser.partnerCategory || ''
         }
       });
     }
@@ -48,9 +49,12 @@ const PartnerProfile = () => {
     return null; // Will be redirected by useEffect
   }
 
+  // Check if the partner has a partnerId
+  const hasPartnerId = (user as any).partnerId;
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {!(user as any).partnerProfile ? (
+      {!hasPartnerId ? (
         <div className="text-center max-w-md mx-auto py-12">
           <h1 className="text-2xl font-bold mb-4">Complétez votre profil</h1>
           <p className="text-muted-foreground mb-6">

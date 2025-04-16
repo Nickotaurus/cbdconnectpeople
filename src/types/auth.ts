@@ -41,7 +41,7 @@ export interface StoreUser extends User {
   partnerFavorites: string[];
   isVerified: boolean;
   needsSubscription: boolean;
-  storeId?: string; // Add storeId property
+  storeId?: string;
 }
 
 // Extend the base User interface for partner-specific properties
@@ -50,5 +50,5 @@ export interface PartnerUser extends User {
   partnerCategory: PartnerCategory;
   verified: boolean;
   certifications: string[];
-  partnerId?: string; // Add partnerId property
+  partnerId?: string;
 }

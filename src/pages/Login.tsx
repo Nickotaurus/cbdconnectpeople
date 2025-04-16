@@ -27,6 +27,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       const user = await login(email, password);
+      
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",

@@ -64,7 +64,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           siretVerified: profile.siret_verified || false,
           partnerFavorites: profile.partner_favorites || [],
           isVerified: profile.is_verified || false,
-          needsSubscription: profile.store_type === 'ecommerce' || profile.store_type === 'both'
+          needsSubscription: profile.store_type === 'ecommerce' || profile.store_type === 'both',
+          storeId: (profile as any).store_id
         } as StoreUser;
         break;
       case 'partner':
@@ -76,7 +77,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
           createdAt: profile.created_at,
           partnerCategory: profile.partner_category || '',
           verified: profile.is_verified || false,
-          certifications: profile.certifications || []
+          certifications: profile.certifications || [],
+          partnerId: (profile as any).partner_id
         } as PartnerUser;
         break;
       default:
