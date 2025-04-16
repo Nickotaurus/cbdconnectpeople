@@ -63,7 +63,7 @@ const PartnerProfile = () => {
 
         console.log("Partner data from database:", data);
         setPartnerData(data);
-
+        
         // If the user is a partner but doesn't have a complete profile, show toast notification
         if (data && (data.partner_id === null || data.partner_id === undefined)) {
           toast({
