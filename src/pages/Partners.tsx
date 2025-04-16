@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PartnerCategory } from '@/types/auth';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { UserPlus } from 'lucide-react';
 
 // Data
 import { mockPartners } from '@/data/partnersData';
@@ -12,6 +14,7 @@ import PartnersList from '@/components/partners/PartnersList';
 import PremiumAccessBanner from '@/components/partners/PremiumAccessBanner';
 import PartnerSearchFilters from '@/components/partners/PartnerSearchFilters';
 import PartnerSubscriptionOffers from '@/components/partners/PartnerSubscriptionOffers';
+import BecomePartnerCTA from '@/components/partners/BecomePartnerCTA';
 
 // Utilities
 import { getCategoryLabel, filterPartners } from '@/utils/partnerUtils';
@@ -52,11 +55,21 @@ const Partners = () => {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Partenaires CBD Connect</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-6">
             {isProfessional 
               ? "Connectez-vous avec tous les partenaires de l'écosystème CBD" 
               : "Découvrez les partenaires qui font vivre l'écosystème CBD en France"}
           </p>
+          {!user && (
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => navigate('/register?role=partner')}
+            >
+              <UserPlus className="mr-2 h-5 w-5" />
+              Référencer mon activité gratuitement
+            </Button>
+          )}
         </div>
         
         <PartnerSearchFilters
@@ -80,6 +93,8 @@ const Partners = () => {
           onContactClick={handleContactClick}
         />
 
+        <BecomePartnerCTA />
+        
         <PartnerSubscriptionOffers />
       </div>
     </div>
