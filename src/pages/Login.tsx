@@ -34,39 +34,36 @@ const Login = () => {
   useEffect(() => {
     console.log("Login useEffect - user:", user, "authLoading:", authLoading, "isLoading:", isLoading, "redirectionAttempted:", redirectionAttempted);
     
-    if (user && !authLoading && !isLoading && !redirectionAttempted) {
+    if (user && !authLoading && !redirectionAttempted) {
       console.log("User authenticated, attempting redirection based on role:", user.role);
       setRedirectionAttempted(true);
       
-      const timer = setTimeout(() => {
-        if (user.role === 'partner') {
-          const partnerUser = user as PartnerUser;
-          console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
-          
-          if (partnerUser.partnerId === null) {
-            console.log("Partner has no partnerId, redirecting to add-partner");
-            navigate('/add-partner', {
-              state: { 
-                fromRegistration: false,
-                partnerCategory: partnerUser.partnerCategory || ''
-              }
-            });
-          } else {
-            console.log("Partner has partnerId, redirecting to partner profile");
-            navigate('/partner/profile');
-          }
-        } else if (user.role === 'store') {
-          console.log("Store user detected, redirecting to store dashboard");
-          navigate('/store-dashboard');
+      // Redirection immédiate sans délai
+      if (user.role === 'partner') {
+        const partnerUser = user as PartnerUser;
+        console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
+        
+        if (partnerUser.partnerId === null) {
+          console.log("Partner has no partnerId, redirecting to add-partner");
+          navigate('/add-partner', {
+            state: { 
+              fromRegistration: false,
+              partnerCategory: partnerUser.partnerCategory || ''
+            }
+          });
         } else {
-          console.log("Client user detected, redirecting to:", redirectTo);
-          navigate(redirectTo);
+          console.log("Partner has partnerId, redirecting to partner profile");
+          navigate('/partner/profile');
         }
-      }, 500);
-      
-      return () => clearTimeout(timer);
+      } else if (user.role === 'store') {
+        console.log("Store user detected, redirecting to store dashboard");
+        navigate('/store-dashboard');
+      } else {
+        console.log("Client user detected, redirecting to:", redirectTo);
+        navigate(redirectTo);
+      }
     }
-  }, [user, authLoading, isLoading, navigate, redirectTo, redirectionAttempted]);
+  }, [user, authLoading, navigate, redirectTo, redirectionAttempted]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +79,26 @@ const Login = () => {
         description: "Vous êtes maintenant connecté",
       });
       
-      // Redirection is now handled by the useEffect
+      // Pour les redirections manuelles après login
+      if (userResult) {
+        if (userResult.role === 'partner') {
+          const partnerUser = userResult as PartnerUser;
+          if (partnerUser.partnerId === null) {
+            navigate('/add-partner', {
+              state: { 
+                fromRegistration: false,
+                partnerCategory: partnerUser.partnerCategory || ''
+              }
+            });
+          } else {
+            navigate('/partner/profile');
+          }
+        } else if (userResult.role === 'store') {
+          navigate('/store-dashboard');
+        } else {
+          navigate(redirectTo);
+        }
+      }
       
     } catch (error) {
       console.error("Login error:", error);

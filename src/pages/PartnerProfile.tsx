@@ -19,6 +19,7 @@ const PartnerProfile = () => {
     
     // If user is not logged in, redirect to login
     if (!user) {
+      console.log("No user found, redirecting to login");
       toast({
         title: "Connexion requise",
         description: "Vous devez vous connecter pour accéder à votre espace partenaire",
@@ -29,6 +30,7 @@ const PartnerProfile = () => {
 
     // If user is not a partner, redirect to homepage
     if (user.role !== 'partner') {
+      console.log("User is not a partner, redirecting to homepage");
       toast({
         title: "Accès refusé",
         description: "Cette page est réservée aux partenaires CBD",
@@ -42,21 +44,17 @@ const PartnerProfile = () => {
     console.log("Partner user details:", partnerUser);
     
     // Check for partnerId explicitly
-    // Access partnerId directly
     const hasPartnerId = partnerUser.partnerId !== null && partnerUser.partnerId !== undefined;
     console.log("Has partnerId:", hasPartnerId, "partnerId value:", partnerUser.partnerId);
     
     if (!hasPartnerId) {
-      console.log("Partner has no partnerId, will redirect to add-partner");
-      // Add delay to ensure UI updates first
-      setTimeout(() => {
-        navigate('/add-partner', {
-          state: { 
-            fromRegistration: false,
-            partnerCategory: partnerUser.partnerCategory || ''
-          }
-        });
-      }, 500);
+      console.log("Partner has no partnerId, redirecting to add-partner");
+      navigate('/add-partner', {
+        state: { 
+          fromRegistration: false,
+          partnerCategory: partnerUser.partnerCategory || ''
+        }
+      });
     } else {
       console.log("Partner has partnerId, showing dashboard");
     }

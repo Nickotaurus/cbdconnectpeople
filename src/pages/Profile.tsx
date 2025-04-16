@@ -17,28 +17,25 @@ const Profile = () => {
       if (user) {
         console.log("User authenticated, redirecting based on role:", user.role);
         
-        // Ajout d'un délai pour laisser le temps à React de mettre à jour l'état
-        setTimeout(() => {
-          // Redirect based on user role
-          switch (user.role) {
-            case 'client':
-              console.log("Client user detected, redirecting to main dashboard");
-              navigate('/');
-              break;
-            case 'store':
-              console.log("Store user detected, redirecting to store dashboard");
-              navigate('/store-dashboard');
-              break;
-            case 'partner':
-              console.log("Partner user detected, redirecting to partner profile");
-              navigate('/partner/profile');
-              break;
-            default:
-              console.log("Unknown role, redirecting to main page");
-              navigate('/');
-              break;
-          }
-        }, 100);
+        // Redirection immédiate sans délai
+        switch (user.role) {
+          case 'client':
+            console.log("Client user detected, redirecting to main dashboard");
+            navigate('/');
+            break;
+          case 'store':
+            console.log("Store user detected, redirecting to store dashboard");
+            navigate('/store-dashboard');
+            break;
+          case 'partner':
+            console.log("Partner user detected, redirecting to partner profile");
+            navigate('/partner/profile');
+            break;
+          default:
+            console.log("Unknown role, redirecting to main page");
+            navigate('/');
+            break;
+        }
       } else {
         console.log("No authenticated user, redirecting to login");
         // If not authenticated, redirect to login
