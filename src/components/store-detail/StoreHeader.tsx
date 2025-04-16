@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Settings, Share2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { ClientUser } from '@/types/auth';
 
 interface StoreHeaderProps {

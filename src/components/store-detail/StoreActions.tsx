@@ -1,8 +1,7 @@
-
 import { Heart, MapPin, Phone, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 

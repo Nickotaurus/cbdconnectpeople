@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { ClientUser } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 

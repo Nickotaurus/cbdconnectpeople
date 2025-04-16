@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { PartnerCategory } from '@/types/auth';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";

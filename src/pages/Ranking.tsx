@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { rankings } from '@/data/rankingsData';
@@ -6,7 +5,7 @@ import HeroSection from '@/components/ranking/HeroSection';
 import CategoryTabs from '@/components/ranking/CategoryTabs';
 import RankingList from '@/components/ranking/RankingList';
 import SponsorshipCTA from '@/components/ranking/SponsorshipCTA';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 const RankingPage = () => {
   const [activeTab, setActiveTab] = useState<string>(rankings[0].id);

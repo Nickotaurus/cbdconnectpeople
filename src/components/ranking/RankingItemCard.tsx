@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Store, Globe, ExternalLink, Star } from 'lucide-react';
 import StarRating from './StarRating';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
 import PromoCodePopover from './PromoCodePopover';
 

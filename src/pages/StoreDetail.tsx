@@ -12,7 +12,7 @@ import ReviewSection from '@/components/ReviewSection';
 import AdBanner from '@/components/AdBanner';
 import { getStoreById } from '@/utils/data';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { ClientUser } from '@/types/auth';
 import StoreHeader from '@/components/store-detail/StoreHeader';
 import StoreInfo from '@/components/store-detail/StoreInfo';

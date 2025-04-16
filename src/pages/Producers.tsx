@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { mockProducers } from '@/data/producersData';
 import ProducerFilters, { FilterOptions } from '@/components/producers/ProducerFilters';
 import ProducerList from '@/components/producers/ProducerList';

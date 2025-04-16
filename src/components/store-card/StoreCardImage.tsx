@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { handleImageLoad } from '@/utils/animations';
 import FavoriteButton from './FavoriteButton';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 interface StoreCardImageProps {
   imageUrl: string;

@@ -1,171 +1,119 @@
-
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { classifiedService } from "@/services/classifiedService";
-import { ClassifiedType, ClassifiedCategory } from "@/types/classified";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { storeImage, ClassifiedFormData } from '@/types/classified';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@/contexts/auth';
 
-export const useClassifiedsUser = () => {
-  const { user } = useAuth();
+interface UseClassifiedsUserProps {
+  userId?: string | null;
+}
+
+export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => {
+  const [images, setImages] = useState<storeImage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-  
-  // Récupérer les annonces de l'utilisateur
-  const { data: userClassifieds, isLoading, error, refetch } = useQuery({
-    queryKey: ['userClassifieds', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      return await classifiedService.getUserClassifieds(user.id);
-    },
-    enabled: !!user
-  });
-  
-  // Mutation pour créer une nouvelle annonce
-  const { mutate: createClassified } = useMutation({
-    mutationFn: async ({
-      type,
-      category,
-      title,
-      description,
-      location,
-      price,
-      isPremium,
-      images,
-      jobType,
-      salary,
-      experience,
-      contractType,
-      companyName,
-      contactEmail
-    }: {
-      type: ClassifiedType;
-      category: ClassifiedCategory;
-      title: string;
-      description: string;
-      location: string;
-      price?: string;
-      isPremium: boolean;
-      images: File[];
-      jobType?: string;
-      salary?: string;
-      experience?: string;
-      contractType?: string;
-      companyName?: string;
-      contactEmail?: string;
-    }) => {
-      if (!user) throw new Error("Vous devez être connecté pour publier une annonce");
-      
-      setIsUploading(true);
-      
-      try {
-        // Préparer les données supplémentaires pour la description d'emploi si c'est pertinent
-        let enhancedDescription = description;
-        
-        // Si c'est une offre d'emploi, on enrichit la description avec les détails supplémentaires
-        if (type === 'service' && category === 'employer' && jobType) {
-          enhancedDescription = `${description}\n\n` + 
-            `Type de poste : ${jobType}\n` +
-            `${contractType ? `Type de contrat : ${contractType}\n` : ''}` +
-            `${experience ? `Expérience requise : ${experience}\n` : ''}` +
-            `${salary ? `Salaire : ${salary}\n` : ''}` +
-            `${companyName ? `Entreprise : ${companyName}\n` : ''}` +
-            `${contactEmail ? `Contact : ${contactEmail}` : ''}`;
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user && !userId) {
+      navigate('/login');
+    }
+  }, [user, userId, navigate]);
+
+  const handleImageUpload = async (files: File[]) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const imageName = `${uuidv4()}-${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('classifieds')
+          .upload(imageName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          console.error("Error uploading image:", error);
+          throw new Error(`Failed to upload image: ${file.name}`);
         }
-        
-        // 1. Créer l'annonce
-        const classifiedId = await classifiedService.createClassified(
-          user.id,
-          { 
-            type, 
-            category, 
-            title, 
-            description: enhancedDescription, 
-            location, 
-            price, 
-            isPremium 
-          }
-        );
-        
-        // 2. Traiter les images si nécessaire
-        if (images && images.length > 0) {
-          const uploadedImages = await Promise.all(
-            images.map(async (file) => {
-              const fileExt = file.name.split('.').pop();
-              const fileName = `${user.id}/${classifiedId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
-              
-              const { error: uploadError, data } = await supabase.storage
-                .from('classifieds')
-                .upload(fileName, file);
-                
-              if (uploadError) throw uploadError;
-              
-              const { data: urlData } = supabase.storage
-                .from('classifieds')
-                .getPublicUrl(fileName);
-                
-              return {
-                url: urlData.publicUrl,
-                name: file.name
-              };
-            })
-          );
-          
-          // 3. Associer les images à l'annonce
-          await classifiedService.addClassifiedImages(classifiedId, uploadedImages);
-        }
-        
-        return classifiedId;
-      } finally {
-        setIsUploading(false);
+
+        const imageUrl = `${supabase.storageUrl}/classifieds/${imageName}`;
+        return { name: file.name, url: imageUrl };
+      });
+
+      const newImages = await Promise.all(uploadPromises);
+      setImages(prevImages => [...prevImages, ...newImages]);
+
+      toast({
+        title: "Images uploaded",
+        description: "Your images have been successfully uploaded.",
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to upload images.");
+      toast({
+        title: "Error uploading images",
+        description: err.message || "Failed to upload images.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClassifiedSubmit = async (data: ClassifiedFormData) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (!user?.id) {
+        throw new Error("User not authenticated.");
       }
-    },
-    onSuccess: () => {
+
+      const classifiedData = {
+        ...data,
+        userId: user.id,
+        images: images.map(img => img.url),
+      };
+
+      const { error } = await supabase
+        .from('classifieds')
+        .insert([classifiedData]);
+
+      if (error) {
+        console.error("Error submitting classified:", error);
+        throw new Error("Failed to submit classified.");
+      }
+
       toast({
-        title: "Annonce publiée",
-        description: "Votre annonce a été soumise avec succès et sera examinée par nos équipes."
+        title: "Classified submitted",
+        description: "Your classified has been successfully submitted.",
       });
-      refetch();
-    },
-    onError: (error) => {
+
+      navigate('/classifieds');
+    } catch (err: any) {
+      setError(err.message || "Failed to submit classified.");
       toast({
-        title: "Erreur",
-        description: "Impossible de publier votre annonce.",
-        variant: "destructive"
+        title: "Error submitting classified",
+        description: err.message || "Failed to submit classified.",
+        variant: "destructive",
       });
-      console.error("Erreur lors de la publication de l'annonce:", error);
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
-  // Mutation pour supprimer une annonce
-  const { mutate: deleteClassified } = useMutation({
-    mutationFn: async (classifiedId: string) => {
-      await classifiedService.deleteClassified(classifiedId);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Annonce supprimée",
-        description: "Votre annonce a été supprimée avec succès."
-      });
-      refetch();
-    },
-    onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer votre annonce.",
-        variant: "destructive"
-      });
-      console.error("Erreur lors de la suppression de l'annonce:", error);
-    }
-  });
+  };
 
   return {
-    userClassifieds,
+    images,
+    setImages,
     isLoading,
     error,
-    isUploading,
-    createClassified,
-    deleteClassified
+    handleImageUpload,
+    handleClassifiedSubmit
   };
 };

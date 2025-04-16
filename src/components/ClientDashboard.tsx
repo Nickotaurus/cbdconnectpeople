@@ -4,7 +4,7 @@ import { MapPin, Search, Star, Tag, Ticket, Award, BookmarkCheck } from 'lucide-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import AdBanner from './AdBanner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { ClientUser } from '@/types/auth';
 
 const ClientDashboard = () => {

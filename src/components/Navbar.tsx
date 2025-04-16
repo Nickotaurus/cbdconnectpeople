@@ -2,7 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Award, MapPin, Globe, Newspaper, MessageCircle, Briefcase } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import NavLinks from './navigation/NavLinks';
 import UserMenu from './navigation/UserMenu';
 import MobileMenu from './navigation/MobileMenu';

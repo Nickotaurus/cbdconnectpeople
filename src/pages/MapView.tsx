@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import { Store } from '@/types/store';
 import { getStoresByDistance, filterUserLocation } from '@/utils/data';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 // Import new components
 import SearchBar from '@/components/map/SearchBar';
