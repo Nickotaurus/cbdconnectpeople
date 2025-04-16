@@ -53,7 +53,7 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
     try {
       console.log("Registering with role:", role, "and partner category:", partnerCategory);
       
-      const user = await register(
+      await register(
         email, 
         password, 
         name, 
@@ -69,9 +69,6 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         title: "Inscription réussie",
         description: "Votre compte a été créé avec succès",
       });
-      
-      console.log("Registration successful, user data:", user);
-      console.log("User role is:", user?.role);
       
       // Ensure a longer delay for state to be properly initialized
       if (role === 'store') {

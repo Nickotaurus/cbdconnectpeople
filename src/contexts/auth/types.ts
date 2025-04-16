@@ -15,7 +15,7 @@ export interface AuthContextType {
       storeType?: string;
       partnerCategory?: string;
     }
-  ) => Promise<void>;
+  ) => Promise<User | null>;
   updateUserPreferences: (
     preferences: Partial<{ 
       favorites: string[], 

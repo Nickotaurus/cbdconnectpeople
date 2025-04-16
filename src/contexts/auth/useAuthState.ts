@@ -71,6 +71,8 @@ export const useAuthState = () => {
         setUser(userProfile);
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
       }
+      
+      return userProfile;
     } catch (error) {
       console.error("Erreur d'inscription:", error);
       toast({
