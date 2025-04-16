@@ -22,8 +22,10 @@ export const useAuthState = () => {
         setUser(userProfile);
         localStorage.setItem("cbdUser", JSON.stringify(userProfile));
         return userProfile;
+      } else {
+        console.log("No user profile returned from login");
+        setIsLoading(false); // Explicitly reset loading state when no profile
       }
-      setIsLoading(false); // Ensure loading state is reset if no profile
       return null;
     } catch (error) {
       console.error("Erreur de connexion:", error);

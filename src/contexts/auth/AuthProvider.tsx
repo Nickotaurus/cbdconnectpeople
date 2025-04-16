@@ -25,11 +25,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("Loading state:", isLoading);
     
     let isAuthenticated = false;
+    let authInitialized = false;
 
     // Set up Supabase auth event listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log(`🔐 Auth State Change: ${event}`);
+        
+        // Don't process events until initialization is complete
+        if (!authInitialized && event !== 'INITIAL_SESSION') {
+          console.log("Skipping auth event until initialization is complete");
+          return;
+        }
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setIsLoading(true);
@@ -101,25 +108,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         // Always reset loading state when initialization completes
         setIsLoading(false);
+        authInitialized = true;
       }
     };
 
     initializeAuth();
 
     return () => {
+      console.log("🔐 Cleaning up auth provider");
       authListener.subscription.unsubscribe();
     };
   }, [setUser, setIsLoading]);
 
+  // Create a value object with all the context properties
+  const contextValue: AuthContextType = {
+    user, 
+    isLoading, 
+    login: handleLogin, 
+    logout: handleLogout, 
+    register: handleRegister, 
+    updateUserPreferences: handleUpdateUserPreferences
+  };
+
+  console.log("🔐 Rendering AuthProvider with context:", { 
+    user: user ? `User ${user.id} (${user.role})` : "No user", 
+    isLoading 
+  });
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isLoading, 
-      login: handleLogin, 
-      logout: handleLogout, 
-      register: handleRegister, 
-      updateUserPreferences: handleUpdateUserPreferences 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

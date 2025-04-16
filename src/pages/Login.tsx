@@ -47,7 +47,7 @@ const Login = () => {
       setRedirectionAttempted(true);
       setIsLoading(false); // Reset loading state before navigation
       
-      // Redirection immédiate sans délai
+      // Immediate redirection without delay
       if (user.role === 'partner') {
         const partnerUser = user as PartnerUser;
         console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
@@ -86,14 +86,17 @@ const Login = () => {
     setIsLoading(true);
     try {
       console.log("Login form submitted for:", email);
-      await login(email, password);
+      const result = await login(email, password);
       
-      toast({
-        title: "Connexion réussie",
-        description: "Vous êtes maintenant connecté",
-      });
-      
-      // No manual navigation here - let the useEffect handle it based on user role
+      if (result) {
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté",
+        });
+      } else {
+        // If login returns null but doesn't throw, still reset loading
+        setIsLoading(false);
+      }
       
     } catch (error) {
       console.error("Login error:", error);
