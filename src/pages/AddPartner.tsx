@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -51,22 +52,28 @@ const AddPartner = () => {
     e.preventDefault();
     
     try {
-      const { data: partnerData, error: partnerError } = await supabase
-        .from('partners')
-        .insert([{
-          user_id: user?.id,
-          ...formData
-        }])
-        .select()
-        .single();
+      // Créer un ID unique pour le profil partenaire
+      const partnerId = crypto.randomUUID();
 
-      if (partnerError) throw partnerError;
-
+      // Mettre à jour le profil avec les données du partenaire
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          name: formData.companyName,
+          partner_category: formData.category,
           logo_url: formData.logoUrl,
-          partner_id: partnerData.id
+          partner_id: partnerId,
+          certifications: [],
+          // Stocker d'autres informations dans un champ JSON
+          // Note: Nous utilisons un champ existant pour stocker les métadonnées
+          // car nous ne pouvons pas ajouter de colonnes sans migrations SQL
+          partner_favorites: [
+            formData.address,
+            formData.city,
+            formData.postalCode,
+            formData.website,
+            formData.description
+          ]
         })
         .eq('id', user?.id);
 
