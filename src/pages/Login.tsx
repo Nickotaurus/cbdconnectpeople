@@ -39,23 +39,23 @@ const Login = () => {
       // Redirect based on user role or redirectTo path
       if (user?.role === 'partner') {
         const partnerUser = user as PartnerUser;
-        console.log("Partner login detected with partnerId:", partnerUser.partnerId);
+        console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
         
         // Force a slight delay to ensure state is properly saved
         setTimeout(() => {
-          if (partnerUser.partnerId) {
-            console.log("Redirecting to partner profile");
-            navigate('/partner/profile');
-          } else {
-            console.log("Redirecting to add-partner");
+          if (partnerUser.partnerId === null) {
+            console.log("Partner has no partnerId, redirecting to add-partner");
             navigate('/add-partner', {
               state: { 
                 fromRegistration: false,
                 partnerCategory: partnerUser.partnerCategory || ''
               }
             });
+          } else {
+            console.log("Partner has partnerId, redirecting to partner profile");
+            navigate('/partner/profile');
           }
-        }, 100);
+        }, 300);
       } else if (user?.role === 'store') {
         navigate('/store-dashboard');
       } else {
