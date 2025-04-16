@@ -11,7 +11,10 @@ interface PartnerDescriptionFieldProps {
 const PartnerDescriptionField = ({ description, handleChange }: PartnerDescriptionFieldProps) => {
   return (
     <div className="grid gap-2">
-      <Label htmlFor="description">Description de votre activité</Label>
+      <Label htmlFor="description" className="flex gap-1">
+        Description de votre activité
+        <span className="text-destructive">*</span>
+      </Label>
       <div className="flex gap-2">
         <FileText className="h-4 w-4 mt-3 text-muted-foreground" />
         <Textarea
@@ -20,8 +23,9 @@ const PartnerDescriptionField = ({ description, handleChange }: PartnerDescripti
           value={description}
           onChange={handleChange}
           className="flex-1"
-          placeholder="Décrivez votre activité, vos services..."
+          placeholder="Dites-nous quel service vous pouvez apporter à d'autres entreprises liée au CBD"
           rows={4}
+          required
         />
       </div>
     </div>

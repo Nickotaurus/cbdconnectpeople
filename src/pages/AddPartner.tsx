@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -26,6 +25,8 @@ const AddPartner = () => {
     companyName: '',
     description: '',
     website: '',
+    email: '',
+    phone: '',
     category: initialCategory || (user?.role === 'partner' ? (user as any).partnerCategory || '' : ''),
     address: '',
     city: '',
@@ -67,6 +68,8 @@ const AddPartner = () => {
           partner_id: partnerId,
           certifications: [],
           partner_favorites: [
+            formData.email,
+            formData.phone,
             formData.address,
             formData.city,
             formData.postalCode,
@@ -164,12 +167,15 @@ const AddPartner = () => {
             <PartnerBasicFields
               companyName={formData.companyName}
               website={formData.website}
+              email={formData.email}
+              phone={formData.phone}
               handleChange={handleInputChange}
             />
             
             <PartnerCategorySelect
               category={formData.category}
               handleSelectChange={handleSelectChange}
+              required
             />
             
             <PartnerDescriptionField
