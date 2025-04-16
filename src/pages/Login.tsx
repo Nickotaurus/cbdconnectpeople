@@ -21,11 +21,22 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [redirectionAttempted, setRedirectionAttempted] = useState(false);
+  
+  console.log("Login component - Current state:", { 
+    userExists: !!user, 
+    authLoading, 
+    isLoading, 
+    redirectionAttempted 
+  });
   
   // Effect to handle redirect after successful login
   useEffect(() => {
-    if (user && !authLoading && !isLoading) {
-      console.log("User authenticated, redirecting based on role:", user.role);
+    console.log("Login useEffect - user:", user, "authLoading:", authLoading, "isLoading:", isLoading, "redirectionAttempted:", redirectionAttempted);
+    
+    if (user && !authLoading && !isLoading && !redirectionAttempted) {
+      console.log("User authenticated, attempting redirection based on role:", user.role);
+      setRedirectionAttempted(true);
       
       const timer = setTimeout(() => {
         if (user.role === 'partner') {
@@ -55,7 +66,7 @@ const Login = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [user, authLoading, isLoading, navigate, redirectTo]);
+  }, [user, authLoading, isLoading, navigate, redirectTo, redirectionAttempted]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +74,8 @@ const Login = () => {
     setIsLoading(true);
     try {
       console.log("Login form submitted for:", email);
-      await login(email, password);
+      const userResult = await login(email, password);
+      console.log("Login result:", userResult);
       
       toast({
         title: "Connexion réussie",
@@ -90,6 +102,9 @@ const Login = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Redirection en cours...</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Rôle détecté: {user.role}
+          </p>
         </div>
       </div>
     );

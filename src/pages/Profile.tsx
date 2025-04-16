@@ -1,44 +1,51 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
+  const [redirectionAttempted, setRedirectionAttempted] = useState(false);
 
   useEffect(() => {
-    console.log("Profile page - user:", user, "isLoading:", isLoading);
+    console.log("Profile page - user:", user, "isLoading:", isLoading, "redirectionAttempted:", redirectionAttempted);
     
-    if (!isLoading) {
+    if (!isLoading && !redirectionAttempted) {
+      setRedirectionAttempted(true);
+      
       if (user) {
         console.log("User authenticated, redirecting based on role:", user.role);
-        // Redirect based on user role
-        switch (user.role) {
-          case 'client':
-            console.log("Client user detected, redirecting to main dashboard");
-            navigate('/'); // Clients see the main dashboard with ClientDashboard
-            break;
-          case 'store':
-            console.log("Store user detected, redirecting to store dashboard");
-            navigate('/store-dashboard'); // Stores have their own dashboard
-            break;
-          case 'partner':
-            console.log("Partner user detected, redirecting to partner profile");
-            navigate('/partner/profile'); // Partners have their own profile page
-            break;
-          default:
-            console.log("Unknown role, redirecting to main page");
-            navigate('/');
-            break;
-        }
+        
+        // Ajout d'un délai pour laisser le temps à React de mettre à jour l'état
+        setTimeout(() => {
+          // Redirect based on user role
+          switch (user.role) {
+            case 'client':
+              console.log("Client user detected, redirecting to main dashboard");
+              navigate('/');
+              break;
+            case 'store':
+              console.log("Store user detected, redirecting to store dashboard");
+              navigate('/store-dashboard');
+              break;
+            case 'partner':
+              console.log("Partner user detected, redirecting to partner profile");
+              navigate('/partner/profile');
+              break;
+            default:
+              console.log("Unknown role, redirecting to main page");
+              navigate('/');
+              break;
+          }
+        }, 100);
       } else {
         console.log("No authenticated user, redirecting to login");
         // If not authenticated, redirect to login
         navigate('/login');
       }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, redirectionAttempted]);
 
   return (
     <div className="flex items-center justify-center h-[60vh]">
@@ -48,6 +55,9 @@ const Profile = () => {
           {isLoading ? "Vérification de l'authentification..." : "Redirection en cours..."}
         </p>
         {isLoading && <p className="text-sm text-muted-foreground mt-2">Veuillez patienter...</p>}
+        <p className="text-sm text-muted-foreground mt-2">
+          État: {isLoading ? "Chargement" : user ? `Connecté (${user.role})` : "Non connecté"}
+        </p>
       </div>
     </div>
   );
