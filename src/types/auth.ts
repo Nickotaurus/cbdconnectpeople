@@ -1,9 +1,6 @@
+export type UserRole = 'client' | 'store' | 'partner' | 'admin';
 
-export type UserRole = 'client' | 'store' | 'producer' | 'partner';
-export type PartnerCategory = 'bank' | 'accountant' | 'lawyer' | 'insurance' | 'logistics' | 'breeder' | 'label' | 'association' | 'media' | 'laboratory' | 'realEstate';
-export type StoreType = 'physical' | 'ecommerce' | 'both';
-
-export interface Badge {
+export interface UserBadge {
   id: string;
   name: string;
   description: string;
@@ -11,44 +8,41 @@ export interface Badge {
   earnedAt: string;
 }
 
+// Base interface for all users
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   createdAt: string;
-  badges?: Badge[];
-  isVerified?: boolean; // Added isVerified property
+  isVerified?: boolean;
+  favoriteProducts?: string[];
 }
 
+// Extend the base User interface for client-specific properties
 export interface ClientUser extends User {
   role: 'client';
   favorites: string[];
   favoriteProducts: string[];
   tickets: number;
   rewards: number;
+  badges: UserBadge[];
 }
 
+// Extend the base User interface for store-specific properties
 export interface StoreUser extends User {
   role: 'store';
-  storeId?: string;
-  storeType: StoreType;
+  storeType: 'physical' | 'ecommerce' | 'both';
   siretVerified: boolean;
-  needsSubscription: boolean;
   partnerFavorites: string[];
+  isVerified: boolean;
+  needsSubscription: boolean;
 }
 
-export interface ProducerUser extends User {
-  role: 'producer';
-  producerId?: string;
-  verified: boolean;
-  certifications?: string[]; // Added certifications property
-}
-
+// Extend the base User interface for partner-specific properties
 export interface PartnerUser extends User {
   role: 'partner';
-  partnerId?: string;
-  partnerCategory: PartnerCategory;
+  partnerCategory: string;
   verified: boolean;
-  certifications?: string[]; // Added certifications property
+  certifications: string[];
 }

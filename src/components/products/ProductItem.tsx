@@ -38,4 +38,3 @@ export const ProductItem = ({ product }: ProductItemProps) => {
     </div>
   );
 };
-

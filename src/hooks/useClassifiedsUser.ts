@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -13,6 +14,7 @@ interface UseClassifiedsUserProps {
 export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => {
   const [images, setImages] = useState<storeImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,7 +27,7 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
   }, [user, userId, navigate]);
 
   const handleImageUpload = async (files: File[]) => {
-    setIsLoading(true);
+    setIsUploading(true);
     setError(null);
 
     try {
@@ -43,8 +45,12 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
           throw new Error(`Failed to upload image: ${file.name}`);
         }
 
-        const imageUrl = `${supabase.storageUrl}/classifieds/${imageName}`;
-        return { name: file.name, url: imageUrl };
+        // Utiliser une méthode publique pour obtenir l'URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('classifieds')
+          .getPublicUrl(imageName);
+
+        return { name: file.name, url: publicUrl };
       });
 
       const newImages = await Promise.all(uploadPromises);
@@ -62,11 +68,11 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
-  const handleClassifiedSubmit = async (data: ClassifiedFormData) => {
+  const createClassified = async (data: ClassifiedFormData) => {
     setIsLoading(true);
     setError(null);
 
@@ -112,8 +118,10 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
     images,
     setImages,
     isLoading,
+    isUploading,
     error,
     handleImageUpload,
-    handleClassifiedSubmit
+    handleClassifiedSubmit: createClassified,
+    createClassified
   };
 };

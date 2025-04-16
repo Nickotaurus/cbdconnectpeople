@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import { useClassifiedsUser } from '@/hooks/useClassifiedsUser';
 const PublishClassifiedPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createClassified, isUploading } = useClassifiedsUser();
+  const { handleClassifiedSubmit, isLoading } = useClassifiedsUser();
   
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ClassifiedType | ''>('');
@@ -27,7 +26,6 @@ const PublishClassifiedPage = () => {
   const [images, setImages] = useState<File[]>([]);
   const [premiumPhotos, setPremiumPhotos] = useState(false);
   
-  // Champs spécifiques pour les offres d'emploi
   const [jobType, setJobType] = useState('');
   const [salary, setSalary] = useState('');
   const [experience, setExperience] = useState('');
@@ -35,17 +33,14 @@ const PublishClassifiedPage = () => {
   const [companyName, setCompanyName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   
-  // État pour savoir si on est en mode emploi
   const [isJobOffer, setIsJobOffer] = useState(false);
   const [isJobSearch, setIsJobSearch] = useState(false);
   
-  // Mettre à jour le mode d'emploi en fonction du type et de la catégorie
   useEffect(() => {
     setIsJobOffer(type === 'service' && category === 'employer');
     setIsJobSearch(type === 'service' && category === 'employee');
   }, [type, category]);
   
-  // Catégories basées sur les catégories de partenaires + 'autres'
   const categories = [
     { value: 'store', label: 'Boutique CBD' },
     { value: 'ecommerce', label: 'E-commerce CBD' },
@@ -67,7 +62,6 @@ const PublishClassifiedPage = () => {
     { value: 'other', label: 'Autre' }
   ];
   
-  // Types de contrat pour les offres d'emploi
   const contractTypes = [
     { value: 'cdi', label: 'CDI' },
     { value: 'cdd', label: 'CDD' },
@@ -78,7 +72,6 @@ const PublishClassifiedPage = () => {
     { value: 'other', label: 'Autre' }
   ];
   
-  // Types de poste pour les offres d'emploi
   const jobTypes = [
     { value: 'sales', label: 'Commercial / Vente' },
     { value: 'management', label: 'Direction / Management' },
@@ -90,7 +83,6 @@ const PublishClassifiedPage = () => {
     { value: 'other', label: 'Autre' }
   ];
   
-  // Gérer l'ajout d'images (max 3 images gratuites ou 20 avec l'option premium)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
@@ -111,17 +103,14 @@ const PublishClassifiedPage = () => {
     }
   };
   
-  // Supprimer une image
   const removeImage = (indexToRemove: number) => {
     setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
   };
   
-  // Activer l'option premium photos
   const handlePremiumToggle = () => {
     setPremiumPhotos(!premiumPhotos);
   };
   
-  // Soumettre le formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -134,7 +123,6 @@ const PublishClassifiedPage = () => {
       return;
     }
     
-    // Si c'est une offre d'emploi, vérifions les champs spécifiques
     if (isJobOffer && !jobType) {
       toast({
         title: "Information manquante",
@@ -145,7 +133,7 @@ const PublishClassifiedPage = () => {
     }
     
     try {
-      await createClassified({
+      await handleClassifiedSubmit({
         type,
         category,
         title,
@@ -154,7 +142,6 @@ const PublishClassifiedPage = () => {
         price,
         isPremium: premiumPhotos,
         images,
-        // Champs spécifiques pour les offres d'emploi
         jobType: isJobOffer ? jobType : undefined,
         salary: isJobOffer ? salary : undefined,
         experience: isJobOffer ? experience : undefined,
@@ -180,7 +167,6 @@ const PublishClassifiedPage = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Type d'annonce */}
           <div className="space-y-2">
             <Label className="text-base">Type d'annonce*</Label>
             <RadioGroup value={type} onValueChange={(value) => setType(value as ClassifiedType)} className="flex flex-col sm:flex-row gap-4">
@@ -199,7 +185,6 @@ const PublishClassifiedPage = () => {
             </RadioGroup>
           </div>
           
-          {/* Catégorie */}
           <div className="space-y-2">
             <Label htmlFor="category" className="text-base">Catégorie*</Label>
             <Select value={category} onValueChange={(value) => setCategory(value as ClassifiedCategory)}>
@@ -214,7 +199,6 @@ const PublishClassifiedPage = () => {
             </Select>
           </div>
           
-          {/* Titre */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-base">
               {isJobOffer ? "Titre du poste*" : isJobSearch ? "Titre de votre recherche d'emploi*" : "Titre de l'annonce*"}
@@ -228,7 +212,6 @@ const PublishClassifiedPage = () => {
             />
           </div>
           
-          {/* Prix (optionnel) - caché pour les offres d'emploi */}
           {!isJobOffer && !isJobSearch && (
             <div className="space-y-2">
               <Label htmlFor="price" className="text-base">Prix (optionnel)</Label>
@@ -241,7 +224,6 @@ const PublishClassifiedPage = () => {
             </div>
           )}
           
-          {/* Champs spécifiques pour les offres d'emploi */}
           {isJobOffer && (
             <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
               <div className="flex items-center gap-2">
@@ -250,7 +232,6 @@ const PublishClassifiedPage = () => {
               </div>
               
               <div className="space-y-4">
-                {/* Type de poste */}
                 <div className="space-y-2">
                   <Label htmlFor="jobType" className="text-sm">Type de poste*</Label>
                   <Select value={jobType} onValueChange={setJobType}>
@@ -265,7 +246,6 @@ const PublishClassifiedPage = () => {
                   </Select>
                 </div>
                 
-                {/* Type de contrat */}
                 <div className="space-y-2">
                   <Label htmlFor="contractType" className="text-sm">Type de contrat</Label>
                   <Select value={contractType} onValueChange={setContractType}>
@@ -281,7 +261,6 @@ const PublishClassifiedPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Expérience */}
                   <div className="space-y-2">
                     <Label htmlFor="experience" className="text-sm">Expérience requise</Label>
                     <Input
@@ -292,7 +271,6 @@ const PublishClassifiedPage = () => {
                     />
                   </div>
                   
-                  {/* Salaire */}
                   <div className="space-y-2">
                     <Label htmlFor="salary" className="text-sm">Salaire proposé</Label>
                     <Input
@@ -305,7 +283,6 @@ const PublishClassifiedPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Nom de l'entreprise */}
                   <div className="space-y-2">
                     <Label htmlFor="companyName" className="text-sm">Nom de l'entreprise</Label>
                     <div className="relative">
@@ -320,7 +297,6 @@ const PublishClassifiedPage = () => {
                     </div>
                   </div>
                   
-                  {/* Email de contact */}
                   <div className="space-y-2">
                     <Label htmlFor="contactEmail" className="text-sm">Email de contact</Label>
                     <div className="relative">
@@ -340,7 +316,6 @@ const PublishClassifiedPage = () => {
             </div>
           )}
           
-          {/* Champs spécifiques pour les recherches d'emploi */}
           {isJobSearch && (
             <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
               <div className="flex items-center gap-2">
@@ -355,11 +330,9 @@ const PublishClassifiedPage = () => {
             </div>
           )}
           
-          {/* Images */}
           <div className="space-y-3">
             <Label className="text-base">Photos ({premiumPhotos ? '0-20' : '0-3'})</Label>
             
-            {/* Option premium */}
             <div className="bg-secondary/30 rounded-lg p-4 mb-2">
               <div className="flex items-start gap-2">
                 <Checkbox 
@@ -378,7 +351,6 @@ const PublishClassifiedPage = () => {
               </div>
             </div>
             
-            {/* Liste des images téléchargées */}
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-3">
                 {images.map((image, index) => (
@@ -400,7 +372,6 @@ const PublishClassifiedPage = () => {
               </div>
             )}
             
-            {/* Bouton d'upload */}
             <div className="flex justify-center">
               <Label 
                 htmlFor="image-upload" 
@@ -428,7 +399,6 @@ const PublishClassifiedPage = () => {
             </div>
           </div>
           
-          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-base">
               {isJobOffer ? "Description du poste*" : isJobSearch ? "Description de votre profil et attentes*" : "Description*"}
@@ -446,7 +416,6 @@ const PublishClassifiedPage = () => {
             />
           </div>
           
-          {/* Localisation */}
           <div className="space-y-2">
             <Label htmlFor="location" className="text-base">Localisation*</Label>
             <Input 
@@ -457,7 +426,6 @@ const PublishClassifiedPage = () => {
             />
           </div>
           
-          {/* Note sur la modération */}
           <div className="bg-muted p-4 rounded-lg flex items-start gap-3">
             <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <div className="text-sm text-muted-foreground">
@@ -466,16 +434,15 @@ const PublishClassifiedPage = () => {
             </div>
           </div>
           
-          {/* Boutons de soumission */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button type="submit" className="gap-2" disabled={isUploading}>
-              {isUploading ? "Publication en cours..." : "Soumettre l'annonce"}
+            <Button type="submit" className="gap-2" disabled={isLoading}>
+              {isLoading ? "Publication en cours..." : "Soumettre l'annonce"}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => navigate('/classifieds')}
-              disabled={isUploading}
+              disabled={isLoading}
             >
               Annuler
             </Button>

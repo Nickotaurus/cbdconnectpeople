@@ -1,61 +1,56 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ProductCategory, Product } from '@/types/product';
+
+import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { Product, ProductCategory } from '@/types/product';
 import { useAuth } from '@/contexts/auth';
-import { mockProductCategories } from '@/data/productsData';
+import { mockProductCategories, getProductsByCategory } from '@/data/productsData';
 import { useToast } from '@/components/ui/use-toast';
+
+// Type pour le CbdProduct (utilisé dans les composants)
+export type CbdProduct = Product;
 
 interface ProductsContextType {
   categories: ProductCategory[];
-  selectedProducts: { [categoryId: string]: string[] };
-  toggleProduct: (categoryId: string, productId: string) => void;
+  selectedProducts: string[];
+  toggleProduct: (productId: string) => void;
   savePreferences: () => Promise<void>;
+  handleToggleProduct: (productId: string) => void;
+  handleSave: () => Promise<void>;
+  isValid: boolean;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [categories, setCategories] = useState<ProductCategory[]>(mockProductCategories);
-  const [selectedProducts, setSelectedProducts] = useState<{ [categoryId: string]: string[] }>({});
+  const [categories] = useState<ProductCategory[]>(mockProductCategories);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const { user, updateUserPreferences } = useAuth();
   const { toast } = useToast();
+  
+  // Variable pour déterminer si la sélection est valide (min 3 produits)
+  const isValid = selectedProducts.length >= 3;
 
   useEffect(() => {
-    // Initialize selected products from user preferences
+    // Initialiser les produits sélectionnés à partir des préférences utilisateur
     if (user && user.favoriteProducts) {
-      const initialSelection: { [categoryId: string]: string[] } = {};
-      categories.forEach(category => {
-        initialSelection[category.id] = user.favoriteProducts!.filter(productId =>
-          category.products.some(product => product.id === productId)
-        );
-      });
-      setSelectedProducts(initialSelection);
-    } else {
-      // Initialize with empty arrays for each category
-      const initialSelection: { [categoryId: string]: string[] } = {};
-      categories.forEach(category => {
-        initialSelection[category.id] = [];
-      });
-      setSelectedProducts(initialSelection);
+      setSelectedProducts(user.favoriteProducts);
     }
-  }, [user, categories]);
+  }, [user]);
 
-  const toggleProduct = (categoryId: string, productId: string) => {
+  // Fonction pour basculer la sélection d'un produit
+  const toggleProduct = (productId: string) => {
     setSelectedProducts(prev => {
-      const categoryProducts = prev[categoryId] || [];
-      if (categoryProducts.includes(productId)) {
-        return {
-          ...prev,
-          [categoryId]: categoryProducts.filter(id => id !== productId),
-        };
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
       } else {
-        return {
-          ...prev,
-          [categoryId]: [...categoryProducts, productId],
-        };
+        return [...prev, productId];
       }
     });
   };
 
+  // Alias pour la fonction toggleProduct pour la compatibilité des composants
+  const handleToggleProduct = toggleProduct;
+
+  // Fonction pour sauvegarder les préférences
   const savePreferences = async () => {
     if (!user) {
       toast({
@@ -66,9 +61,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
 
-    const allSelectedProducts = Object.values(selectedProducts).flat();
-
-    if (allSelectedProducts.length < 3) {
+    if (selectedProducts.length < 3) {
       toast({
         title: "Sélection insuffisante",
         description: "Veuillez sélectionner au moins 3 produits.",
@@ -78,7 +71,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     try {
-      await updateUserPreferences({ favoriteProducts: allSelectedProducts });
+      await updateUserPreferences({ favoriteProducts: selectedProducts });
       toast({
         title: "Préférences enregistrées",
         description: "Vos préférences de produits ont été mises à jour.",
@@ -92,11 +85,17 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Alias pour la fonction savePreferences pour la compatibilité des composants
+  const handleSave = savePreferences;
+
   const value: ProductsContextType = {
     categories,
     selectedProducts,
     toggleProduct,
     savePreferences,
+    handleToggleProduct,
+    handleSave,
+    isValid
   };
 
   return (
@@ -113,3 +112,6 @@ export const useProducts = () => {
   }
   return context;
 };
+
+// Réexporter la fonction getProductsByCategory pour la compatibilité des composants
+export { getProductsByCategory };

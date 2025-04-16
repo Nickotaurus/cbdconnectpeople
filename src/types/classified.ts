@@ -1,4 +1,3 @@
-
 export type ClassifiedType = 'buy' | 'sell' | 'service';
 export type ClassifiedCategory = 'store' | 'ecommerce' | 'realestate' | 'employer' | 'employee' | 'bank' | 'accountant' | 'legal' | 'insurance' | 'logistics' | 'breeder' | 'label' | 'association' | 'media' | 'laboratory' | 'production' | 'realEstate' | 'other';
 export type ClassifiedStatus = 'pending' | 'approved' | 'rejected';
@@ -26,4 +25,26 @@ export interface Classified {
   };
   isPremium: boolean;
   images?: ClassifiedImage[];
+}
+
+export interface storeImage {
+  name: string;
+  url: string;
+}
+
+export interface ClassifiedFormData {
+  type: ClassifiedType;
+  category: ClassifiedCategory;
+  title: string;
+  description: string;
+  location: string;
+  price?: string;
+  isPremium: boolean;
+  images: File[];
+  jobType?: string;
+  salary?: string;
+  experience?: string;
+  contractType?: string;
+  companyName?: string;
+  contactEmail?: string;
 }
