@@ -3,10 +3,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { PartnerUser } from '@/types/auth';
+import { useToast } from '@/components/ui/use-toast';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     console.log("Profile page - user:", user, "isLoading:", isLoading);
@@ -35,8 +37,12 @@ const Profile = () => {
         case 'partner':
           // Vérification spécifique pour les partenaires
           const partnerUser = user as PartnerUser;
-          if (partnerUser.partnerId === null) {
+          if (partnerUser.partnerId === null || partnerUser.partnerId === undefined) {
             console.log("Partner has no partnerId, redirecting to add-partner");
+            toast({
+              title: "Profil incomplet",
+              description: "Veuillez compléter votre profil partenaire pour être visible sur notre plateforme",
+            });
             navigate('/add-partner', {
               state: { 
                 fromRegistration: false,
@@ -54,7 +60,7 @@ const Profile = () => {
           break;
       }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, toast]);
 
   return (
     <div className="flex items-center justify-center h-[60vh]">

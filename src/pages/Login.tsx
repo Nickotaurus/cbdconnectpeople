@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
@@ -52,8 +51,12 @@ const Login = () => {
         const partnerUser = user as PartnerUser;
         console.log("Partner login detected with partnerId:", partnerUser.partnerId, "and category:", partnerUser.partnerCategory);
         
-        if (partnerUser.partnerId === null) {
+        if (partnerUser.partnerId === null || partnerUser.partnerId === undefined) {
           console.log("Partner has no partnerId, redirecting to add-partner");
+          toast({
+            title: "Complétez votre profil",
+            description: "Veuillez compléter votre profil partenaire pour être visible sur CBD Connect",
+          });
           navigate('/add-partner', {
             state: { 
               fromRegistration: false,
@@ -62,6 +65,10 @@ const Login = () => {
           });
         } else {
           console.log("Partner has partnerId, redirecting to partner profile");
+          toast({
+            title: "Connexion réussie",
+            description: "Bienvenue dans votre espace partenaire",
+          });
           navigate('/partner/profile');
         }
       } else if (user.role === 'store') {
@@ -75,7 +82,7 @@ const Login = () => {
       // Ensure loading state is reset when auth is finished and no user
       setIsLoading(false);
     }
-  }, [user, authLoading, navigate, redirectTo, redirectionAttempted]);
+  }, [user, authLoading, navigate, redirectTo, redirectionAttempted, toast]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
