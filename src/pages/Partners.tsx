@@ -39,7 +39,7 @@ const Partners = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('partner_id', null, { foreignTable: false })
+        .not('partner_id', 'is', null)  // Changed from .eq('partner_id', null, { foreignTable: false })
         .not('name', 'is', null);
       
       if (error) {
