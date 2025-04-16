@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { UserRole } from '@/types/auth';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import RegisterForm from '@/components/register/RegisterForm';
@@ -32,7 +32,7 @@ const Register = () => {
         </CardContent>
         <CardFooter>
           <p className="text-sm text-center w-full">
-            Déjà inscrit? <a href="/login" className="text-primary hover:underline">Connexion</a>
+            Déjà inscrit? <Link to="/login" className="text-primary hover:underline">Connexion</Link>
           </p>
         </CardFooter>
       </Card>

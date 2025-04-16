@@ -106,7 +106,6 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
         description: "Une erreur est survenue lors de l'inscription",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
