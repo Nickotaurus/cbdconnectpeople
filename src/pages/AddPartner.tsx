@@ -1,19 +1,16 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
-import { PartnerCategory } from '@/types/auth';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, Building, FileText, Link2 } from 'lucide-react';
-import { partnerCategories } from '@/data/partnerCategoriesData';
-import LogoUpload from '@/components/partners/LogoUpload';
+import { Briefcase } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import LogoUpload from '@/components/partners/LogoUpload';
+import PartnerBasicFields from '@/components/partners/PartnerBasicFields';
+import PartnerAddressFields from '@/components/partners/PartnerAddressFields';
+import PartnerCategorySelect from '@/components/partners/PartnerCategorySelect';
+import PartnerDescriptionField from '@/components/partners/PartnerDescriptionField';
 
 const AddPartner = () => {
   const navigate = useNavigate();
@@ -52,10 +49,8 @@ const AddPartner = () => {
     e.preventDefault();
     
     try {
-      // Créer un ID unique pour le profil partenaire
       const partnerId = crypto.randomUUID();
 
-      // Mettre à jour le profil avec les données du partenaire
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -64,9 +59,6 @@ const AddPartner = () => {
           logo_url: formData.logoUrl,
           partner_id: partnerId,
           certifications: [],
-          // Stocker d'autres informations dans un champ JSON
-          // Note: Nous utilisons un champ existant pour stocker les métadonnées
-          // car nous ne pouvons pas ajouter de colonnes sans migrations SQL
           partner_favorites: [
             formData.address,
             formData.city,
@@ -155,110 +147,29 @@ const AddPartner = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <LogoUpload onUploadComplete={handleLogoUpload} />
-
-            <div className="grid gap-2">
-              <Label htmlFor="companyName">Nom de l'entreprise</Label>
-              <div className="flex gap-2">
-                <Building className="h-4 w-4 mt-3 text-muted-foreground" />
-                <Input
-                  id="companyName"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleInputChange}
-                  className="flex-1"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="category">Secteur d'activité</Label>
-              <div className="flex gap-2">
-                <Briefcase className="h-4 w-4 mt-3 text-muted-foreground" />
-                <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => handleSelectChange('category', value)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Sélectionnez votre secteur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {partnerCategories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description de votre activité</Label>
-              <div className="flex gap-2">
-                <FileText className="h-4 w-4 mt-3 text-muted-foreground" />
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="flex-1"
-                  placeholder="Décrivez votre activité, vos services..."
-                  rows={4}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="website">Site web</Label>
-              <div className="flex gap-2">
-                <Link2 className="h-4 w-4 mt-3 text-muted-foreground" />
-                <Input
-                  id="website"
-                  name="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  className="flex-1"
-                  placeholder="https://www.example.com"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="address">Adresse</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Rue, numéro..."
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="city">Ville</Label>
-                <Input
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  placeholder="ex: Paris"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="postalCode">Code postal</Label>
-              <Input
-                id="postalCode"
-                name="postalCode"
-                value={formData.postalCode}
-                onChange={handleInputChange}
-                placeholder="ex: 75001"
-              />
-            </div>
+            
+            <PartnerBasicFields
+              companyName={formData.companyName}
+              website={formData.website}
+              handleChange={handleInputChange}
+            />
+            
+            <PartnerCategorySelect
+              category={formData.category}
+              handleSelectChange={handleSelectChange}
+            />
+            
+            <PartnerDescriptionField
+              description={formData.description}
+              handleChange={handleInputChange}
+            />
+            
+            <PartnerAddressFields
+              address={formData.address}
+              city={formData.city}
+              postalCode={formData.postalCode}
+              handleChange={handleInputChange}
+            />
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" type="button" onClick={() => navigate('/partners')}>
