@@ -48,11 +48,13 @@ const Partners = () => {
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
         
-        // Modifié: Requête plus simple et directe pour tous les profils qui ont un role=partner
+        // Use a more reliable query that works when logged in or logged out
+        // We want all profiles where role='partner' regardless of authentication state
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('role', 'partner');
+          .eq('role', 'partner')
+          .order('created_at', { ascending: false });
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
