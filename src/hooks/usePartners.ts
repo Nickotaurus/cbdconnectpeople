@@ -5,6 +5,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Partner } from '@/data/partnersData';
 import { mockPartners } from '@/data/partnersData';
 import { filterPartners } from '@/utils/partnerUtils';
+import { PartnerCategory } from '@/types/auth';
 
 export const usePartners = (searchTerm: string, categoryFilter: string) => {
   const [partnerProfiles, setPartnerProfiles] = useState<Partner[]>([]);
@@ -55,7 +56,8 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             return {
               id: profile.id,
               name: profile.name || 'Unknown Partner',
-              category: (profile.partner_category || 'other'),
+              // Explicitly cast the category to PartnerCategory type
+              category: (profile.partner_category || 'other') as PartnerCategory,
               location: profile.partner_favorites && profile.partner_favorites.length >= 4 ? 
                 profile.partner_favorites[3] || 'France' : 'France', 
               description: profile.partner_favorites && profile.partner_favorites.length >= 7 ? 
