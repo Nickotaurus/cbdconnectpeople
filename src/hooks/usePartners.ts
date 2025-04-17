@@ -37,6 +37,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             variant: "destructive",
           });
           setError("Unable to load partners from database");
+          // Still show mock data when there's an error
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
           return;
@@ -46,25 +47,33 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Partner profiles count:", data?.length || 0);
         
         let formattedProfiles: Partner[] = [];
+        let shouldUseMockData = true;
         
         if (data && data.length > 0) {
           // Format the database partner profiles with more detailed logging
           formattedProfiles = data.map(profile => {
             console.log("Processing partner profile:", profile);
-            return {
-              id: profile.id,
-              name: profile.name || 'Unknown Partner',
-              // Explicitly cast the category to PartnerCategory type
-              category: (profile.partner_category || 'other') as PartnerCategory,
-              location: profile.partner_favorites && profile.partner_favorites.length >= 4 ? 
-                profile.partner_favorites[3] || 'France' : 'France', 
-              description: profile.partner_favorites && profile.partner_favorites.length >= 7 ? 
-                profile.partner_favorites[6] || 'No description available' : 'No description available',
-              certifications: profile.certifications || [],
-              distance: Math.floor(Math.random() * 300),
-              imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
-            };
-          });
+            
+            // Make sure the partner has a partner_id or is otherwise valid
+            if (profile.partner_category) {
+              shouldUseMockData = false;
+              
+              return {
+                id: profile.id,
+                name: profile.name || 'Unknown Partner',
+                // Explicitly cast the category to PartnerCategory type
+                category: (profile.partner_category || 'other') as PartnerCategory,
+                location: profile.partner_favorites && profile.partner_favorites.length >= 4 ? 
+                  profile.partner_favorites[3] || 'France' : 'France', 
+                description: profile.partner_favorites && profile.partner_favorites.length >= 7 ? 
+                  profile.partner_favorites[6] || 'No description available' : 'No description available',
+                certifications: profile.certifications || [],
+                distance: Math.floor(Math.random() * 300),
+                imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+              };
+            }
+            return null;
+          }).filter(Boolean) as Partner[];
 
           console.log("Formatted partner profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
@@ -74,10 +83,11 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           setPartnerProfiles([]);
         }
         
-        // Always show real partners if they exist, otherwise show mock data
-        const combinedPartners = formattedProfiles.length > 0 ? 
-          formattedProfiles : 
-          mockPartners;
+        // Combine real partners with mock data to ensure we always show something
+        // Instead of replacing mock data entirely, we'll append it to real data
+        const combinedPartners = shouldUseMockData ? 
+          [...formattedProfiles, ...mockPartners] : 
+          formattedProfiles;
         
         console.log("Combined partners before filtering:", combinedPartners);
         
