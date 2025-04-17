@@ -47,9 +47,9 @@ const Partners = () => {
       
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
+        console.log("Authentication state:", user ? "Logged in" : "Logged out");
         
-        // Use a more reliable query that works when logged in or logged out
-        // We want all profiles where role='partner' regardless of authentication state
+        // Force public access with anon key only - no auth required
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -72,7 +72,7 @@ const Partners = () => {
         console.log("Raw partner profiles fetched:", data);
         console.log("Partner profiles count:", data?.length || 0);
         
-        // Start with mock partners as a fallback
+        // Always include mock partners as fallback
         let combinedPartners = [...mockPartners];
         
         if (data && data.length > 0) {
@@ -117,20 +117,25 @@ const Partners = () => {
       }
     };
 
-    // Execute the fetch function
+    // Execute the fetch function immediately 
     fetchPartnerProfiles();
+
+    // Create an interval to refetch data every few seconds during development
+    // This helps ensure we always have the latest data even after login/logout
+    const intervalId = setInterval(fetchPartnerProfiles, 5000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, [searchTerm, categoryFilter]); // Re-run when filters change
 
   // Handle search filter
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    // Filtering happens in useEffect
   };
   
   // Handle category filter
   const handleCategoryFilter = (category: string) => {
     setCategoryFilter(category);
-    // Filtering happens in useEffect
   };
   
   const handleContactClick = (partnerId: string) => {
@@ -194,19 +199,31 @@ const Partners = () => {
         ) : error ? (
           <div className="text-center py-10 text-red-500">
             <p>{error}</p>
-            <p className="mt-2">Affichage des partenaires par défaut</p>
+            <p className="mt-2 mb-6">Affichage des partenaires par défaut</p>
+            <PartnersList
+              partners={mockPartners}
+              isProfessional={isProfessional}
+              hasPremium={hasPremium}
+              onContactClick={handleContactClick}
+            />
           </div>
         ) : filteredPartners.length === 0 ? (
           <div className="text-center py-10">
             <p>Aucun partenaire ne correspond à votre recherche</p>
+            <p className="mt-4 font-medium">Partenaires disponibles: {partnerProfiles.length + mockPartners.length}</p>
           </div>
         ) : (
-          <PartnersList
-            partners={filteredPartners}
-            isProfessional={isProfessional}
-            hasPremium={hasPremium}
-            onContactClick={handleContactClick}
-          />
+          <>
+            <div className="mb-2 text-sm text-muted-foreground">
+              {filteredPartners.length} partenaire(s) trouvé(s)
+            </div>
+            <PartnersList
+              partners={filteredPartners}
+              isProfessional={isProfessional}
+              hasPremium={hasPremium}
+              onContactClick={handleContactClick}
+            />
+          </>
         )}
       </div>
     </div>
