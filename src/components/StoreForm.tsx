@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -86,6 +87,9 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
       // Prepare the complete store object
       const storeData: Omit<Store, 'id'> = {
         ...formData,
+        imageUrl: "https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000", // Default image
+        rating: 0, // Default rating for new store
+        reviewCount: 0, // Default review count for new store
         openingHours: [
           { day: "Lundi", hours: "11:00 - 19:00" },
           { day: "Mardi", hours: "11:00 - 19:00" },
