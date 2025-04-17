@@ -21,7 +21,6 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
       
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
-        console.log("Attempting to fetch partner profiles...");
         
         // Force public access with anon key only - no auth required
         const { data, error } = await supabase
@@ -46,7 +45,6 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Raw partner profiles fetched:", data);
         console.log("Partner profiles count:", data?.length || 0);
         
-        // Create a variable to store formatted profiles
         let formattedProfiles: Partner[] = [];
         
         if (data && data.length > 0) {
@@ -73,14 +71,13 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         } else {
           console.log("No partner profiles found in database, using mock data only");
           formattedProfiles = [];
+          setPartnerProfiles([]);
         }
         
-        // Create a combined array that prioritizes real data
-        // Only add mock data if there are no real profiles or if specifically requested
-        // This ensures real partners are always shown
+        // Always show real partners if they exist, otherwise show mock data
         const combinedPartners = formattedProfiles.length > 0 ? 
           formattedProfiles : 
-          [...mockPartners];
+          mockPartners;
         
         console.log("Combined partners before filtering:", combinedPartners);
         
@@ -100,9 +97,9 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
     // Execute the fetch function immediately 
     fetchPartnerProfiles();
 
-    // Create an interval to refetch data every few seconds during development
-    // This helps ensure we always have the latest data even after login/logout
-    const intervalId = setInterval(fetchPartnerProfiles, 5000);
+    // Create an interval to refetch data every 30 seconds
+    // This helps ensure we have updated data but isn't too frequent
+    const intervalId = setInterval(fetchPartnerProfiles, 30000);
     
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
