@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export const usePartnerForm = (initialCategory: string = '', userId: string = '', isEditing: boolean = false) => {
   const navigate = useNavigate();
@@ -88,7 +90,7 @@ export const usePartnerForm = (initialCategory: string = '', userId: string = ''
     
     try {
       console.log("Creating/updating partner profile with data:", formData);
-      let partnerId = crypto.randomUUID();
+      let partnerId: string = uuidv4(); // Generate a proper UUID using the uuid package
 
       const requiredFields = {
         'nom de l\'entreprise': formData.companyName,
