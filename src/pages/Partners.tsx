@@ -42,7 +42,8 @@ const Partners = () => {
           .from('profiles')
           .select('*')
           .not('partner_id', 'is', null)  // Get profiles that have a partner_id
-          .not('name', 'is', null);
+          .not('name', 'is', null)
+          .order('created_at', { ascending: false }); // Order by created_at to show newest partners first
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
@@ -67,8 +68,12 @@ const Partners = () => {
           setPartnerProfiles(formattedProfiles);
           
           // Update filtered partners with both mock data and real profiles
-          const combined = [...mockPartners, ...formattedProfiles];
+          // Sort combined partners to show newest first (database partners are already sorted)
+          const combined = [...formattedProfiles, ...mockPartners];
           setFilteredPartners(filterPartners(combined, searchTerm, categoryFilter));
+        } else {
+          // If no real partners found, just use mock data
+          setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
         }
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
@@ -78,17 +83,16 @@ const Partners = () => {
     fetchPartnerProfiles();
   }, [searchTerm, categoryFilter]);
 
-  // Combine mock data and real profiles from database
-  const combinedPartners = [...mockPartners, ...partnerProfiles];
-  
+  // Handle search filter
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setFilteredPartners(filterPartners(combinedPartners, term, categoryFilter));
+    // We don't need to call setFilteredPartners here as the useEffect handles filtering
   };
   
+  // Handle category filter
   const handleCategoryFilter = (category: string) => {
     setCategoryFilter(category);
-    setFilteredPartners(filterPartners(combinedPartners, searchTerm, category));
+    // We don't need to call setFilteredPartners here as the useEffect handles filtering
   };
   
   const handleContactClick = (partnerId: string) => {
