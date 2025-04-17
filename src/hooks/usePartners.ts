@@ -46,12 +46,12 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Raw partner profiles fetched:", data);
         console.log("Partner profiles count:", data?.length || 0);
         
-        // Always include mock partners as fallback
-        let combinedPartners = [...mockPartners];
+        // Create a variable to store formatted profiles
+        let formattedProfiles: Partner[] = [];
         
         if (data && data.length > 0) {
           // Format the database partner profiles with more detailed logging
-          const formattedProfiles = data.map(profile => {
+          formattedProfiles = data.map(profile => {
             console.log("Processing partner profile:", profile);
             return {
               id: profile.id,
@@ -70,12 +70,17 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
 
           console.log("Formatted partner profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
-          
-          // Prioritize database partners in the display
-          combinedPartners = [...formattedProfiles, ...mockPartners];
         } else {
           console.log("No partner profiles found in database, using mock data only");
+          formattedProfiles = [];
         }
+        
+        // Create a combined array that prioritizes real data
+        // Only add mock data if there are no real profiles or if specifically requested
+        // This ensures real partners are always shown
+        const combinedPartners = formattedProfiles.length > 0 ? 
+          formattedProfiles : 
+          [...mockPartners];
         
         console.log("Combined partners before filtering:", combinedPartners);
         
