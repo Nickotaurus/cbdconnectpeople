@@ -31,6 +31,7 @@ const Partners = () => {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [partnerProfiles, setPartnerProfiles] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   const hasPremium = user?.role === "store" && user.isVerified;
@@ -39,6 +40,8 @@ const Partners = () => {
   useEffect(() => {
     const fetchPartnerProfiles = async () => {
       setIsLoading(true);
+      setError(null);
+      
       try {
         console.log("Fetching partner profiles from database");
         const { data, error } = await supabase
@@ -50,6 +53,7 @@ const Partners = () => {
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
+          setError("Unable to load partners from database");
           // Still show mock data even if there's an error
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
@@ -67,7 +71,7 @@ const Partners = () => {
             name: profile.name || 'Unknown Partner',
             category: (profile.partner_category || 'other') as PartnerCategory,
             location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
-            description: profile.partner_favorites ? profile.partner_favorites[6] : 'No description available',
+            description: profile.partner_favorites ? profile.partner_favorites[6] || 'No description available' : 'No description available',
             certifications: profile.certifications || [],
             distance: Math.floor(Math.random() * 300),
             imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
@@ -76,14 +80,18 @@ const Partners = () => {
           console.log("Formatted partner profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
           
-          // Newest partners first (database partners already sorted)
+          // Important: Put formattedProfiles first to ensure newest partners appear first
           combinedPartners = [...formattedProfiles, ...mockPartners];
         }
         
+        console.log("Combined partners before filtering:", combinedPartners.length);
         // Apply filters to combined partners
-        setFilteredPartners(filterPartners(combinedPartners, searchTerm, categoryFilter));
+        const filtered = filterPartners(combinedPartners, searchTerm, categoryFilter);
+        console.log("Filtered partners:", filtered.length);
+        setFilteredPartners(filtered);
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
+        setError("An unexpected error occurred");
         // Ensure we still show mock data in case of errors
         setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
       } finally {
@@ -154,6 +162,15 @@ const Partners = () => {
         {isLoading ? (
           <div className="text-center py-10">
             <p>Chargement des partenaires...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">
+            <p>{error}</p>
+            <p className="mt-2">Affichage des partenaires par défaut</p>
+          </div>
+        ) : filteredPartners.length === 0 ? (
+          <div className="text-center py-10">
+            <p>Aucun partenaire ne correspond à votre recherche</p>
           </div>
         ) : (
           <PartnersList
