@@ -5,6 +5,7 @@ import { PartnerCategory } from '@/types/auth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserPlus } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Data
 import { mockPartners } from '@/data/partnersData';
@@ -38,20 +39,19 @@ const Partners = () => {
   
   // Fetch partner profiles independent of authentication state
   useEffect(() => {
-    // Function to fetch partners from database
+    // Function to fetch partners from database - with more debugging
     const fetchPartnerProfiles = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        console.log("Fetching partner profiles from database");
+        console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
         
-        // Query all profiles with partner_id to ensure we get partners regardless of login state
+        // Make a direct query without additional filtering that might exclude results
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .not('partner_id', 'is', null)
-          .order('created_at', { ascending: false });
+          .not('partner_id', 'is', null);
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
@@ -61,43 +61,44 @@ const Partners = () => {
           return;
         }
 
-        console.log("Partner profiles fetched:", data?.length || 0, "profiles");
+        console.log("Raw profiles fetched:", data);
+        console.log("Partner profiles count:", data?.length || 0);
         
         // Start with mock partners as a fallback
         let combinedPartners = [...mockPartners];
         
         if (data && data.length > 0) {
-          // Format the database partner profiles
+          // Format the database partner profiles with more detailed logging
           const formattedProfiles = data.map(profile => {
-            console.log("Processing profile:", profile.id, profile.name);
+            console.log("Processing profile:", profile);
             return {
               id: profile.id,
               name: profile.name || 'Unknown Partner',
               category: (profile.partner_category || 'other') as PartnerCategory,
-              location: profile.partner_favorites ? 
-                (profile.partner_favorites[3] || 'France') : 'France', 
-              description: profile.partner_favorites ? 
-                (profile.partner_favorites[6] || 'No description available') : 'No description available',
+              location: profile.partner_favorites && profile.partner_favorites.length >= 4 ? 
+                profile.partner_favorites[3] || 'France' : 'France', 
+              description: profile.partner_favorites && profile.partner_favorites.length >= 7 ? 
+                profile.partner_favorites[6] || 'No description available' : 'No description available',
               certifications: profile.certifications || [],
               distance: Math.floor(Math.random() * 300),
               imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
             };
           });
 
-          console.log("Formatted partner profiles:", formattedProfiles.length);
+          console.log("Formatted partner profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
           
-          // Important: Put DB partners first to ensure newest partners appear first
+          // Prioritize database partners in the display
           combinedPartners = [...formattedProfiles, ...mockPartners];
         } else {
-          console.log("No partner profiles found in database");
+          console.log("No partner profiles found in database, using mock data only");
         }
         
-        console.log("Combined partners before filtering:", combinedPartners.length);
+        console.log("Combined partners before filtering:", combinedPartners);
         
         // Apply filters to combined partners
         const filtered = filterPartners(combinedPartners, searchTerm, categoryFilter);
-        console.log("Filtered partners:", filtered.length);
+        console.log("Filtered partners result:", filtered);
         setFilteredPartners(filtered);
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
@@ -170,8 +171,17 @@ const Partners = () => {
         />
         
         {isLoading ? (
-          <div className="text-center py-10">
-            <p>Chargement des partenaires...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="rounded-lg overflow-hidden border shadow">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-4">
+                  <Skeleton className="h-6 w-32 mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="text-center py-10 text-red-500">
