@@ -30,12 +30,15 @@ const Partners = () => {
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>(mockPartners);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [partnerProfiles, setPartnerProfiles] = useState<Partner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   const hasPremium = user?.role === "store" && user.isVerified;
   
+  // Fetch partner profiles independent of authentication state
   useEffect(() => {
     const fetchPartnerProfiles = async () => {
+      setIsLoading(true);
       try {
         console.log("Fetching partner profiles from database");
         const { data, error } = await supabase
@@ -47,16 +50,22 @@ const Partners = () => {
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
+          // Still show mock data even if there's an error
+          setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
+          setIsLoading(false);
           return;
         }
 
         console.log("Partner profiles fetched:", data);
         
+        // Format and combine partner data
+        let combinedPartners = [...mockPartners];
+        
         if (data && data.length > 0) {
           const formattedProfiles = data.map(profile => ({
             id: profile.id,
             name: profile.name || 'Unknown Partner',
-            category: (profile.partner_category || 'other') as PartnerCategory, // Cast to PartnerCategory
+            category: (profile.partner_category || 'other') as PartnerCategory,
             location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
             description: profile.partner_favorites ? profile.partner_favorites[6] : 'No description available',
             certifications: profile.certifications || [],
@@ -67,16 +76,18 @@ const Partners = () => {
           console.log("Formatted partner profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
           
-          // Update filtered partners with both mock data and real profiles
-          // Sort combined partners to show newest first (database partners are already sorted)
-          const combined = [...formattedProfiles, ...mockPartners];
-          setFilteredPartners(filterPartners(combined, searchTerm, categoryFilter));
-        } else {
-          // If no real partners found, just use mock data
-          setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
+          // Newest partners first (database partners already sorted)
+          combinedPartners = [...formattedProfiles, ...mockPartners];
         }
+        
+        // Apply filters to combined partners
+        setFilteredPartners(filterPartners(combinedPartners, searchTerm, categoryFilter));
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
+        // Ensure we still show mock data in case of errors
+        setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -86,13 +97,13 @@ const Partners = () => {
   // Handle search filter
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    // We don't need to call setFilteredPartners here as the useEffect handles filtering
+    // Filtering happens in useEffect
   };
   
   // Handle category filter
   const handleCategoryFilter = (category: string) => {
     setCategoryFilter(category);
-    // We don't need to call setFilteredPartners here as the useEffect handles filtering
+    // Filtering happens in useEffect
   };
   
   const handleContactClick = (partnerId: string) => {
@@ -140,12 +151,18 @@ const Partners = () => {
           hasPremium={hasPremium} 
         />
         
-        <PartnersList
-          partners={filteredPartners}
-          isProfessional={isProfessional}
-          hasPremium={hasPremium}
-          onContactClick={handleContactClick}
-        />
+        {isLoading ? (
+          <div className="text-center py-10">
+            <p>Chargement des partenaires...</p>
+          </div>
+        ) : (
+          <PartnersList
+            partners={filteredPartners}
+            isProfessional={isProfessional}
+            hasPremium={hasPremium}
+            onContactClick={handleContactClick}
+          />
+        )}
       </div>
     </div>
   );
