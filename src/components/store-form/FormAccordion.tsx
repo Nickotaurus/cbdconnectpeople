@@ -6,7 +6,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Percent, Gift } from "lucide-react";
-import PromoCodeFields from './PromoCodeFields';
+import DiscountFields from './DiscountFields';
 import LotteryPrizeFields from './LotteryPrizeFields';
 
 interface FormAccordionProps {
@@ -18,19 +18,20 @@ interface FormAccordionProps {
     lotteryPrizeValue: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  storeType?: string;
 }
 
-const FormAccordion: React.FC<FormAccordionProps> = ({ formData, handleChange }) => {
+const FormAccordion: React.FC<FormAccordionProps> = ({ formData, handleChange, storeType }) => {
   return (
     <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="coupon" className="border-primary/30">
+      <AccordionItem value="discount" className="border-primary/30">
         <AccordionTrigger className="py-4">
           <div className="flex items-center gap-2">
             <Percent className="h-5 w-5 text-primary" />
-            <span className="font-medium">Code Promo (Obligatoire)</span>
+            <span className="font-medium">Discount (Obligatoire)</span>
           </div>
         </AccordionTrigger>
-        <PromoCodeFields formData={formData} handleChange={handleChange} />
+        <DiscountFields formData={formData} handleChange={handleChange} storeType={storeType} />
       </AccordionItem>
       
       <AccordionItem value="lottery" className="border-primary/30">

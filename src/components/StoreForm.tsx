@@ -1,17 +1,14 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
 import BasicInfoFields from './store-form/BasicInfoFields';
-import LocationFields from './store-form/LocationFields';
+import GooglePlacesSearch from './store-form/GooglePlacesSearch';
 import DescriptionField from './store-form/DescriptionField';
-import MediaFields from './store-form/MediaFields';
 import EcommerceField from './store-form/EcommerceField';
 import FormAccordion from './store-form/FormAccordion';
 import FormActions from './store-form/FormActions';
-import LocationTip from './store-form/LocationTip';
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
@@ -26,16 +23,14 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
     address: '',
     city: '',
     postalCode: '',
-    latitude: 0,
-    longitude: 0,
     phone: '',
     website: '',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000', // Default image
-    rating: 4.0,
-    reviewCount: 0,
+    placeId: '',
+    latitude: 0,
+    longitude: 0,
     originalIncentive: '',
-    incentiveDescription: '10% de réduction sur votre premier achat',
+    incentiveDescription: '',
     lotteryPrizeName: '',
     lotteryPrizeDescription: '',
     lotteryPrizeValue: '',
@@ -46,17 +41,41 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'latitude' || name === 'longitude' || name === 'rating' ? parseFloat(value) : value
+      [name]: value
     }));
+  };
+
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (!place.geometry?.location) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer les coordonnées de l'établissement",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      placeId: place.place_id || '',
+      latitude: place.geometry.location.lat(),
+      longitude: place.geometry.location.lng(),
+      address: place.formatted_address?.split(',')[0] || prev.address,
+    }));
+
+    toast({
+      title: "Établissement trouvé",
+      description: "Les coordonnées ont été automatiquement ajoutées",
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.originalIncentive) {
+    if (!formData.placeId) {
       toast({
         title: "Erreur",
-        description: "Veuillez saisir un avantage original pour votre boutique",
+        description: "Veuillez rechercher et sélectionner votre établissement",
         variant: "destructive",
         duration: 5000,
       });
@@ -124,11 +143,9 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
         phone: '',
         website: '',
         description: '',
-        imageUrl: 'https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000',
-        rating: 4.0,
-        reviewCount: 0,
+        placeId: '',
         originalIncentive: '',
-        incentiveDescription: '10% de réduction sur votre premier achat',
+        incentiveDescription: '',
         lotteryPrizeName: '',
         lotteryPrizeDescription: '',
         lotteryPrizeValue: '',
@@ -150,22 +167,21 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <BasicInfoFields formData={formData} handleChange={handleChange} />
       
-      <LocationFields formData={formData} handleChange={handleChange} />
+      <GooglePlacesSearch 
+        formData={formData} 
+        handleChange={handleChange}
+        onPlaceSelect={handlePlaceSelect}
+      />
       
       <DescriptionField description={formData.description} handleChange={handleChange} />
       
-      <MediaFields formData={formData} handleChange={handleChange} />
-      
-      {/* Show e-commerce URL field only for e-commerce or both type stores */}
       {(storeType === 'ecommerce' || storeType === 'both') && (
         <EcommerceField ecommerceUrl={formData.ecommerceUrl} handleChange={handleChange} />
       )}
       
-      <FormAccordion formData={formData} handleChange={handleChange} />
+      <FormAccordion formData={formData} handleChange={handleChange} storeType={storeType} />
       
       <FormActions storeType={storeType} />
-      
-      <LocationTip />
     </form>
   );
 };
