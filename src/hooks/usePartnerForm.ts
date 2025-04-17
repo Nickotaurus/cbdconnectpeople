@@ -1,10 +1,9 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export const usePartnerForm = (initialCategory: string = '') => {
+export const usePartnerForm = (initialCategory: string = '', userId: string = '', isEditing: boolean = false) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -22,6 +21,52 @@ export const usePartnerForm = (initialCategory: string = '') => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEditing);
+
+  useEffect(() => {
+    const fetchExistingData = async () => {
+      if (isEditing && userId) {
+        try {
+          setIsLoading(true);
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+            
+          if (error) {
+            console.error("Error fetching partner profile for editing:", error);
+            return;
+          }
+          
+          if (data && data.partner_favorites) {
+            const [email, phone, address, city, postalCode, website, description] = data.partner_favorites;
+            
+            setFormData({
+              companyName: data.name || '',
+              description: description || '',
+              website: website || '',
+              email: email || '',
+              phone: phone || '',
+              category: data.partner_category || initialCategory,
+              address: address || '',
+              city: city || '',
+              postalCode: postalCode || '',
+              logoUrl: data.logo_url || ''
+            });
+            
+            console.log("Loaded existing partner data:", data);
+          }
+        } catch (err) {
+          console.error("Error loading partner data:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    fetchExistingData();
+  }, [isEditing, userId, initialCategory]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,10 +87,9 @@ export const usePartnerForm = (initialCategory: string = '') => {
     setIsSubmitting(true);
     
     try {
-      console.log("Creating partner profile with data:", formData);
-      const partnerId = crypto.randomUUID();
+      console.log("Creating/updating partner profile with data:", formData);
+      let partnerId = crypto.randomUUID();
 
-      // Check required fields
       const requiredFields = {
         'nom de l\'entreprise': formData.companyName,
         'description': formData.description,
@@ -65,7 +109,6 @@ export const usePartnerForm = (initialCategory: string = '') => {
         throw new Error(`Veuillez remplir les champs obligatoires: ${missingFields.join(', ')}`);
       }
 
-      // Fetch current user profile to ensure we're not overwriting data
       const { data: currentProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -77,7 +120,10 @@ export const usePartnerForm = (initialCategory: string = '') => {
         throw fetchError;
       }
 
-      // Update profile with partner information
+      if (isEditing && currentProfile.partner_id) {
+        partnerId = currentProfile.partner_id;
+      }
+
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -103,22 +149,22 @@ export const usePartnerForm = (initialCategory: string = '') => {
         throw profileError;
       }
 
-      console.log("Partner profile created successfully with ID:", partnerId);
+      console.log("Partner profile updated successfully with ID:", partnerId);
       toast({
-        title: "Profil créé avec succès",
-        description: "Votre profil partenaire est désormais visible par tous les acteurs CBD",
+        title: isEditing ? "Profil mis à jour avec succès" : "Profil créé avec succès",
+        description: isEditing 
+          ? "Votre profil partenaire a été mis à jour" 
+          : "Votre profil partenaire est désormais visible par tous les acteurs CBD",
       });
 
-      // Give a longer delay to ensure Supabase update completes
       setTimeout(() => {
-        // Force reload user data and navigate to partner profile
         window.location.href = '/partner/profile';
       }, 2500);
     } catch (error: any) {
-      console.error('Erreur lors de la création du profil:', error);
+      console.error('Erreur lors de la mise à jour du profil:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création de votre profil",
+        description: error.message || "Une erreur est survenue lors de la mise à jour de votre profil",
         variant: "destructive"
       });
     } finally {
@@ -129,6 +175,7 @@ export const usePartnerForm = (initialCategory: string = '') => {
   return {
     formData,
     isSubmitting,
+    isLoading,
     handleInputChange,
     handleSelectChange,
     handleLogoUpload,

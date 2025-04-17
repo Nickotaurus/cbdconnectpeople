@@ -23,15 +23,21 @@ const AddPartner = () => {
   
   const fromRegistration = location.state?.fromRegistration || false;
   const initialCategory = location.state?.partnerCategory || '';
+  const isEditing = location.state?.isEditing || false;
 
   const {
     formData,
     isSubmitting,
+    isLoading,
     handleInputChange,
     handleSelectChange,
     handleLogoUpload,
     handleSubmit
-  } = usePartnerForm(initialCategory || (user?.role === 'partner' ? (user as any).partnerCategory || '' : ''));
+  } = usePartnerForm(
+    initialCategory || (user?.role === 'partner' ? (user as any).partnerCategory || '' : ''),
+    user?.id || '',
+    isEditing
+  );
 
   // Handle unauthorized user
   if (user && user?.role !== 'partner') {
@@ -50,11 +56,25 @@ const AddPartner = () => {
     return <LoadingRedirect />;
   }
 
+  // Show loading state when fetching partner data
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-2xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-2">Référencer votre activité</h1>
+      <h1 className="text-3xl font-bold mb-2">
+        {isEditing ? 'Modifier votre profil' : 'Référencer votre activité'}
+      </h1>
       <p className="text-muted-foreground mb-8">
-        Complétez votre profil pour être visible auprès de la communauté CBD
+        {isEditing 
+          ? 'Mettez à jour les informations de votre profil partenaire'
+          : 'Complétez votre profil pour être visible auprès de la communauté CBD'
+        }
       </p>
 
       <form onSubmit={(e) => handleSubmit(e, user?.id!)}>
@@ -66,7 +86,7 @@ const AddPartner = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <LogoUpload onUploadComplete={handleLogoUpload} />
+            <LogoUpload onUploadComplete={handleLogoUpload} logoUrl={formData.logoUrl} />
             
             <PartnerBasicFields
               companyName={formData.companyName}
@@ -105,12 +125,12 @@ const AddPartner = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Création en cours...
+                  {isEditing ? 'Mise à jour en cours...' : 'Création en cours...'}
                 </>
               ) : (
                 <>
                   <Briefcase className="mr-2 h-4 w-4" />
-                  Créer mon profil
+                  {isEditing ? 'Mettre à jour mon profil' : 'Créer mon profil'}
                 </>
               )}
             </Button>
