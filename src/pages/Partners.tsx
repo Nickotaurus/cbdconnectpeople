@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserPlus } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from '@/components/ui/use-toast';
 
 // Data
 import { mockPartners } from '@/data/partnersData';
@@ -39,7 +40,7 @@ const Partners = () => {
   
   // Fetch partner profiles independent of authentication state
   useEffect(() => {
-    // Function to fetch partners from database - with more debugging
+    // Function to fetch partners from database
     const fetchPartnerProfiles = async () => {
       setIsLoading(true);
       setError(null);
@@ -47,21 +48,26 @@ const Partners = () => {
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
         
-        // Make a direct query without additional filtering that might exclude results
+        // Modifié: Requête plus simple et directe pour tous les profils qui ont un role=partner
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .not('partner_id', 'is', null);
+          .eq('role', 'partner');
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
+          toast({
+            title: "Erreur lors du chargement des partenaires",
+            description: "Affichage des données par défaut.",
+            variant: "destructive",
+          });
           setError("Unable to load partners from database");
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
           return;
         }
 
-        console.log("Raw profiles fetched:", data);
+        console.log("Raw partner profiles fetched:", data);
         console.log("Partner profiles count:", data?.length || 0);
         
         // Start with mock partners as a fallback
@@ -70,7 +76,7 @@ const Partners = () => {
         if (data && data.length > 0) {
           // Format the database partner profiles with more detailed logging
           const formattedProfiles = data.map(profile => {
-            console.log("Processing profile:", profile);
+            console.log("Processing partner profile:", profile);
             return {
               id: profile.id,
               name: profile.name || 'Unknown Partner',
