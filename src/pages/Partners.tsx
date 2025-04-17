@@ -38,53 +38,63 @@ const Partners = () => {
   
   // Fetch partner profiles independent of authentication state
   useEffect(() => {
+    // Function to fetch partners from database
     const fetchPartnerProfiles = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
         console.log("Fetching partner profiles from database");
+        
+        // Query all profiles with partner_id to ensure we get partners regardless of login state
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .not('partner_id', 'is', null)  // Get profiles that have a partner_id
-          .not('name', 'is', null)
-          .order('created_at', { ascending: false }); // Order by created_at to show newest partners first
+          .not('partner_id', 'is', null)
+          .order('created_at', { ascending: false });
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
           setError("Unable to load partners from database");
-          // Still show mock data even if there's an error
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
           return;
         }
 
-        console.log("Partner profiles fetched:", data);
+        console.log("Partner profiles fetched:", data?.length || 0, "profiles");
         
-        // Format and combine partner data
+        // Start with mock partners as a fallback
         let combinedPartners = [...mockPartners];
         
         if (data && data.length > 0) {
-          const formattedProfiles = data.map(profile => ({
-            id: profile.id,
-            name: profile.name || 'Unknown Partner',
-            category: (profile.partner_category || 'other') as PartnerCategory,
-            location: profile.partner_favorites ? profile.partner_favorites[3] || 'France' : 'France', 
-            description: profile.partner_favorites ? profile.partner_favorites[6] || 'No description available' : 'No description available',
-            certifications: profile.certifications || [],
-            distance: Math.floor(Math.random() * 300),
-            imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
-          }));
+          // Format the database partner profiles
+          const formattedProfiles = data.map(profile => {
+            console.log("Processing profile:", profile.id, profile.name);
+            return {
+              id: profile.id,
+              name: profile.name || 'Unknown Partner',
+              category: (profile.partner_category || 'other') as PartnerCategory,
+              location: profile.partner_favorites ? 
+                (profile.partner_favorites[3] || 'France') : 'France', 
+              description: profile.partner_favorites ? 
+                (profile.partner_favorites[6] || 'No description available') : 'No description available',
+              certifications: profile.certifications || [],
+              distance: Math.floor(Math.random() * 300),
+              imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+            };
+          });
 
-          console.log("Formatted partner profiles:", formattedProfiles);
+          console.log("Formatted partner profiles:", formattedProfiles.length);
           setPartnerProfiles(formattedProfiles);
           
-          // Important: Put formattedProfiles first to ensure newest partners appear first
+          // Important: Put DB partners first to ensure newest partners appear first
           combinedPartners = [...formattedProfiles, ...mockPartners];
+        } else {
+          console.log("No partner profiles found in database");
         }
         
         console.log("Combined partners before filtering:", combinedPartners.length);
+        
         // Apply filters to combined partners
         const filtered = filterPartners(combinedPartners, searchTerm, categoryFilter);
         console.log("Filtered partners:", filtered.length);
@@ -92,15 +102,15 @@ const Partners = () => {
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
         setError("An unexpected error occurred");
-        // Ensure we still show mock data in case of errors
         setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Execute the fetch function
     fetchPartnerProfiles();
-  }, [searchTerm, categoryFilter]);
+  }, [searchTerm, categoryFilter]); // Re-run when filters change
 
   // Handle search filter
   const handleSearch = (term: string) => {
