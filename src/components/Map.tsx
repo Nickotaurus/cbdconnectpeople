@@ -80,15 +80,15 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
         streetViewControl: false
       };
       
-      mapInstance.current = new google.maps.Map(mapContainerRef.current, mapOptions);
+      mapInstance.current = new window.google.maps.Map(mapContainerRef.current, mapOptions);
       
       // Ajouter un marqueur pour la position de l'utilisateur
-      new google.maps.Marker({
+      new window.google.maps.Marker({
         position: { lat: userLocation.latitude, lng: userLocation.longitude },
         map: mapInstance.current,
         title: "Votre position",
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
+          path: window.google.maps.SymbolPath.CIRCLE,
           fillColor: "#4F46E5",
           fillOpacity: 1,
           strokeColor: "#312E81",
@@ -99,13 +99,13 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
       
       // Ajouter les marqueurs pour les boutiques
       stores.forEach(store => {
-        const marker = new google.maps.Marker({
+        const marker = new window.google.maps.Marker({
           position: { lat: store.latitude, lng: store.longitude },
           map: mapInstance.current,
           title: store.name,
           animation: store.id === selectedStoreId 
-            ? google.maps.Animation.BOUNCE 
-            : google.maps.Animation.DROP
+            ? window.google.maps.Animation.BOUNCE 
+            : window.google.maps.Animation.DROP
         });
         
         marker.addListener('click', () => {
@@ -140,7 +140,7 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
       if (storeIndex !== -1) {
         const isSelected = stores[storeIndex].id === selectedStoreId;
         
-        marker.setAnimation(isSelected ? google.maps.Animation.BOUNCE : null);
+        marker.setAnimation(isSelected ? window.google.maps.Animation.BOUNCE : null);
         
         if (isSelected && mapInstance.current) {
           mapInstance.current.panTo(marker.getPosition()!);
