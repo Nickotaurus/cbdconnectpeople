@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface GooglePlacesSearchProps {
   formData: {
@@ -22,29 +22,69 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
   handleChange,
   onPlaceSelect 
 }) => {
-  const handleSearch = () => {
-    const searchQuery = `${formData.address}, ${formData.city}`;
-    const service = new google.maps.places.PlacesService(
-      document.createElement('div')
-    );
+  const { toast } = useToast();
+  const [isApiLoaded, setIsApiLoaded] = useState(false);
 
-    service.findPlaceFromQuery(
-      {
-        query: searchQuery,
-        fields: ['place_id', 'name', 'formatted_address', 'geometry']
-      },
-      (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          onPlaceSelect(results[0]);
-        } else {
-          toast({
-            title: "Aucun établissement trouvé",
-            description: "Vérifiez l'adresse saisie et réessayez",
-            variant: "destructive"
-          });
-        }
+  // Vérifier si l'API Google Maps est chargée
+  useEffect(() => {
+    const checkGoogleMapsLoaded = () => {
+      if (window.google && window.google.maps && window.google.maps.places) {
+        setIsApiLoaded(true);
+      } else {
+        // Réessayer après un court délai
+        setTimeout(checkGoogleMapsLoaded, 500);
       }
-    );
+    };
+    
+    checkGoogleMapsLoaded();
+    
+    return () => {
+      // Cleanup si nécessaire
+    };
+  }, []);
+
+  const handleSearch = () => {
+    if (!isApiLoaded) {
+      toast({
+        title: "API Google Maps non disponible",
+        description: "Veuillez patienter pendant le chargement de l'API ou rafraîchir la page",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const searchQuery = `${formData.address}, ${formData.city}`;
+    
+    try {
+      const service = new window.google.maps.places.PlacesService(
+        document.createElement('div')
+      );
+
+      service.findPlaceFromQuery(
+        {
+          query: searchQuery,
+          fields: ['place_id', 'name', 'formatted_address', 'geometry']
+        },
+        (results, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+            onPlaceSelect(results[0]);
+          } else {
+            toast({
+              title: "Aucun établissement trouvé",
+              description: "Vérifiez l'adresse saisie et réessayez",
+              variant: "destructive"
+            });
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Erreur lors de la recherche Google Places:", error);
+      toast({
+        title: "Erreur de recherche",
+        description: "Une erreur est survenue lors de la recherche. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -90,10 +130,17 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         variant="outline" 
         className="w-full"
         onClick={handleSearch}
+        disabled={!isApiLoaded}
       >
         <Search className="w-4 h-4 mr-2" />
-        Rechercher l'établissement
+        {isApiLoaded ? "Rechercher l'établissement" : "Chargement de Google Maps..."}
       </Button>
+      
+      {!isApiLoaded && (
+        <p className="text-xs text-muted-foreground text-center">
+          L'API Google Maps est en cours de chargement. Merci de patienter...
+        </p>
+      )}
     </div>
   );
 };
