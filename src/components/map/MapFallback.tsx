@@ -1,5 +1,5 @@
 
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
 
@@ -8,6 +8,7 @@ interface MapFallbackProps {
   selectedStoreId?: string;
   userLocation: { latitude: number; longitude: number } | null;
   locationError: string | null;
+  mapLoadError: string | null;
   onStoreClick: (store: Store) => void;
 }
 
@@ -16,21 +17,39 @@ const MapFallback = ({
   selectedStoreId,
   userLocation,
   locationError,
+  mapLoadError,
   onStoreClick
 }: MapFallbackProps) => {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto px-4">
-        <div className="animate-bounce mb-4">
-          <MapPin className="h-10 w-10 text-primary mx-auto" />
-        </div>
-        <h2 className="text-xl font-semibold mb-2">Carte interactive</h2>
-        <p className="text-muted-foreground mb-4">Chargement de Google Maps en cours...</p>
-        
-        {locationError && (
-          <div className="text-destructive text-sm mb-4">
-            {locationError}
+        {mapLoadError ? (
+          <div className="space-y-4">
+            <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
+            <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
+            <p className="text-muted-foreground mb-4">{mapLoadError}</p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.reload()}
+            >
+              Recharger la page
+            </Button>
           </div>
+        ) : (
+          <>
+            <div className="animate-bounce mb-4">
+              <MapPin className="h-10 w-10 text-primary mx-auto" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Carte interactive</h2>
+            <p className="text-muted-foreground mb-4">Chargement de Google Maps en cours...</p>
+            
+            {locationError && (
+              <div className="text-destructive text-sm mb-4">
+                {locationError}
+              </div>
+            )}
+          </>
         )}
         
         <div className="grid gap-3 mt-6">

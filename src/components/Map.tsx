@@ -15,13 +15,25 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [mapLoadError, setMapLoadError] = useState<string | null>(null);
 
   // Check if Google Maps is loaded
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
+      // Check if Google Maps API is loaded and not throwing errors
       if (window.google && window.google.maps) {
-        setIsGoogleMapsLoaded(true);
+        try {
+          // This will throw an error if the API key is invalid or domain is not authorized
+          new window.google.maps.LatLng(0, 0);
+          setIsGoogleMapsLoaded(true);
+          setMapLoadError(null);
+        } catch (error) {
+          console.error("Google Maps API error:", error);
+          setMapLoadError("L'API Google Maps n'a pas pu être chargée correctement. Veuillez vérifier votre connexion internet ou réessayer plus tard.");
+          setIsGoogleMapsLoaded(false);
+        }
       } else {
+        // If still loading, try again in a moment
         setTimeout(checkGoogleMapsLoaded, 500);
       }
     };
@@ -80,6 +92,7 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           selectedStoreId={selectedStoreId}
           userLocation={userLocation}
           locationError={locationError}
+          mapLoadError={mapLoadError}
           onStoreClick={handleStoreClick}
         />
       )}

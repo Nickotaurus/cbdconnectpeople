@@ -1,6 +1,7 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Store } from '@/types/store';
+import { AlertCircle } from 'lucide-react';
 
 interface GoogleMapInitializerProps {
   userLocation: { latitude: number; longitude: number };
@@ -18,6 +19,7 @@ const GoogleMapInitializer = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -70,6 +72,7 @@ const GoogleMapInitializer = ({
       });
     } catch (error) {
       console.error("Error initializing Google Maps:", error);
+      setMapError("Une erreur est survenue lors de l'initialisation de la carte.");
     }
     
     return () => {
@@ -99,6 +102,17 @@ const GoogleMapInitializer = ({
       }
     });
   }, [selectedStoreId, stores]);
+
+  if (mapError) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+        <div className="text-center p-6 rounded-lg">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">{mapError}</p>
+        </div>
+      </div>
+    );
+  }
 
   return <div ref={mapContainerRef} className="absolute inset-0 z-10" />;
 };
