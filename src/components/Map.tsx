@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Store } from '@/types/store';
 import { filterUserLocation } from '@/utils/geoUtils';
@@ -19,13 +18,10 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [mapLoadError, setMapLoadError] = useState<string | null>(null);
 
-  // Check if Google Maps is loaded
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
-      // Check if Google Maps API is loaded
       if (window.google && window.google.maps) {
         try {
-          // Try to use the API to verify it's working properly
           new window.google.maps.LatLng(0, 0);
           setIsGoogleMapsLoaded(true);
           setMapLoadError(null);
@@ -34,7 +30,6 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           setMapLoadError("L'API Google Maps n'a pas pu être chargée correctement. Veuillez vérifier votre connexion internet ou réessayer plus tard.");
           setIsGoogleMapsLoaded(false);
           
-          // Show toast notification for better visibility
           toast({
             title: "Erreur de chargement Google Maps",
             description: "La carte ne peut pas être chargée. Vérifiez votre connexion ou essayez de recharger la page.",
@@ -42,15 +37,12 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           });
         }
       } else {
-        // If still loading or failed, check again in a moment
         setTimeout(checkGoogleMapsLoaded, 500);
       }
     };
     
-    // Start checking if Google Maps is loaded
     checkGoogleMapsLoaded();
     
-    // Add event listener for Google Maps script errors
     const handleScriptError = () => {
       setMapLoadError("Impossible de charger Google Maps. Vérifiez votre connexion internet ou l'autorisation du domaine.");
       setIsGoogleMapsLoaded(false);
@@ -62,7 +54,6 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
       });
     };
     
-    // Find Google Maps script element and attach error handler
     const mapsScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (mapsScript) {
       mapsScript.addEventListener('error', handleScriptError);
@@ -75,9 +66,7 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
     };
   }, [toast]);
   
-  // Get user location
   useEffect(() => {
-    // Use default location if geolocation fails
     const defaultLocation = filterUserLocation();
     
     if (navigator.geolocation) {
@@ -94,11 +83,10 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           setLocationError("Impossible d'accéder à votre position. Veuillez autoriser l'accès à la géolocalisation.");
           setUserLocation(defaultLocation);
           
-          // Show toast for geolocation error
           toast({
             title: "Accès à la position impossible",
             description: "Nous utilisons une position approximative. Pour une meilleure expérience, autorisez la géolocalisation.",
-            variant: "warning",
+            variant: "default",
           });
         },
         { 
