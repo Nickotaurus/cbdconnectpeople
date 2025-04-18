@@ -20,38 +20,46 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
   const [mapLoadError, setMapLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🗺️ Initializing Google Maps Check'); // Diagnostic log
+
     const checkGoogleMapsLoaded = () => {
+      console.log('🔍 Checking Google Maps API'); // Diagnostic log
+      
       if (window.google && window.google.maps) {
         try {
           new window.google.maps.LatLng(0, 0);
           setIsGoogleMapsLoaded(true);
           setMapLoadError(null);
+          console.log('✅ Google Maps API Loaded Successfully'); // Success log
         } catch (error) {
-          console.error("Google Maps API error:", error);
-          setMapLoadError("L'API Google Maps n'a pas pu être chargée correctement. Veuillez vérifier votre connexion internet ou réessayer plus tard.");
+          console.error("🚨 Google Maps API Initialization Error:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          setMapLoadError(`Erreur de chargement de l'API: ${errorMessage}`);
           setIsGoogleMapsLoaded(false);
           
           toast({
             title: "Erreur de chargement Google Maps",
-            description: "La carte ne peut pas être chargée. Vérifiez votre connexion ou essayez de recharger la page.",
-            variant: "destructive",
+            description: "Impossible de charger la carte. Vérifiez les autorisations de domaine.",
+            variant: "default",
           });
         }
       } else {
+        console.log('❓ Google Maps API Not Yet Available'); // Diagnostic log
         setTimeout(checkGoogleMapsLoaded, 500);
       }
     };
     
     checkGoogleMapsLoaded();
     
-    const handleScriptError = () => {
-      setMapLoadError("Impossible de charger Google Maps. Vérifiez votre connexion internet ou l'autorisation du domaine.");
+    const handleScriptError = (event: ErrorEvent) => {
+      console.error('🚫 Google Maps Script Error:', event.error);
+      setMapLoadError("Impossible de charger Google Maps. Vérifiez les autorisations du domaine.");
       setIsGoogleMapsLoaded(false);
       
       toast({
         title: "Erreur Google Maps",
-        description: "Votre domaine n'est pas autorisé à utiliser cette clé API Google Maps.",
-        variant: "destructive",
+        description: "Le script Maps n'a pas pu être chargé. Vérifiez le domaine.",
+        variant: "default",
       });
     };
     
@@ -155,3 +163,4 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
 };
 
 export default Map;
+
