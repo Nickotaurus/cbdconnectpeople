@@ -24,10 +24,14 @@ const MapFallback = ({
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto px-4">
         {mapLoadError ? (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
             <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
             <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
             <p className="text-muted-foreground mb-4">{mapLoadError}</p>
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">Erreur technique: RefererNotAllowedMapError</p>
+              <p>Le domaine actuel n'est pas autorisé à utiliser cette clé API Google Maps.</p>
+            </div>
             <Button 
               variant="outline" 
               className="w-full"

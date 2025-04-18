@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Store } from '@/types/store';
 import { AlertCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface GoogleMapInitializerProps {
   userLocation: { latitude: number; longitude: number };
@@ -72,7 +73,7 @@ const GoogleMapInitializer = ({
       });
     } catch (error) {
       console.error("Error initializing Google Maps:", error);
-      setMapError("Une erreur est survenue lors de l'initialisation de la carte.");
+      setMapError("Une erreur est survenue lors de l'initialisation de la carte. Veuillez réessayer.");
     }
     
     return () => {
@@ -108,7 +109,13 @@ const GoogleMapInitializer = ({
       <div className="absolute inset-0 flex items-center justify-center bg-background/80">
         <div className="text-center p-6 rounded-lg">
           <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">{mapError}</p>
+          <p className="text-muted-foreground mb-4">{mapError}</p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+          >
+            Réessayer
+          </Button>
         </div>
       </div>
     );

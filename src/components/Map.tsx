@@ -4,6 +4,7 @@ import { Store } from '@/types/store';
 import { filterUserLocation } from '@/utils/geoUtils';
 import GoogleMapInitializer from './map/GoogleMapInitializer';
 import MapFallback from './map/MapFallback';
+import { useToast } from "@/components/ui/use-toast";
 
 interface MapProps {
   stores: Store[];
@@ -12,6 +13,7 @@ interface MapProps {
 }
 
 const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
+  const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
@@ -20,10 +22,10 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
   // Check if Google Maps is loaded
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
-      // Check if Google Maps API is loaded and not throwing errors
+      // Check if Google Maps API is loaded
       if (window.google && window.google.maps) {
         try {
-          // This will throw an error if the API key is invalid or domain is not authorized
+          // Try to use the API to verify it's working properly
           new window.google.maps.LatLng(0, 0);
           setIsGoogleMapsLoaded(true);
           setMapLoadError(null);
@@ -31,18 +33,51 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           console.error("Google Maps API error:", error);
           setMapLoadError("L'API Google Maps n'a pas pu être chargée correctement. Veuillez vérifier votre connexion internet ou réessayer plus tard.");
           setIsGoogleMapsLoaded(false);
+          
+          // Show toast notification for better visibility
+          toast({
+            title: "Erreur de chargement Google Maps",
+            description: "La carte ne peut pas être chargée. Vérifiez votre connexion ou essayez de recharger la page.",
+            variant: "destructive",
+          });
         }
       } else {
-        // If still loading, try again in a moment
+        // If still loading or failed, check again in a moment
         setTimeout(checkGoogleMapsLoaded, 500);
       }
     };
     
+    // Start checking if Google Maps is loaded
     checkGoogleMapsLoaded();
-  }, []);
+    
+    // Add event listener for Google Maps script errors
+    const handleScriptError = () => {
+      setMapLoadError("Impossible de charger Google Maps. Vérifiez votre connexion internet ou l'autorisation du domaine.");
+      setIsGoogleMapsLoaded(false);
+      
+      toast({
+        title: "Erreur Google Maps",
+        description: "Votre domaine n'est pas autorisé à utiliser cette clé API Google Maps.",
+        variant: "destructive",
+      });
+    };
+    
+    // Find Google Maps script element and attach error handler
+    const mapsScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (mapsScript) {
+      mapsScript.addEventListener('error', handleScriptError);
+    }
+    
+    return () => {
+      if (mapsScript) {
+        mapsScript.removeEventListener('error', handleScriptError);
+      }
+    };
+  }, [toast]);
   
   // Get user location
   useEffect(() => {
+    // Use default location if geolocation fails
     const defaultLocation = filterUserLocation();
     
     if (navigator.geolocation) {
@@ -58,6 +93,13 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
           console.error("Error getting location:", error);
           setLocationError("Impossible d'accéder à votre position. Veuillez autoriser l'accès à la géolocalisation.");
           setUserLocation(defaultLocation);
+          
+          // Show toast for geolocation error
+          toast({
+            title: "Accès à la position impossible",
+            description: "Nous utilisons une position approximative. Pour une meilleure expérience, autorisez la géolocalisation.",
+            variant: "warning",
+          });
         },
         { 
           enableHighAccuracy: true,
@@ -69,7 +111,7 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
       setLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
       setUserLocation(defaultLocation);
     }
-  }, []);
+  }, [toast]);
 
   const handleStoreClick = (store: Store) => {
     if (onSelectStore) {
