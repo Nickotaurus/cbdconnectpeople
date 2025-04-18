@@ -20,6 +20,10 @@ const MapFallback = ({
   mapLoadError,
   onStoreClick
 }: MapFallbackProps) => {
+  const isRefererError = mapLoadError?.includes('domaine') || 
+                        (typeof window !== 'undefined' && 
+                          document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
+
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto px-4">
@@ -28,10 +32,15 @@ const MapFallback = ({
             <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
             <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
             <p className="text-muted-foreground mb-4">{mapLoadError}</p>
-            <div className="text-sm text-muted-foreground">
-              <p className="mb-2">Erreur technique: RefererNotAllowedMapError</p>
-              <p>Le domaine actuel n'est pas autorisé à utiliser cette clé API Google Maps.</p>
-            </div>
+            
+            {isRefererError && (
+              <div className="bg-muted p-4 rounded-md text-sm text-left mb-4">
+                <p className="font-medium mb-2">Erreur technique: RefererNotAllowedMapError</p>
+                <p className="mb-1">Le domaine actuel n'est pas autorisé à utiliser cette clé API Google Maps.</p>
+                <p className="font-mono text-xs mt-2 break-all">URL actuelle: {window.location.href}</p>
+              </div>
+            )}
+            
             <Button 
               variant="outline" 
               className="w-full"
@@ -39,6 +48,13 @@ const MapFallback = ({
             >
               Recharger la page
             </Button>
+            
+            {isRefererError && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Cette erreur doit être résolue par l'administrateur du site en ajoutant ce domaine 
+                dans les paramètres de la clé API Google Maps.
+              </p>
+            )}
           </div>
         ) : (
           <>

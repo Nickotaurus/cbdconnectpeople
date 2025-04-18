@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Store } from '@/types/store';
 import { filterUserLocation } from '@/utils/geoUtils';
@@ -106,6 +107,29 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
       onSelectStore(store);
     }
   };
+
+  // Check for Google Maps error divs that might be created in the DOM
+  useEffect(() => {
+    const checkForRefererError = () => {
+      const errorDivs = document.querySelectorAll('.gm-err-container');
+      
+      if (errorDivs.length > 0) {
+        const errorMessage = document.querySelector('.gm-err-message')?.textContent;
+        
+        if (errorMessage && errorMessage.includes('RefererNotAllowedMapError')) {
+          setMapLoadError("Ce domaine n'est pas autorisé à utiliser cette clé API Google Maps.");
+          setIsGoogleMapsLoaded(false);
+        }
+      }
+    };
+    
+    // Check after a short delay to allow Google Maps to render its error
+    const errorCheckTimeout = setTimeout(checkForRefererError, 1000);
+    
+    return () => {
+      clearTimeout(errorCheckTimeout);
+    };
+  }, [isGoogleMapsLoaded]);
 
   return (
     <div className="relative w-full h-[70vh] md:h-[80vh] bg-secondary rounded-lg overflow-hidden">
