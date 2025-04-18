@@ -1,11 +1,5 @@
 
 // Type definitions for Google Maps JavaScript API
-declare global {
-  interface Window {
-    google: typeof google;
-  }
-}
-
 declare namespace google {
   namespace maps {
     class Map {
@@ -138,4 +132,7 @@ declare namespace google {
   }
 }
 
-export {};
+// Add this to ensure window.google is correctly typed
+interface Window {
+  google: typeof google;
+}
