@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { MapPin, Loader2 } from "lucide-react";
-import { initializeGoogleMap, createUserLocationMarker, getCurrentLocation } from '@/utils/mapUtils';
-import { searchNearbyStores, getStoreDetails } from '@/services/placesService';
-import StoreInfoWindow from './StoreInfoWindow';
+import { useGoogleMap } from '@/hooks/useGoogleMap';
+import StoreMarkers from './StoreMarkers';
 import './StoreSearch.css';
 
 interface StoreSearchProps {
@@ -21,94 +20,8 @@ interface StoreSearchProps {
 }
 
 const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
-  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const searchResultsRef = useRef<google.maps.Marker[]>([]);
-  const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
-
-  const initializeMap = async () => {
-    if (!window.google?.maps) {
-      toast({
-        title: "Erreur",
-        description: "Le service Google Maps n'est pas disponible",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const location = await getCurrentLocation();
-      setUserLocation(location);
-
-      const mapElement = document.getElementById('store-search-map');
-      if (!mapElement) return;
-
-      const map = initializeGoogleMap(mapElement, location);
-      mapRef.current = map;
-
-      createUserLocationMarker(map, location);
-
-      const service = new google.maps.places.PlacesService(map);
-      const results = await searchNearbyStores(service, location);
-
-      searchResultsRef.current.forEach(marker => marker.setMap(null));
-      searchResultsRef.current = [];
-
-      results.forEach(place => {
-        if (!place.geometry?.location) return;
-
-        const marker = new google.maps.Marker({
-          position: place.geometry.location,
-          map,
-          title: place.name,
-          animation: google.maps.Animation.DROP
-        });
-
-        marker.addListener('click', async () => {
-          if (activeInfoWindow.current) {
-            activeInfoWindow.current.close();
-          }
-
-          try {
-            const placeDetails = await getStoreDetails(service, place.place_id as string);
-            const infoWindow = new google.maps.InfoWindow({
-              content: StoreInfoWindow({ 
-                place: placeDetails, 
-                onSelect: () => handleStoreSelect(placeDetails) 
-              }),
-              ariaLabel: place.name,
-            });
-
-            window.selectStore = (placeId: string) => {
-              if (placeId === place.place_id) {
-                handleStoreSelect(placeDetails);
-              }
-            };
-
-            infoWindow.open(map, marker);
-            activeInfoWindow.current = infoWindow;
-          } catch (error) {
-            console.error('Error fetching place details:', error);
-          }
-        });
-
-        searchResultsRef.current.push(marker);
-      });
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'initialiser la carte",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { map, isLoading, userLocation, initializeMap } = useGoogleMap();
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -132,14 +45,9 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      initializeMap();
+      const mapElement = document.getElementById('store-search-map');
+      initializeMap(mapElement);
     }
-    return () => {
-      if (searchResultsRef.current) {
-        searchResultsRef.current.forEach(marker => marker.setMap(null));
-        searchResultsRef.current = [];
-      }
-    };
   }, [isOpen]);
 
   return (
@@ -161,6 +69,11 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             </div>
           )}
           <div id="store-search-map" className="w-full h-full rounded-md" />
+          <StoreMarkers 
+            map={map}
+            userLocation={userLocation}
+            onStoreSelect={handleStoreSelect}
+          />
         </DialogContent>
       </Dialog>
     </>
