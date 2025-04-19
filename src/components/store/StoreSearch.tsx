@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { MapPin, Loader2 } from "lucide-react";
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -19,10 +20,37 @@ interface StoreSearchProps {
 
 const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const { toast } = useToast();
-  const [searchResults, setSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const searchResultsRef = useRef<google.maps.Marker[]>([]);
 
-  const handleSearch = () => {
-    if (!window.google?.maps?.places) {
+  const getCurrentLocation = () => {
+    return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("La géolocalisation n'est pas supportée par votre navigateur"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error("Erreur de géolocalisation:", error);
+          // Default to Paris if geolocation fails
+          resolve({ lat: 48.8566, lng: 2.3522 });
+        }
+      );
+    });
+  };
+
+  const initializeMap = async () => {
+    if (!window.google?.maps) {
       toast({
         title: "Erreur",
         description: "Le service Google Maps n'est pas disponible",
@@ -31,80 +59,127 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       return;
     }
 
-    const france = new google.maps.LatLng(46.603354, 1.888334);
-    const service = new google.maps.places.PlacesService(document.createElement('div'));
+    setIsLoading(true);
+    try {
+      const location = await getCurrentLocation();
+      setUserLocation(location);
 
-    service.nearbySearch({
-      location: france,
-      radius: 500000,
-      keyword: 'cbd shop',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        setSearchResults(results);
-      } else {
-        toast({
-          title: "Aucun résultat",
-          description: "Aucune boutique CBD n'a été trouvée",
-          variant: "destructive"
-        });
-      }
-    });
-  };
+      // Create map instance
+      const mapElement = document.getElementById('store-search-map');
+      if (!mapElement) return;
 
-  const handleStoreSelect = (place: google.maps.places.PlaceResult) => {
-    if (!place.geometry?.location || !place.formatted_address) {
+      const map = new google.maps.Map(mapElement, {
+        center: location,
+        zoom: 13,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false
+      });
+      mapRef.current = map;
+
+      // Add user location marker
+      new google.maps.Marker({
+        position: location,
+        map: map,
+        title: "Votre position",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: "#4F46E5",
+          fillOpacity: 1,
+          strokeColor: "#312E81",
+          strokeWeight: 2,
+          scale: 8
+        }
+      });
+
+      // Search for CBD shops
+      const service = new google.maps.places.PlacesService(map);
+      service.nearbySearch({
+        location: location,
+        radius: 5000,
+        keyword: 'cbd shop',
+      }, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          // Clear previous markers
+          searchResultsRef.current.forEach(marker => marker.setMap(null));
+          searchResultsRef.current = [];
+
+          results.forEach(place => {
+            if (!place.geometry?.location) return;
+
+            const marker = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              title: place.name,
+              animation: google.maps.Animation.DROP
+            });
+
+            marker.addListener('click', () => {
+              const addressComponents = place.formatted_address?.split(',') || [];
+              const city = addressComponents[1]?.trim() || '';
+              const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+
+              onStoreSelect({
+                name: place.name || '',
+                address: addressComponents[0]?.trim() || '',
+                city,
+                postalCode,
+                latitude: place.geometry.location.lat(),
+                longitude: place.geometry.location.lng(),
+                placeId: place.place_id || ''
+              });
+
+              setIsOpen(false);
+            });
+
+            searchResultsRef.current.push(marker);
+          });
+        }
+        setIsLoading(false);
+      });
+    } catch (error) {
+      console.error('Error initializing map:', error);
       toast({
         title: "Erreur",
-        description: "Les informations de la boutique sont incomplètes",
+        description: "Impossible d'initialiser la carte",
         variant: "destructive"
       });
-      return;
+      setIsLoading(false);
     }
-
-    const addressComponents = place.formatted_address.split(',');
-    const city = addressComponents[1]?.trim() || '';
-    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[ 0 ] || '';
-
-    onStoreSelect({
-      name: place.name || '',
-      address: addressComponents[0]?.trim() || '',
-      city,
-      postalCode,
-      latitude: place.geometry.location.lat(),
-      longitude: place.geometry.location.lng(),
-      placeId: place.place_id || ''
-    });
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <Button onClick={handleSearch} className="w-full">
-          <MapPin className="w-4 h-4 mr-2" />
-          Rechercher ma boutique CBD
-        </Button>
-      </div>
+  useEffect(() => {
+    if (isOpen) {
+      initializeMap();
+    }
+    // Cleanup function
+    return () => {
+      searchResultsRef.current.forEach(marker => marker.setMap(null));
+      searchResultsRef.current = [];
+    };
+  }, [isOpen]);
 
-      {searchResults.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Sélectionnez votre boutique dans la liste :
-          </p>
-          <div className="space-y-2">
-            {searchResults.map((place) => (
-              <Card
-                key={place.place_id}
-                className="p-4 cursor-pointer hover:bg-accent transition-colors"
-                onClick={() => handleStoreSelect(place)}
-              >
-                <h3 className="font-medium">{place.name}</h3>
-                <p className="text-sm text-muted-foreground">{place.formatted_address}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+  return (
+    <>
+      <Button 
+        onClick={() => setIsOpen(true)} 
+        className="w-full"
+      >
+        <MapPin className="w-4 h-4 mr-2" />
+        Rechercher ma boutique CBD
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[800px] h-[600px]">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          )}
+          <div id="store-search-map" className="w-full h-full rounded-md" />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
