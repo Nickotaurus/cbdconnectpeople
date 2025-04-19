@@ -64,6 +64,19 @@ const PartnersContent = ({
       <div className="text-center py-10">
         <p>Aucun partenaire ne correspond à votre recherche</p>
         <p className="mt-4 font-medium">Partenaires disponibles: {partnerProfilesCount}</p>
+        
+        <Alert className="mt-6 max-w-xl mx-auto">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Information sur la visibilité des partenaires</AlertTitle>
+          <AlertDescription>
+            Pour qu'un partenaire apparaisse dans cette liste, son profil doit avoir :
+            <ul className="list-disc pl-5 mt-2">
+              <li>Le rôle "partner" dans la base de données</li>
+              <li>Le champ "is_verified" doit être à true</li>
+              <li>Une catégorie de partenaire définie (partner_category)</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }

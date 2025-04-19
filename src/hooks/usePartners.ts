@@ -22,7 +22,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
         
-        // Force public access with anon key only - no auth required
+        // Récupération des partenaires depuis la base de données
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -47,9 +47,28 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Partner profiles count:", data?.length || 0);
         
         if (data && data.length > 0) {
+          // Affichage détaillé des profils pour le débogage
+          data.forEach(profile => {
+            console.log("Profile details:", {
+              id: profile.id,
+              name: profile.name,
+              role: profile.role,
+              is_verified: profile.is_verified,
+              partner_category: profile.partner_category,
+              partner_id: profile.partner_id
+            });
+          });
+          
           const formattedProfiles = data
             .filter(profile => {
-              console.log("Checking profile:", profile.name, "with partner_category:", profile.partner_category);
+              // Log détaillé pour chaque profil
+              console.log(`Checking profile ${profile.name} (id: ${profile.id}):`);
+              console.log(`- role: ${profile.role}`);
+              console.log(`- is_verified: ${profile.is_verified}`);
+              console.log(`- partner_category: ${profile.partner_category}`);
+              console.log(`- partner_id: ${profile.partner_id}`);
+              
+              // Inclure les profils qui ont une catégorie ou un ID de partenaire
               return profile.partner_category || profile.partner_id;
             })
             .map(profile => {
