@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { PartnerUser } from '@/types/auth';
+import { PartnerUser, PartnerCategory } from '@/types/auth';
 
 export const usePendingPartners = () => {
   const [pendingPartners, setPendingPartners] = useState<PartnerUser[]>([]);
@@ -25,7 +25,7 @@ export const usePendingPartners = () => {
         email: partner.email || '',
         role: 'partner',
         createdAt: partner.created_at || '',
-        partnerCategory: partner.partner_category || '',
+        partnerCategory: partner.partner_category as PartnerCategory || 'other', // Cast to PartnerCategory type
         verified: partner.is_verified || false,
         certifications: partner.certifications || [],
         partnerId: partner.partner_id
