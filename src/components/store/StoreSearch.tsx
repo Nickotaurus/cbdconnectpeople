@@ -1,10 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin, Loader2, Star } from "lucide-react";
 import './StoreSearch.css';
 
 interface StoreSearchProps {
@@ -26,6 +24,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const searchResultsRef = useRef<google.maps.Marker[]>([]);
+  const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
 
   const getCurrentLocation = () => {
     return new Promise<google.maps.LatLngLiteral>((resolve, reject) => {
@@ -43,7 +42,6 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         },
         (error) => {
           console.error("Erreur de géolocalisation:", error);
-          // Default to Paris if geolocation fails
           resolve({ lat: 48.8566, lng: 2.3522 });
         }
       );
@@ -65,7 +63,6 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       const location = await getCurrentLocation();
       setUserLocation(location);
 
-      // Create map instance
       const mapElement = document.getElementById('store-search-map');
       if (!mapElement) return;
 
@@ -78,7 +75,6 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       });
       mapRef.current = map;
 
-      // Add user location marker
       new google.maps.Marker({
         position: location,
         map: map,
@@ -93,17 +89,15 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         }
       });
 
-      // Search for CBD shops
       const service = new google.maps.places.PlacesService(map);
       const request: google.maps.places.PlaceSearchRequest = {
-        location: new google.maps.LatLng(location.lat, location.lng),
+        location: location,
         radius: 5000,
         keyword: 'cbd shop',
       };
       
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          // Clear previous markers
           searchResultsRef.current.forEach(marker => marker.setMap(null));
           searchResultsRef.current = [];
 
@@ -117,23 +111,67 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
               animation: google.maps.Animation.DROP
             });
 
+            const infoWindowContent = `
+              <div class="store-info-window">
+                <h3 class="store-name">${place.name}</h3>
+                ${place.rating ? `
+                  <div class="store-rating">
+                    <span class="rating-value">${place.rating.toFixed(1)}</span>
+                    <span class="rating-stars">★</span>
+                    ${place.user_ratings_total ? `
+                      <span class="rating-count">(${place.user_ratings_total} avis)</span>
+                    ` : ''}
+                  </div>
+                ` : ''}
+                ${place.vicinity ? `<p class="store-address">${place.vicinity}</p>` : ''}
+                <button class="select-store-btn" onclick="window.selectStore('${place.place_id}')">
+                  Sélectionner cette boutique
+                </button>
+              </div>
+            `;
+
+            const infoWindow = new google.maps.InfoWindow({
+              content: infoWindowContent,
+              ariaLabel: place.name,
+            });
+
             marker.addListener('click', () => {
-              const placeLocation = place.geometry!.location;
-              const addressComponents = place.formatted_address?.split(',') || [];
-              const city = addressComponents[1]?.trim() || '';
-              const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+              if (activeInfoWindow.current) {
+                activeInfoWindow.current.close();
+              }
+              
+              service.getDetails(
+                {
+                  placeId: place.place_id,
+                  fields: ['name', 'formatted_address', 'geometry', 'rating', 'user_ratings_total']
+                },
+                (placeDetails, detailStatus) => {
+                  if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+                    const addressComponents = placeDetails.formatted_address?.split(',') || [];
+                    const city = addressComponents[1]?.trim() || '';
+                    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+                    const placeLocation = placeDetails.geometry!.location;
 
-              onStoreSelect({
-                name: place.name || '',
-                address: addressComponents[0]?.trim() || '',
-                city,
-                postalCode,
-                latitude: placeLocation.lat(),
-                longitude: placeLocation.lng(),
-                placeId: place.place_id || ''
-              });
+                    window.selectStore = (placeId: string) => {
+                      if (placeId === place.place_id) {
+                        onStoreSelect({
+                          name: placeDetails.name || '',
+                          address: addressComponents[0]?.trim() || '',
+                          city,
+                          postalCode,
+                          latitude: placeLocation.lat(),
+                          longitude: placeLocation.lng(),
+                          placeId: place.place_id
+                        });
+                        setIsOpen(false);
+                      }
+                    };
 
-              setIsOpen(false);
+                    infoWindow.open(map, marker);
+                    activeInfoWindow.current = infoWindow;
+                  }
+                }
+              );
             });
 
             searchResultsRef.current.push(marker);
@@ -156,7 +194,6 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     if (isOpen) {
       initializeMap();
     }
-    // Cleanup function
     return () => {
       if (searchResultsRef.current) {
         searchResultsRef.current.forEach(marker => marker.setMap(null));
