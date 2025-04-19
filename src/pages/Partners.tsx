@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { useNavigate } from 'react-router-dom';
 
 // Custom hook for partners data
 import { usePartners } from '@/hooks/usePartners';
@@ -24,7 +22,7 @@ const Partners = () => {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
   // Get partners data from custom hook
-  const { partnerProfiles, filteredPartners, isLoading, error, useMockData } = usePartners(searchTerm, categoryFilter);
+  const { partnerProfiles, filteredPartners, isLoading, error } = usePartners(searchTerm, categoryFilter);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   const hasPremium = user?.role === "store" && user.isVerified;
@@ -77,7 +75,6 @@ const Partners = () => {
           partnerProfilesCount={partnerProfiles.length}
           isProfessional={isProfessional}
           hasPremium={hasPremium}
-          useMockData={useMockData}
           onContactClick={handleContactClick}
         />
       </div>

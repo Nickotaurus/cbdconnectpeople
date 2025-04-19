@@ -3,8 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import PartnersList from '@/components/partners/PartnersList';
-import { Partner } from '@/data/partnersData';
-import { mockPartners } from '@/data/partnersData';
+import { Partner } from '@/hooks/usePartners';
 
 interface PartnersContentProps {
   isLoading: boolean;
@@ -13,7 +12,6 @@ interface PartnersContentProps {
   partnerProfilesCount: number;
   isProfessional: boolean;
   hasPremium: boolean;
-  useMockData: boolean;
   onContactClick: (partnerId: string) => void;
 }
 
@@ -24,7 +22,6 @@ const PartnersContent = ({
   partnerProfilesCount,
   isProfessional,
   hasPremium,
-  useMockData,
   onContactClick
 }: PartnersContentProps) => {
   if (isLoading) {
@@ -48,13 +45,6 @@ const PartnersContent = ({
     return (
       <div className="text-center py-10 text-red-500">
         <p>{error}</p>
-        <p className="mt-2 mb-6">Affichage des partenaires par défaut</p>
-        <PartnersList
-          partners={mockPartners}
-          isProfessional={isProfessional}
-          hasPremium={hasPremium}
-          onContactClick={onContactClick}
-        />
       </div>
     );
   }
@@ -83,17 +73,8 @@ const PartnersContent = ({
   
   return (
     <>
-      {useMockData && (
-        <Alert className="mb-4">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Données d'exemple</AlertTitle>
-          <AlertDescription>
-            Actuellement, seuls des partenaires fictifs sont affichés car aucun partenaire réel n'a été trouvé dans la base de données.
-          </AlertDescription>
-        </Alert>
-      )}
       <div className="mb-2 text-sm text-muted-foreground">
-        {filteredPartners.length} partenaire(s) trouvé(s){useMockData ? ' (exemples)' : ''}
+        {filteredPartners.length} partenaire(s) trouvé(s)
       </div>
       <PartnersList
         partners={filteredPartners}
