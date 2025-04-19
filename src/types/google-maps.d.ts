@@ -93,10 +93,7 @@ declare namespace google {
         place_id?: string;
         formatted_address?: string;
         geometry?: {
-          location: {
-            lat: () => number;
-            lng: () => number;
-          };
+          location: LatLng;
         };
         name?: string;
         rating?: number;
@@ -115,15 +112,17 @@ declare namespace google {
         UNKNOWN_ERROR
       }
 
+      interface PlaceSearchRequest {
+        location: LatLng | LatLngLiteral;
+        radius: number;
+        keyword?: string;
+        type?: string;
+      }
+
       class PlacesService {
         constructor(attrContainer: Element | Map);
         nearbySearch(
-          request: {
-            location: LatLng;
-            radius: number;
-            keyword?: string;
-            type?: string;
-          },
+          request: PlaceSearchRequest,
           callback: (
             results: PlaceResult[] | null,
             status: PlacesServiceStatus

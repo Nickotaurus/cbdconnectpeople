@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MapPin, Loader2 } from "lucide-react";
+import './StoreSearch.css';
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -22,12 +23,12 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const searchResultsRef = useRef<google.maps.Marker[]>([]);
 
   const getCurrentLocation = () => {
-    return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+    return new Promise<google.maps.LatLngLiteral>((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error("La géolocalisation n'est pas supportée par votre navigateur"));
         return;
@@ -94,11 +95,13 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
       // Search for CBD shops
       const service = new google.maps.places.PlacesService(map);
-      service.nearbySearch({
-        location: location,
+      const request: google.maps.places.PlaceSearchRequest = {
+        location: new google.maps.LatLng(location.lat, location.lng),
         radius: 5000,
         keyword: 'cbd shop',
-      }, (results, status) => {
+      };
+      
+      service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
           // Clear previous markers
           searchResultsRef.current.forEach(marker => marker.setMap(null));
@@ -115,6 +118,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             });
 
             marker.addListener('click', () => {
+              const placeLocation = place.geometry!.location;
               const addressComponents = place.formatted_address?.split(',') || [];
               const city = addressComponents[1]?.trim() || '';
               const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
@@ -124,8 +128,8 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
                 address: addressComponents[0]?.trim() || '',
                 city,
                 postalCode,
-                latitude: place.geometry.location.lat(),
-                longitude: place.geometry.location.lng(),
+                latitude: placeLocation.lat(),
+                longitude: placeLocation.lng(),
                 placeId: place.place_id || ''
               });
 
