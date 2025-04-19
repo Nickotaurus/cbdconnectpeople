@@ -18,7 +18,20 @@ export const usePendingPartners = () => {
 
       if (error) throw error;
 
-      setPendingPartners(data as PartnerUser[]);
+      // Map the database fields to match PartnerUser type
+      const mappedPartners: PartnerUser[] = (data || []).map(partner => ({
+        id: partner.id || '',
+        name: partner.name || '',
+        email: partner.email || '',
+        role: 'partner',
+        createdAt: partner.created_at || '',
+        partnerCategory: partner.partner_category || '',
+        verified: partner.is_verified || false,
+        certifications: partner.certifications || [],
+        partnerId: partner.partner_id
+      }));
+
+      setPendingPartners(mappedPartners);
     } catch (err: any) {
       console.error('Erreur lors du chargement des partenaires:', err);
       setError(err.message);
