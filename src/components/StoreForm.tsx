@@ -1,41 +1,34 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
-import BasicInfoFields from './store-form/BasicInfoFields';
-import GooglePlacesSearch from './store-form/GooglePlacesSearch';
 import DescriptionField from './store-form/DescriptionField';
-import EcommerceField from './store-form/EcommerceField';
 import FormAccordion from './store-form/FormAccordion';
 import FormActions from './store-form/FormActions';
+import StoreSearch from './store/StoreSearch';
+import StoreImageUpload from './store/StoreImageUpload';
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
   storeType?: string;
 }
 
-const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical' }) => {
+const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     city: '',
     postalCode: '',
+    latitude: 0,
+    longitude: 0,
     phone: '',
     website: '',
     description: '',
     placeId: '',
-    latitude: 0,
-    longitude: 0,
-    originalIncentive: '',
-    incentiveDescription: '',
-    lotteryPrizeName: '',
-    lotteryPrizeDescription: '',
-    lotteryPrizeValue: '',
-    ecommerceUrl: ''
+    logoUrl: '',
+    photoUrl: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -46,50 +39,62 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
     }));
   };
 
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
-    if (!place.geometry?.location) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de récupérer les coordonnées de l'établissement",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleStoreSelect = (store: {
+    name: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    latitude: number;
+    longitude: number;
+    placeId: string;
+  }) => {
     setFormData(prev => ({
       ...prev,
-      placeId: place.place_id || '',
-      latitude: place.geometry.location.lat(),
-      longitude: place.geometry.location.lng(),
-      address: place.formatted_address?.split(',')[0] || prev.address,
+      ...store
     }));
 
     toast({
-      title: "Établissement trouvé",
-      description: "Les coordonnées ont été automatiquement ajoutées",
+      title: "Boutique sélectionnée",
+      description: "Les informations ont été automatiquement remplies",
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleImageUpload = (type: 'logo' | 'photo', url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [type === 'logo' ? 'logoUrl' : 'photoUrl']: url
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.placeId) {
       toast({
         title: "Erreur",
-        description: "Veuillez rechercher et sélectionner votre établissement",
+        description: "Veuillez sélectionner votre boutique via Google Maps",
         variant: "destructive",
-        duration: 5000,
       });
       return;
     }
-    
+
+    if (!formData.logoUrl || !formData.photoUrl) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez télécharger un logo et une photo de votre boutique",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Prepare the complete store object
       const storeData: Omit<Store, 'id'> = {
         ...formData,
-        imageUrl: "https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000", // Default image
-        rating: 0, // Default rating for new store
-        reviewCount: 0, // Default review count for new store
+        imageUrl: formData.photoUrl,
+        logo_url: formData.logoUrl,
+        photo_url: formData.photoUrl,
+        rating: 0,
+        reviewCount: 0,
         openingHours: [
           { day: "Lundi", hours: "11:00 - 19:00" },
           { day: "Mardi", hours: "11:00 - 19:00" },
@@ -99,89 +104,53 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSuccess, storeType = 'physical'
           { day: "Samedi", hours: "10:00 - 19:00" },
           { day: "Dimanche", hours: "Fermé" },
         ],
-        // Replace coupon with new incentive structure
-        incentive: {
-          title: formData.originalIncentive,
-          description: formData.incentiveDescription,
-          validUntil: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
-        },
         reviews: [],
         products: [
           { category: "Fleurs", origin: "France", quality: "Bio" },
           { category: "Huiles", origin: "France", quality: "Premium" },
         ],
-        // Add the store type information
         isEcommerce: storeType === 'ecommerce' || storeType === 'both',
-        ecommerceUrl: storeType === 'ecommerce' || storeType === 'both' ? formData.ecommerceUrl : undefined,
       };
-      
-      // Add lottery prize if provided
-      if (formData.lotteryPrizeName && formData.lotteryPrizeDescription) {
-        storeData.lotteryPrize = {
-          name: formData.lotteryPrizeName,
-          description: formData.lotteryPrizeDescription,
-          value: formData.lotteryPrizeValue || undefined
-        };
-      }
-      
+
       const newStore = addStore(storeData);
-      
+
       toast({
-        title: "Boutique ajoutée avec succès",
-        description: `La boutique "${newStore.name}" a été ajoutée.`,
-        duration: 3000,
+        title: "Boutique ajoutée",
+        description: `La boutique "${newStore.name}" a été ajoutée avec succès.`,
       });
-      
+
       if (onSuccess) {
         onSuccess(newStore);
       }
-      
-      // Reset form
-      setFormData({
-        name: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        latitude: 0,
-        longitude: 0,
-        phone: '',
-        website: '',
-        description: '',
-        placeId: '',
-        originalIncentive: '',
-        incentiveDescription: '',
-        lotteryPrizeName: '',
-        lotteryPrizeDescription: '',
-        lotteryPrizeValue: '',
-        ecommerceUrl: ''
-      });
-      
+
     } catch (error) {
       console.error("Erreur lors de l'ajout de la boutique:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'ajout de la boutique.",
         variant: "destructive",
-        duration: 5000,
       });
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <BasicInfoFields formData={formData} handleChange={handleChange} />
-      
-      <GooglePlacesSearch 
-        formData={formData} 
-        handleChange={handleChange}
-        onPlaceSelect={handlePlaceSelect}
-      />
+      <StoreSearch onStoreSelect={handleStoreSelect} />
+
+      <div className="grid gap-4">
+        <StoreImageUpload 
+          type="logo" 
+          label="Ajouter le logo de la boutique" 
+          onImageUpload={handleImageUpload} 
+        />
+        <StoreImageUpload 
+          type="photo" 
+          label="Ajouter une photo de la boutique" 
+          onImageUpload={handleImageUpload} 
+        />
+      </div>
       
       <DescriptionField description={formData.description} handleChange={handleChange} />
-      
-      {(storeType === 'ecommerce' || storeType === 'both') && (
-        <EcommerceField ecommerceUrl={formData.ecommerceUrl} handleChange={handleChange} />
-      )}
       
       <FormAccordion formData={formData} handleChange={handleChange} storeType={storeType} />
       

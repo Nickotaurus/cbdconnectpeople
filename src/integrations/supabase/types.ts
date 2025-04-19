@@ -155,6 +155,54 @@ export type Database = {
         }
         Relationships: []
       }
+      stores: {
+        Row: {
+          address: string
+          city: string
+          claimed_by: string | null
+          description: string | null
+          id: string
+          latitude: number
+          logo_url: string | null
+          longitude: number
+          name: string
+          phone: string | null
+          photo_url: string | null
+          postal_code: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          city: string
+          claimed_by?: string | null
+          description?: string | null
+          id?: string
+          latitude: number
+          logo_url?: string | null
+          longitude: number
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          postal_code: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string
+          claimed_by?: string | null
+          description?: string | null
+          id?: string
+          latitude?: number
+          logo_url?: string | null
+          longitude?: number
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          postal_code?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
