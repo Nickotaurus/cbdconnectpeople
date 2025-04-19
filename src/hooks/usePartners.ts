@@ -30,6 +30,15 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
       try {
         console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
         
+        // Get raw database fields first to inspect what we're getting
+        const { data: rawData, error: rawError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'partner');
+          
+        console.log("All partner profiles before filtering:", rawData);
+        
+        // Then apply the verified filter
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -48,14 +57,29 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           return;
         }
 
-        console.log("Raw partner profiles fetched:", data);
+        console.log("Raw partner profiles fetched (verified only):", data);
         console.log("Partner profiles count:", data?.length || 0);
         
         if (data && data.length > 0) {
+          // Log each profile to inspect what fields are actually available
+          data.forEach(profile => {
+            console.log("Profile details:", {
+              id: profile.id,
+              name: profile.name,
+              role: profile.role,
+              partner_category: profile.partner_category,
+              is_verified: profile.is_verified,
+              location: profile.partner_favorites?.[3],
+              description: profile.partner_favorites?.[6]
+            });
+          });
+          
           const formattedProfiles = data
             .filter(profile => {
-              console.log("Processing profile:", profile.name, profile.partner_category);
-              return profile.partner_category || profile.partner_id;
+              // Check if profile has a category defined
+              const hasCategory = Boolean(profile.partner_category);
+              console.log(`Profile ${profile.name}: has category = ${hasCategory}, category = ${profile.partner_category}`);
+              return hasCategory;
             })
             .map(profile => ({
               id: profile.id,
@@ -75,7 +99,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           console.log("Filtered partners result:", filtered.map(p => p.name));
           setFilteredPartners(filtered);
         } else {
-          console.log("No partner profiles found in database");
+          console.log("No partner profiles found in database that are verified");
           setPartnerProfiles([]);
           setFilteredPartners([]);
         }

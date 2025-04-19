@@ -59,12 +59,15 @@ const PartnersContent = ({
           <Info className="h-4 w-4" />
           <AlertTitle>Information sur la visibilité des partenaires</AlertTitle>
           <AlertDescription>
-            Pour qu'un partenaire apparaisse dans cette liste, son profil doit avoir :
+            Pour qu'un partenaire apparaisse dans cette liste, son profil doit avoir exactement :
             <ul className="list-disc pl-5 mt-2">
-              <li>Le rôle "partner" dans la base de données</li>
-              <li>Le champ "is_verified" doit être à true</li>
-              <li>Une catégorie de partenaire définie (partner_category)</li>
+              <li>Le champ "role" doit être exactement "partner" (sensible à la casse)</li>
+              <li>Le champ "is_verified" doit être à true (et pas un autre champ comme "verified")</li>
+              <li>Le champ "partner_category" doit contenir une des catégories valides</li>
             </ul>
+            <div className="mt-2 bg-muted p-2 rounded text-xs">
+              <p className="font-semibold">Vérifier dans la console les logs qui montrent les détails des partenaires récupérés</p>
+            </div>
           </AlertDescription>
         </Alert>
       </div>
