@@ -28,23 +28,36 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
       setError(null);
       
       try {
-        console.log("Fetching partner profiles from database with searchTerm:", searchTerm, "and category:", categoryFilter);
+        console.log("🔍 Fetching partner profiles");
         
-        // Requête détaillée pour inspecter tous les profils partenaires
+        // Detailed query to inspect ALL partner profiles
         const { data: allProfiles, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('role', 'partner');
         
         if (profileError) {
-          console.error("Erreur lors de la récupération des profils:", profileError);
+          console.error("❌ Error fetching profiles:", profileError);
+          setError("Impossible de charger les profils partenaires");
           return;
         }
 
-        console.log("TOUS les profils récupérés:", allProfiles);
-        console.log("Nombre total de profils partenaires:", allProfiles?.length || 0);
+        console.log("📋 Total partner profiles found:", allProfiles?.length || 0);
+        
+        if (allProfiles && allProfiles.length > 0) {
+          allProfiles.forEach(profile => {
+            console.log("🕵️ Profile Details:", {
+              id: profile.id,
+              name: profile.name,
+              role: profile.role,
+              verified: profile.is_verified,
+              category: profile.partner_category,
+              partners_favorites: profile.partner_favorites
+            });
+          });
+        }
 
-        // Requête filtrée avec les conditions précises
+        // Filtered query with precise conditions
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -53,7 +66,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           .not('partner_category', 'is', null);
         
         if (error) {
-          console.error("Erreur lors du filtrage des partenaires:", error);
+          console.error("❌ Error filtering partners:", error);
           toast({
             title: "Erreur de chargement",
             description: "Impossible de charger les partenaires.",
@@ -62,18 +75,14 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           return;
         }
 
-        console.log("Profils partenaires filtrés:", data);
-        console.log("Nombre de profils partenaires filtrés:", data?.length || 0);
+        console.log("✅ Filtered partner profiles:", data?.length || 0);
         
         if (data && data.length > 0) {
-          // Log détaillé de chaque profil
           data.forEach(profile => {
-            console.log("Détails du profil partenaire:", {
+            console.log("✨ Partner Profile:", {
               id: profile.id,
-              nom: profile.name,
-              role: profile.role,
-              categoriePartenaire: profile.partner_category,
-              estVerifie: profile.is_verified,
+              name: profile.name,
+              category: profile.partner_category,
               location: profile.partner_favorites?.[3] || 'Non spécifiée',
               description: profile.partner_favorites?.[6] || 'Aucune description'
             });
@@ -90,19 +99,19 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
           }));
 
-          console.log("Profils partenaires formatés:", formattedProfiles);
+          console.log("🏆 Formatted Profiles:", formattedProfiles);
           setPartnerProfiles(formattedProfiles);
           
           const filtered = filterPartners(formattedProfiles, searchTerm, categoryFilter);
-          console.log("Résultat du filtrage des partenaires:", filtered.map(p => p.name));
+          console.log("🔍 Filtered Partners Result:", filtered.map(p => p.name));
           setFilteredPartners(filtered);
         } else {
-          console.log("Aucun profil partenaire trouvé avec les critères spécifiés");
+          console.warn("❗ No partner profiles found matching criteria");
           setPartnerProfiles([]);
           setFilteredPartners([]);
         }
       } catch (err) {
-        console.error("Erreur inattendue lors de la récupération des partenaires:", err);
+        console.error("🚨 Unexpected error:", err);
         setError("Une erreur s'est produite lors du chargement des partenaires");
       } finally {
         setIsLoading(false);
