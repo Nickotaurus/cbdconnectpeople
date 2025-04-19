@@ -12,10 +12,9 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState(false);  // Start with assumption we'll use real data
+  const [useMockData, setUseMockData] = useState(false);
 
   useEffect(() => {
-    // Function to fetch partners from database
     const fetchPartnerProfiles = async () => {
       setIsLoading(true);
       setError(null);
@@ -27,7 +26,8 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('role', 'partner');
+          .eq('role', 'partner')
+          .eq('is_verified', true); // Only fetch verified partners
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
@@ -47,11 +47,9 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Partner profiles count:", data?.length || 0);
         
         if (data && data.length > 0) {
-          // Format the database partner profiles with detailed logging
           const formattedProfiles = data
             .filter(profile => {
               console.log("Checking profile:", profile.name, "with partner_category:", profile.partner_category);
-              // Ensure we only include profiles that have partner data
               return profile.partner_category || profile.partner_id;
             })
             .map(profile => {
@@ -73,13 +71,11 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
 
           console.log("Formatted partner profiles:", formattedProfiles);
           
-          // Only use real data when we actually have partners
           if (formattedProfiles.length > 0) {
             console.log("Using real partner data - found", formattedProfiles.length, "partner(s)");
             setUseMockData(false);
             setPartnerProfiles(formattedProfiles);
             
-            // Apply filters to real data
             const filtered = filterPartners(formattedProfiles, searchTerm, categoryFilter);
             console.log("Filtered real partners result:", filtered.map(p => p.name));
             setFilteredPartners(filtered);
@@ -88,7 +84,6 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             setUseMockData(true);
             setPartnerProfiles([]);
             
-            // Apply filters to mock data
             const filtered = filterPartners(mockPartners, searchTerm, categoryFilter);
             console.log("Filtered mock partners result:", filtered.map(p => p.name));
             setFilteredPartners(filtered);
@@ -98,7 +93,6 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           setUseMockData(true);
           setPartnerProfiles([]);
           
-          // Apply filters to mock data
           const filtered = filterPartners(mockPartners, searchTerm, categoryFilter);
           console.log("Filtered mock partners result:", filtered.map(p => p.name));
           setFilteredPartners(filtered);
@@ -113,16 +107,12 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
       }
     };
 
-    // Execute the fetch function immediately 
     fetchPartnerProfiles();
 
-    // Create an interval to refetch data every 30 seconds
-    // This helps ensure we have updated data but isn't too frequent
     const intervalId = setInterval(fetchPartnerProfiles, 30000);
     
-    // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, [searchTerm, categoryFilter]); // Re-run when filters change
+  }, [searchTerm, categoryFilter]);
 
   return { partnerProfiles, filteredPartners, isLoading, error, useMockData };
 };
