@@ -9,9 +9,10 @@ import { PartnerCategory } from '@/types/auth';
 
 export const usePartners = (searchTerm: string, categoryFilter: string) => {
   const [partnerProfiles, setPartnerProfiles] = useState<Partner[]>([]);
-  const [filteredPartners, setFilteredPartners] = useState<Partner[]>(mockPartners);
+  const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(true);
 
   useEffect(() => {
     // Function to fetch partners from database
@@ -36,7 +37,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             variant: "destructive",
           });
           setError("Unable to load partners from database");
-          // Still show mock data when there's an error
+          // Show mock data when there's an error
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
           return;
@@ -46,19 +47,17 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Partner profiles count:", data?.length || 0);
         
         let formattedProfiles: Partner[] = [];
-        let shouldUseMockData = true;
         
         if (data && data.length > 0) {
-          // Format the database partner profiles with more detailed logging
+          // Format the database partner profiles with detailed logging
           formattedProfiles = data
             .filter(profile => {
-              console.log("Checking profile:", profile.name, "with partner_id:", profile.partner_id);
-              return !!profile.partner_category || !!profile.partner_id;
+              console.log("Checking profile:", profile.name, "with partner_category:", profile.partner_category);
+              // Ensure we only include profiles that have partner data
+              return profile.partner_category || profile.partner_id;
             })
             .map(profile => {
               console.log("Processing partner profile:", profile.name, profile.partner_category);
-              
-              shouldUseMockData = false;
               
               return {
                 id: profile.id,
@@ -76,28 +75,30 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
 
           console.log("Formatted partner profiles:", formattedProfiles);
           
+          // Only use real data when we actually have partners
           if (formattedProfiles.length > 0) {
-            shouldUseMockData = false;
+            console.log("Using real partner data only - found", formattedProfiles.length, "partner(s)");
+            setUseMockData(false);
+          } else {
+            console.log("No real partners found, will use mock data");
+            setUseMockData(true);
           }
           
           setPartnerProfiles(formattedProfiles);
         } else {
-          console.log("No partner profiles found in database");
+          console.log("No partner profiles found in database, using mock data");
           formattedProfiles = [];
           setPartnerProfiles([]);
+          setUseMockData(true);
         }
         
-        // Combine real partners with mock data to ensure we always show something
-        // Instead of replacing mock data entirely, we'll append it to real data if no real data
-        const combinedPartners = shouldUseMockData ? 
-          [...formattedProfiles, ...mockPartners] : 
-          formattedProfiles;
+        // Choose between real data or mock data based on what we found
+        const partnersToDisplay = !useMockData ? formattedProfiles : mockPartners;
+        console.log("Partners to display before filtering:", partnersToDisplay.map(p => p.name));
+        console.log("Using mock data?", useMockData);
         
-        console.log("Combined partners before filtering:", combinedPartners.map(p => p.name));
-        console.log("Search term:", searchTerm, "Category:", categoryFilter);
-        
-        // Apply filters to combined partners
-        const filtered = filterPartners(combinedPartners, searchTerm, categoryFilter);
+        // Apply filters 
+        const filtered = filterPartners(partnersToDisplay, searchTerm, categoryFilter);
         console.log("Filtered partners result:", filtered.map(p => p.name));
         setFilteredPartners(filtered);
       } catch (err) {
@@ -120,5 +121,5 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
     return () => clearInterval(intervalId);
   }, [searchTerm, categoryFilter]); // Re-run when filters change
 
-  return { partnerProfiles, filteredPartners, isLoading, error };
+  return { partnerProfiles, filteredPartners, isLoading, error, useMockData };
 };
