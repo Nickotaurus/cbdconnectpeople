@@ -13,6 +13,7 @@ interface PartnersContentProps {
   isProfessional: boolean;
   hasPremium: boolean;
   onContactClick: (partnerId: string) => void;
+  useTestData?: boolean;
 }
 
 const PartnersContent = ({
@@ -22,7 +23,8 @@ const PartnersContent = ({
   partnerProfilesCount,
   isProfessional,
   hasPremium,
-  onContactClick
+  onContactClick,
+  useTestData = false
 }: PartnersContentProps) => {
   if (isLoading) {
     return (
@@ -76,6 +78,15 @@ const PartnersContent = ({
   
   return (
     <>
+      {useTestData && (
+        <Alert className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Données de démonstration</AlertTitle>
+          <AlertDescription>
+            Aucun partenaire réel n'a été trouvé dans la base de données. Des données de test sont affichées à titre de démonstration.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="mb-2 text-sm text-muted-foreground">
         {filteredPartners.length} partenaire(s) trouvé(s)
       </div>

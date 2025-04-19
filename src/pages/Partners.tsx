@@ -24,7 +24,7 @@ const Partners = () => {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   
   // Get partners data from custom hook
-  const { partnerProfiles, filteredPartners, isLoading, error } = usePartners(searchTerm, categoryFilter);
+  const { partnerProfiles, filteredPartners, isLoading, error, useTestData } = usePartners(searchTerm, categoryFilter);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
   const hasPremium = user?.role === "store" && user.isVerified;
@@ -78,6 +78,7 @@ const Partners = () => {
           isProfessional={isProfessional}
           hasPremium={hasPremium}
           onContactClick={handleContactClick}
+          useTestData={useTestData}
         />
       </div>
     </div>
