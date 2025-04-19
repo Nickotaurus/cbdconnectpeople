@@ -41,6 +41,8 @@ const Quests = lazy(() => import("./pages/Quests"));
 const AddPartner = lazy(() => import("./pages/AddPartner"));
 const PartnerProfile = lazy(() => import("./pages/PartnerProfile"));
 
+const PartnersAdmin = lazy(() => import("./pages/PartnersAdmin"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -84,6 +86,8 @@ const App = () => (
                   <Route path="/quests" element={<Quests />} />
                   <Route path="/add-partner" element={<AddPartner />} />
                   <Route path="/partner/profile" element={<PartnerProfile />} />
+                  
+                  <Route path="/partners/admin" element={<PartnersAdmin />} />
                   
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

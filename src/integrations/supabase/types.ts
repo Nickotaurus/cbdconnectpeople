@@ -205,10 +205,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pending_partners: {
+        Row: {
+          certifications: string[] | null
+          created_at: string | null
+          email: string | null
+          favorite_products: string[] | null
+          favorites: string[] | null
+          id: string | null
+          is_verified: boolean | null
+          logo_url: string | null
+          name: string | null
+          partner_category: string | null
+          partner_favorites: string[] | null
+          partner_id: string | null
+          rewards: number | null
+          role: string | null
+          siret_verified: boolean | null
+          store_id: string | null
+          store_type: string | null
+          tickets: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          certifications?: string[] | null
+          created_at?: string | null
+          email?: string | null
+          favorite_products?: string[] | null
+          favorites?: string[] | null
+          id?: string | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+          partner_category?: string | null
+          partner_favorites?: string[] | null
+          partner_id?: string | null
+          rewards?: number | null
+          role?: string | null
+          siret_verified?: boolean | null
+          store_id?: string | null
+          store_type?: string | null
+          tickets?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          certifications?: string[] | null
+          created_at?: string | null
+          email?: string | null
+          favorite_products?: string[] | null
+          favorites?: string[] | null
+          id?: string | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+          partner_category?: string | null
+          partner_favorites?: string[] | null
+          partner_id?: string | null
+          rewards?: number | null
+          role?: string | null
+          siret_verified?: boolean | null
+          store_id?: string | null
+          store_type?: string | null
+          tickets?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      approve_partner: {
+        Args: { partner_profile_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
