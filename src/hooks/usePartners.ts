@@ -26,8 +26,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('role', 'partner')
-          .order('created_at', { ascending: false });
+          .eq('role', 'partner');
         
         if (error) {
           console.error("Error fetching partner profiles:", error);
@@ -51,17 +50,19 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         
         if (data && data.length > 0) {
           // Format the database partner profiles with more detailed logging
-          formattedProfiles = data.map(profile => {
-            console.log("Processing partner profile:", profile);
-            
-            // Make sure the partner has a partner_id or is otherwise valid
-            if (profile.partner_category) {
+          formattedProfiles = data
+            .filter(profile => {
+              console.log("Checking profile:", profile.name, "with partner_id:", profile.partner_id);
+              return !!profile.partner_category || !!profile.partner_id;
+            })
+            .map(profile => {
+              console.log("Processing partner profile:", profile.name, profile.partner_category);
+              
               shouldUseMockData = false;
               
               return {
                 id: profile.id,
                 name: profile.name || 'Unknown Partner',
-                // Explicitly cast the category to PartnerCategory type
                 category: (profile.partner_category || 'other') as PartnerCategory,
                 location: profile.partner_favorites && profile.partner_favorites.length >= 4 ? 
                   profile.partner_favorites[3] || 'France' : 'France', 
@@ -71,29 +72,33 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
                 distance: Math.floor(Math.random() * 300),
                 imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
               };
-            }
-            return null;
-          }).filter(Boolean) as Partner[];
+            });
 
           console.log("Formatted partner profiles:", formattedProfiles);
+          
+          if (formattedProfiles.length > 0) {
+            shouldUseMockData = false;
+          }
+          
           setPartnerProfiles(formattedProfiles);
         } else {
-          console.log("No partner profiles found in database, using mock data only");
+          console.log("No partner profiles found in database");
           formattedProfiles = [];
           setPartnerProfiles([]);
         }
         
         // Combine real partners with mock data to ensure we always show something
-        // Instead of replacing mock data entirely, we'll append it to real data
+        // Instead of replacing mock data entirely, we'll append it to real data if no real data
         const combinedPartners = shouldUseMockData ? 
           [...formattedProfiles, ...mockPartners] : 
           formattedProfiles;
         
-        console.log("Combined partners before filtering:", combinedPartners);
+        console.log("Combined partners before filtering:", combinedPartners.map(p => p.name));
+        console.log("Search term:", searchTerm, "Category:", categoryFilter);
         
         // Apply filters to combined partners
         const filtered = filterPartners(combinedPartners, searchTerm, categoryFilter);
-        console.log("Filtered partners result:", filtered);
+        console.log("Filtered partners result:", filtered.map(p => p.name));
         setFilteredPartners(filtered);
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);

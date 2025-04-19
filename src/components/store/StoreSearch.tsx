@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { MapPin, Loader2 } from "lucide-react";
 import './StoreSearch.css';
 
@@ -158,8 +158,10 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     }
     // Cleanup function
     return () => {
-      searchResultsRef.current.forEach(marker => marker.setMap(null));
-      searchResultsRef.current = [];
+      if (searchResultsRef.current) {
+        searchResultsRef.current.forEach(marker => marker.setMap(null));
+        searchResultsRef.current = [];
+      }
     };
   }, [isOpen]);
 
@@ -175,6 +177,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[800px] h-[600px]">
+          <DialogTitle className="sr-only">Recherche de boutique CBD</DialogTitle>
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
               <Loader2 className="h-8 w-8 animate-spin" />
