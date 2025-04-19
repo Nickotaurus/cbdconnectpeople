@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoCircled } from "lucide-react";
+import { Info } from "lucide-react";
 import PartnersList from '@/components/partners/PartnersList';
 import { Partner } from '@/data/partnersData';
 import { mockPartners } from '@/data/partnersData';
@@ -71,7 +71,7 @@ const PartnersContent = ({
     <>
       {useMockData && (
         <Alert className="mb-4">
-          <InfoCircled className="h-4 w-4" />
+          <Info className="h-4 w-4" />
           <AlertTitle>Données d'exemple</AlertTitle>
           <AlertDescription>
             Actuellement, seuls des partenaires fictifs sont affichés car aucun partenaire réel n'a été trouvé dans la base de données.
