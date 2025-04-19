@@ -29,6 +29,12 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     placeId: '',
     logoUrl: '',
     photoUrl: '',
+    // Adding missing fields for incentives and lottery prizes
+    originalIncentive: '',
+    incentiveDescription: '',
+    lotteryPrizeName: '',
+    lotteryPrizeDescription: '',
+    lotteryPrizeValue: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -91,6 +97,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       const storeData: Omit<Store, 'id'> = {
         ...formData,
         imageUrl: formData.photoUrl,
+        // Update property names to match Store type
         logo_url: formData.logoUrl,
         photo_url: formData.photoUrl,
         rating: 0,

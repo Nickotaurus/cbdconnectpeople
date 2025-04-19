@@ -15,6 +15,8 @@ export interface Store {
   }[];
   description: string;
   imageUrl: string;
+  logo_url?: string;  // Added logo_url field
+  photo_url?: string;  // Added photo_url field
   rating: number;
   reviewCount: number;
   incentive?: {

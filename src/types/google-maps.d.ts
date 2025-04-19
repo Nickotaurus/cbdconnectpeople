@@ -117,6 +117,18 @@ declare namespace google {
 
       class PlacesService {
         constructor(attrContainer: Element | Map);
+        nearbySearch(
+          request: {
+            location: LatLng;
+            radius: number;
+            keyword?: string;
+            type?: string;
+          },
+          callback: (
+            results: PlaceResult[] | null,
+            status: PlacesServiceStatus
+          ) => void
+        ): void;
         findPlaceFromQuery(
           request: {
             query: string;
