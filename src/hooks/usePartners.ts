@@ -12,7 +12,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);  // Start with assumption we'll use real data
 
   useEffect(() => {
     // Function to fetch partners from database
@@ -37,7 +37,7 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
             variant: "destructive",
           });
           setError("Unable to load partners from database");
-          // Show mock data when there's an error
+          setUseMockData(true);
           setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
           setIsLoading(false);
           return;
@@ -46,11 +46,9 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
         console.log("Raw partner profiles fetched:", data);
         console.log("Partner profiles count:", data?.length || 0);
         
-        let formattedProfiles: Partner[] = [];
-        
         if (data && data.length > 0) {
           // Format the database partner profiles with detailed logging
-          formattedProfiles = data
+          const formattedProfiles = data
             .filter(profile => {
               console.log("Checking profile:", profile.name, "with partner_category:", profile.partner_category);
               // Ensure we only include profiles that have partner data
@@ -77,33 +75,38 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
           
           // Only use real data when we actually have partners
           if (formattedProfiles.length > 0) {
-            console.log("Using real partner data only - found", formattedProfiles.length, "partner(s)");
+            console.log("Using real partner data - found", formattedProfiles.length, "partner(s)");
             setUseMockData(false);
+            setPartnerProfiles(formattedProfiles);
+            
+            // Apply filters to real data
+            const filtered = filterPartners(formattedProfiles, searchTerm, categoryFilter);
+            console.log("Filtered real partners result:", filtered.map(p => p.name));
+            setFilteredPartners(filtered);
           } else {
-            console.log("No real partners found, will use mock data");
+            console.log("No valid partner profiles found in database, using mock data");
             setUseMockData(true);
+            setPartnerProfiles([]);
+            
+            // Apply filters to mock data
+            const filtered = filterPartners(mockPartners, searchTerm, categoryFilter);
+            console.log("Filtered mock partners result:", filtered.map(p => p.name));
+            setFilteredPartners(filtered);
           }
-          
-          setPartnerProfiles(formattedProfiles);
         } else {
           console.log("No partner profiles found in database, using mock data");
-          formattedProfiles = [];
-          setPartnerProfiles([]);
           setUseMockData(true);
+          setPartnerProfiles([]);
+          
+          // Apply filters to mock data
+          const filtered = filterPartners(mockPartners, searchTerm, categoryFilter);
+          console.log("Filtered mock partners result:", filtered.map(p => p.name));
+          setFilteredPartners(filtered);
         }
-        
-        // Choose between real data or mock data based on what we found
-        const partnersToDisplay = !useMockData ? formattedProfiles : mockPartners;
-        console.log("Partners to display before filtering:", partnersToDisplay.map(p => p.name));
-        console.log("Using mock data?", useMockData);
-        
-        // Apply filters 
-        const filtered = filterPartners(partnersToDisplay, searchTerm, categoryFilter);
-        console.log("Filtered partners result:", filtered.map(p => p.name));
-        setFilteredPartners(filtered);
       } catch (err) {
         console.error("Error in partner profiles fetch logic:", err);
         setError("An unexpected error occurred");
+        setUseMockData(true);
         setFilteredPartners(filterPartners(mockPartners, searchTerm, categoryFilter));
       } finally {
         setIsLoading(false);
