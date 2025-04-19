@@ -5,7 +5,7 @@ declare namespace google {
     class Map {
       constructor(element: HTMLElement, options: MapOptions);
       panTo(latLng: LatLng): void;
-      setCenter(latLng: LatLng): void;
+      setCenter(latLng: LatLngLiteral): void;
       setZoom(zoom: number): void;
       getCenter(): LatLng;
     }
@@ -44,6 +44,24 @@ declare namespace google {
       title?: string;
       icon?: string | Icon | Symbol;
       animation?: Animation;
+    }
+
+    class InfoWindow {
+      constructor(options?: InfoWindowOptions);
+      open(map?: Map, anchor?: Marker): void;
+      close(): void;
+      setContent(content: string | Node): void;
+      getContent(): string | Node;
+    }
+
+    interface InfoWindowOptions {
+      content?: string | Node;
+      disableAutoPan?: boolean;
+      maxWidth?: number;
+      pixelOffset?: Size;
+      position?: LatLng | LatLngLiteral;
+      zIndex?: number;
+      ariaLabel?: string;
     }
 
     interface Icon {
@@ -98,9 +116,15 @@ declare namespace google {
         name?: string;
         rating?: number;
         user_ratings_total?: number;
+        vicinity?: string;
         photos?: {
           getUrl: () => string;
         }[];
+      }
+
+      interface PlaceDetailsRequest {
+        placeId: string;
+        fields?: string[];
       }
 
       enum PlacesServiceStatus {
@@ -138,6 +162,13 @@ declare namespace google {
             status: PlacesServiceStatus
           ) => void
         ): void;
+        getDetails(
+          request: PlaceDetailsRequest,
+          callback: (
+            result: PlaceResult | null,
+            status: PlacesServiceStatus
+          ) => void
+        ): void;
       }
     }
   }
@@ -146,4 +177,5 @@ declare namespace google {
 // Add this to ensure window.google is correctly typed
 interface Window {
   google: typeof google;
+  selectStore?: (placeId: string) => void;
 }

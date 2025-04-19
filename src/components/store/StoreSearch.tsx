@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -142,7 +143,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
               
               service.getDetails(
                 {
-                  placeId: place.place_id,
+                  placeId: place.place_id as string,
                   fields: ['name', 'formatted_address', 'geometry', 'rating', 'user_ratings_total']
                 },
                 (placeDetails, detailStatus) => {
@@ -161,7 +162,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
                           postalCode,
                           latitude: placeLocation.lat(),
                           longitude: placeLocation.lng(),
-                          placeId: place.place_id
+                          placeId: place.place_id as string
                         });
                         setIsOpen(false);
                       }
