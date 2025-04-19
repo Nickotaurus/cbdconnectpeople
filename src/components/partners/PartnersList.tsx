@@ -1,7 +1,7 @@
 
 import PartnerCard from '@/components/partners/PartnerCard';
 import { PartnerCategory } from "@/types/auth";
-import { Partner } from '@/data/partnersData';
+import { Partner } from '@/hooks/usePartners';
 
 interface PartnersListProps {
   partners: Partner[];
