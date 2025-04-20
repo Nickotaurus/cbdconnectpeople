@@ -279,7 +279,20 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      partner_category_type:
+        | "bank"
+        | "accountant"
+        | "legal"
+        | "insurance"
+        | "logistics"
+        | "breeder"
+        | "label"
+        | "association"
+        | "media"
+        | "laboratory"
+        | "production"
+        | "realEstate"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -394,6 +407,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      partner_category_type: [
+        "bank",
+        "accountant",
+        "legal",
+        "insurance",
+        "logistics",
+        "breeder",
+        "label",
+        "association",
+        "media",
+        "laboratory",
+        "production",
+        "realEstate",
+        "other",
+      ],
+    },
   },
 } as const
