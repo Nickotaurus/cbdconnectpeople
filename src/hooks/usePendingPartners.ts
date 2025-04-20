@@ -24,7 +24,7 @@ export const usePendingPartners = () => {
         email: partner.email || '',
         role: 'partner',
         createdAt: partner.created_at || '',
-        partnerCategory: partner.partner_category && Object.values(PartnerCategory).includes(partner.partner_category as PartnerCategory) 
+        partnerCategory: isValidPartnerCategory(partner.partner_category) 
           ? partner.partner_category as PartnerCategory 
           : 'other',
         verified: partner.is_verified || false,
@@ -44,6 +44,23 @@ export const usePendingPartners = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to check if the partner category is valid
+  const isValidPartnerCategory = (category: any): category is PartnerCategory => {
+    return category === 'bank' || 
+           category === 'accountant' || 
+           category === 'legal' || 
+           category === 'insurance' || 
+           category === 'logistics' || 
+           category === 'breeder' || 
+           category === 'label' || 
+           category === 'association' || 
+           category === 'media' || 
+           category === 'laboratory' || 
+           category === 'production' || 
+           category === 'realEstate' || 
+           category === 'other';
   };
 
   const approvePartner = async (partnerId: string) => {
