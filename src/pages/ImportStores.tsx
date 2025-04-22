@@ -58,7 +58,8 @@ const ImportStores = () => {
     setError(null);
     
     try {
-      const results = await searchCBDShops(searchQuery, location, apiKey);
+      // Call searchCBDShops with the correct parameters (we remove the third argument)
+      const results = await searchCBDShops(searchQuery, location);
       setSearchResults(results.map(result => ({
         ...result,
         selected: true
@@ -106,8 +107,8 @@ const ImportStores = () => {
         setImportProgress({ current: i + 1, total: selectedPlaces.length });
         
         try {
-          // Récupérer les détails complets de la boutique
-          const details = await getPlaceDetails(place.place_id, apiKey);
+          // Call getPlaceDetails with only the place_id parameter (removing the second argument)
+          const details = await getPlaceDetails(place.place_id);
           
           // Convertir les données au format de notre application
           const storeData = convertToStoreFormat(details);

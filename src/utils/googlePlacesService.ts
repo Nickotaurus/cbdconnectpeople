@@ -188,7 +188,7 @@ export const convertToStoreFormat = (
     rating: placeDetails.rating || 0,
     reviewCount: placeDetails.user_ratings_total || 0,
     coupon: {
-      code: `${placeDetails.name.substring(0, 5).toUpperCase()}10`,
+      code: `${placeDetails.name.substring(0, 5).toUpperCase()}10",
       discount: "10% sur votre première commande",
       validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
