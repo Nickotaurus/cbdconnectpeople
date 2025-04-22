@@ -90,11 +90,16 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
                         ariaLabel: placeDetails.name,
                       });
 
-                      window.selectStore = (placeId: string) => {
-                        if (placeId === place.place_id) {
-                          onStoreSelect(placeDetails);
-                        }
-                      };
+                      // Fix: Define the selectStore function in a way that doesn't conflict with the global declaration
+                      if (!window.selectStore) {
+                        window.selectStore = (placeId: string) => {
+                          console.log("Store selected via info window:", placeId);
+                          // Find the right place details and call onStoreSelect
+                          if (placeId === place.place_id && placeDetails) {
+                            onStoreSelect(placeDetails);
+                          }
+                        };
+                      }
 
                       infoWindow.open(map, marker);
                       activeInfoWindow.current = infoWindow;
@@ -143,7 +148,13 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
 
     initializeMarkers();
 
-    return () => clearMarkers();
+    return () => {
+      // Clear markers on unmount
+      clearMarkers();
+      
+      // Reset the global selectStore function when component unmounts
+      window.selectStore = undefined;
+    };
   }, [map, userLocation, onStoreSelect, toast]);
 
   const clearMarkers = () => {
@@ -178,7 +189,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
 
 declare global {
   interface Window {
-    selectStore: (placeId: string) => void;
+    selectStore?: (placeId: string) => void;
   }
 }
 
