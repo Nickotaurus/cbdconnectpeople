@@ -89,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      google_reviews: {
+        Row: {
+          created_at: string | null
+          id: number
+          rating: number | null
+          review_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          rating?: number | null
+          review_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          rating?: number | null
+          review_text?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           certifications: string[] | null
@@ -276,6 +300,15 @@ export type Database = {
       approve_partner: {
         Args: { partner_profile_id: string }
         Returns: undefined
+      }
+      get_google_reviews: {
+        Args: { user_uuid: string }
+        Returns: {
+          id: number
+          review_text: string
+          rating: number
+          created_at: string
+        }[]
       }
     }
     Enums: {

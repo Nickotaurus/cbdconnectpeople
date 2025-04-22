@@ -1,10 +1,7 @@
-
+import { supabase } from '@/integrations/supabase/client';
 import { Store } from './data';
 
-// Configuration de l'API Google Places
-const GOOGLE_API_KEY = ''; // À remplir par l'utilisateur
-
-// Types pour l'API Google Places
+// Types for the API Google Places
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -49,17 +46,36 @@ interface GooglePlaceDetailsResponse {
   status: string;
 }
 
+// Function to get Google Maps API key from Supabase
+export const getGoogleMapsApiKey = async (): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .functions.invoke('get-google-maps-key');
+
+    if (error) {
+      console.error('Error fetching Google Maps API key:', error);
+      throw new Error('Impossible de récupérer la clé API Google Maps.');
+    }
+
+    return data?.apiKey || '';
+  } catch (error) {
+    console.error('Unexpected error getting Google Maps API key:', error);
+    return '';
+  }
+};
+
 // Fonction pour rechercher des boutiques CBD en France
 export const searchCBDShops = async (
   query: string = "boutique CBD", 
-  location: string = "France", 
-  apiKey: string = GOOGLE_API_KEY
+  location: string = "France"
 ): Promise<GooglePlaceResult[]> => {
-  if (!apiKey) {
-    throw new Error("Clé API Google Places manquante");
-  }
-
   try {
+    const apiKey = await getGoogleMapsApiKey();
+    
+    if (!apiKey) {
+      throw new Error("Clé API Google Places non disponible");
+    }
+
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
         query
@@ -85,14 +101,15 @@ export const searchCBDShops = async (
 
 // Fonction pour obtenir les détails d'une boutique, y compris les avis
 export const getPlaceDetails = async (
-  placeId: string, 
-  apiKey: string = GOOGLE_API_KEY
+  placeId: string
 ): Promise<GooglePlaceDetailsResponse["result"]> => {
-  if (!apiKey) {
-    throw new Error("Clé API Google Places manquante");
-  }
-
   try {
+    const apiKey = await getGoogleMapsApiKey();
+    
+    if (!apiKey) {
+      throw new Error("Clé API Google Places non disponible");
+    }
+
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,formatted_address,geometry,reviews,website,formatted_phone_number,opening_hours&key=${apiKey}`
     );
@@ -182,4 +199,3 @@ export const convertToStoreFormat = (
     ],
   };
 };
-

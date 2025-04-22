@@ -1,4 +1,6 @@
 
+import { getGoogleMapsApiKey } from '@/utils/googlePlacesService';
+
 export const searchNearbyStores = (
   service: google.maps.places.PlacesService,
   location: google.maps.LatLngLiteral
@@ -12,8 +14,10 @@ export const searchNearbyStores = (
 
     service.nearbySearch(request, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        console.log('Places API found stores:', results.length);
         resolve(results);
       } else {
+        console.error(`Places search failed with status: ${status}`);
         reject(new Error(`Places search failed with status: ${status}`));
       }
     });
@@ -32,12 +36,13 @@ export const getStoreDetails = (
       },
       (placeDetails, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+          console.log('Places API found store details:', placeDetails);
           resolve(placeDetails);
         } else {
+          console.error(`Place details failed with status: ${status}`);
           reject(new Error(`Place details failed with status: ${status}`));
         }
       }
     );
   });
 };
-

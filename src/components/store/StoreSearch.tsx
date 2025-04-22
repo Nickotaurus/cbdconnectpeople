@@ -21,7 +21,7 @@ interface StoreSearchProps {
 
 const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { map, isLoading, userLocation, initializeMap } = useGoogleMap();
+  const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -48,7 +48,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       const mapElement = document.getElementById('store-search-map');
       initializeMap(mapElement);
     }
-  }, [isOpen]);
+  }, [isOpen, apiKeyLoaded]);
 
   return (
     <>
@@ -63,17 +63,24 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[800px] h-[600px]">
           <DialogTitle className="sr-only">Recherche de boutique CBD</DialogTitle>
-          {isLoading && (
+          {(isLoading || !apiKeyLoaded) && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  {!apiKeyLoaded ? "Chargement de l'API Google Maps..." : "Initialisation de la carte..."}
+                </p>
+              </div>
             </div>
           )}
           <div id="store-search-map" className="w-full h-full rounded-md" />
-          <StoreMarkers 
-            map={map}
-            userLocation={userLocation}
-            onStoreSelect={handleStoreSelect}
-          />
+          {map && userLocation && (
+            <StoreMarkers 
+              map={map}
+              userLocation={userLocation}
+              onStoreSelect={handleStoreSelect}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
