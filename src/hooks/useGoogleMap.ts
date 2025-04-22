@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCurrentLocation, initializeGoogleMap } from '@/utils/mapUtils';
 import { useToast } from "@/components/ui/use-toast";
-import { getGoogleMapsApiKey } from '@/utils/googlePlacesService';
+import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
 export const useGoogleMap = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,13 +27,16 @@ export const useGoogleMap = () => {
       scriptLoadingRef.current = true;
       
       try {
+        console.log("Fetching Google Maps API key...");
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
+          console.error("No API key returned from getGoogleMapsApiKey");
           toast({
             title: "Erreur",
             description: "Clé API Google Maps non disponible",
             variant: "destructive"
           });
+          scriptLoadingRef.current = false;
           return;
         }
 
@@ -51,8 +54,8 @@ export const useGoogleMap = () => {
           scriptLoadingRef.current = false;
         };
         
-        script.onerror = () => {
-          console.error("Failed to load Google Maps API");
+        script.onerror = (e) => {
+          console.error("Failed to load Google Maps API:", e);
           toast({
             title: "Erreur",
             description: "Impossible de charger l'API Google Maps",

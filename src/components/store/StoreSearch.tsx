@@ -45,9 +45,13 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
   useEffect(() => {
     if (isOpen && apiKeyLoaded) {
+      console.log("Dialog open and API key loaded, initializing map");
       const mapElement = document.getElementById('store-search-map');
       if (mapElement) {
+        console.log("Map element found, initializing");
         initializeMap(mapElement);
+      } else {
+        console.error("Map element not found!");
       }
     }
   }, [isOpen, apiKeyLoaded, initializeMap]);
@@ -55,14 +59,20 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   return (
     <>
       <Button 
-        onClick={() => setIsOpen(true)} 
+        onClick={() => {
+          console.log("Opening store search dialog");
+          setIsOpen(true);
+        }} 
         className="w-full"
       >
         <MapPin className="w-4 h-4 mr-2" />
         Rechercher ma boutique CBD
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        console.log("Dialog open state changed to:", open);
+        setIsOpen(open);
+      }}>
         <DialogContent className="sm:max-w-[800px] h-[600px]">
           <DialogTitle>Recherche de boutique CBD</DialogTitle>
           <DialogDescription className="sr-only">
