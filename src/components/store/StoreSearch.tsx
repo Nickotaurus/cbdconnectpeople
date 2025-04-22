@@ -25,6 +25,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [noResults, setNoResults] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -46,12 +47,20 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     setIsOpen(false);
   };
 
+  // Vérifier la disponibilité de la localisation
   useEffect(() => {
-    // Initialize map only after dialog is fully open and DOM is updated
+    if (userLocation) {
+      setLocationStatus('success');
+    } else if (!isLoading && !userLocation) {
+      setLocationStatus('error');
+    }
+  }, [userLocation, isLoading]);
+
+  // Initialiser la carte
+  useEffect(() => {
     if (isOpen && apiKeyLoaded) {
       console.log("Dialog open and API key loaded, waiting for DOM update");
       
-      // Using a slightly longer timeout to ensure the DOM is fully updated
       const timer = setTimeout(() => {
         if (mapElementRef.current) {
           console.log("Map element found, initializing", mapElementRef.current);
@@ -117,6 +126,16 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
           <DialogTitle>Recherche de boutique CBD</DialogTitle>
           <DialogDescription>
             Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement.
+            {locationStatus === 'success' && userLocation && (
+              <span className="block text-green-600 mt-1">
+                Votre position actuelle: {userLocation.lat.toFixed(6)}, {userLocation.lng.toFixed(6)}
+              </span>
+            )}
+            {locationStatus === 'error' && (
+              <span className="block text-amber-600 mt-1">
+                Position approximative utilisée (Paris). Pour de meilleurs résultats, autorisez la géolocalisation.
+              </span>
+            )}
           </DialogDescription>
           
           {(isLoading || !apiKeyLoaded) && (
