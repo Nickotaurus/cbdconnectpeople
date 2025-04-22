@@ -127,6 +127,12 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
         if (errorMessage && errorMessage.includes('RefererNotAllowedMapError')) {
           setMapLoadError("Ce domaine n'est pas autorisé à utiliser cette clé API Google Maps.");
           setIsGoogleMapsLoaded(false);
+          
+          toast({
+            title: "Erreur d'autorisation de domaine",
+            description: `Le domaine ${window.location.origin} doit être ajouté aux domaines autorisés dans la console Google Cloud.`,
+            variant: "destructive"
+          });
         }
       }
     };
@@ -137,7 +143,7 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
     return () => {
       clearTimeout(errorCheckTimeout);
     };
-  }, [isGoogleMapsLoaded]);
+  }, [isGoogleMapsLoaded, toast]);
 
   return (
     <div className="relative w-full h-[70vh] md:h-[80vh] bg-secondary rounded-lg overflow-hidden">
@@ -163,4 +169,3 @@ const Map = ({ stores, onSelectStore, selectedStoreId }: MapProps) => {
 };
 
 export default Map;
-

@@ -78,6 +78,22 @@ export const useGoogleMapsScript = () => {
         script.onerror = (e) => {
           console.error("Failed to load Google Maps API:", e);
           
+          // Check if this is a RefererNotAllowedMapError
+          const checkForRefererError = () => {
+            const errorDiv = document.querySelector('.gm-err-container');
+            if (errorDiv && errorDiv.textContent?.includes('RefererNotAllowed')) {
+              console.error("RefererNotAllowedMapError detected");
+              toast({
+                title: "Erreur d'autorisation de domaine",
+                description: `Le domaine ${currentUrl} n'est pas autorisé à utiliser cette clé API Google Maps.`,
+                variant: "destructive"
+              });
+            }
+          };
+          
+          // Check for error message in DOM after a short delay
+          setTimeout(checkForRefererError, 1000);
+          
           if (apiLoadAttemptsRef.current < 3) {
             console.log(`Will retry loading API in 2 seconds (attempt ${apiLoadAttemptsRef.current}/3)`);
             setTimeout(() => {

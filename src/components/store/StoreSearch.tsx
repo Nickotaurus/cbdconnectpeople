@@ -134,7 +134,12 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             <div className="flex-1 flex flex-col items-center justify-center">
               <AlertCircle className="h-12 w-12 text-destructive mb-4" />
               <p className="text-center text-destructive font-medium mb-2">{mapError}</p>
-              <p className="text-center text-muted-foreground mb-4">Veuillez vous assurer que la géolocalisation est activée et que votre connexion internet est stable.</p>
+              <p className="text-center text-muted-foreground mb-4">
+                {mapError.includes("domaine") 
+                  ? "L'URL du site n'est pas autorisée à utiliser cette clé API Google Maps. L'administrateur du site doit ajouter ce domaine aux domaines autorisés dans les paramètres de la clé API."
+                  : "Veuillez vous assurer que la géolocalisation est activée et que votre connexion internet est stable."
+                }
+              </p>
               <div className="flex gap-2">
                 <Button 
                   onClick={() => {
