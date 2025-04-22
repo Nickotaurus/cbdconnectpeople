@@ -34,15 +34,10 @@ export const createUserLocationMarker = (
 };
 
 export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // Fonction pour utiliser Paris comme position par défaut
     const useParis = (reason: string) => {
       console.warn(`Utilisation de Paris comme position par défaut: ${reason}`);
-      toast({
-        title: "Localisation non disponible",
-        description: "Utilisation de Paris comme position par défaut. Vérifiez vos paramètres de confidentialité.",
-        variant: "default"
-      });
       resolve({ lat: 48.8566, lng: 2.3522 }); // Paris
     };
 
@@ -52,16 +47,16 @@ export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {
       return;
     }
 
-    // Utiliser un timeout pour éviter d'attendre indéfiniment
+    // Utiliser un timeout plus court pour éviter d'attendre trop longtemps
     const timeoutId = setTimeout(() => {
       useParis("Délai d'attente dépassé");
-    }, 10000); // 10 secondes maximum
+    }, 5000); // 5 secondes maximum
 
     try {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           clearTimeout(timeoutId);
-          console.log("Position utilisateur obtenue:", position.coords);
+          console.log("Position utilisateur obtenue avec succès:", position.coords);
           resolve({
             lat: position.coords.latitude,
             lng: position.coords.longitude
@@ -84,17 +79,12 @@ export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {
               break;
           }
           
-          toast({
-            title: "Position non disponible",
-            description: `${errorMessage}. Paris est utilisé comme position par défaut.`,
-            variant: "default"
-          });
-          
-          resolve({ lat: 48.8566, lng: 2.3522 }); // Paris par défaut
+          // Toujours résoudre avec Paris, mais signaler l'erreur pour l'interface utilisateur
+          useParis(errorMessage);
         },
         {
           enableHighAccuracy: true,
-          timeout: 8000,
+          timeout: 4000, // 4 secondes maximum pour la position
           maximumAge: 0
         }
       );

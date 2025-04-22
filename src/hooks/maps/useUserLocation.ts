@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 export const useUserLocation = () => {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -16,14 +17,19 @@ export const useUserLocation = () => {
         const location = await getCurrentLocation();
         console.log("Position obtenue:", location);
         setUserLocation(location);
-      } catch (error) {
+        setError(null);
+      } catch (error: any) {
         console.error('Erreur critique lors de la récupération de la position:', error);
-        // Dans le cas improbable où getCurrentLocation échoue, utiliser Paris
-        setUserLocation({ lat: 48.856614, lng: 2.3522219 });
+        setError(error.message || 'Erreur de géolocalisation');
+        
+        // Toujours utiliser Paris comme position par défaut en cas d'erreur
+        const parisLocation = { lat: 48.856614, lng: 2.3522219 };
+        setUserLocation(parisLocation);
+        
         toast({
-          title: "Erreur de localisation",
-          description: "Impossible de déterminer votre position. Paris est utilisé par défaut.",
-          variant: "destructive"
+          title: "Localisation non disponible",
+          description: "Position par défaut utilisée (Paris). Vérifiez vos paramètres de confidentialité.",
+          variant: "default"
         });
       } finally {
         setIsLoading(false);
@@ -33,5 +39,9 @@ export const useUserLocation = () => {
     fetchUserLocation();
   }, [toast]);
 
-  return { userLocation, isLoading };
+  return { 
+    userLocation, 
+    isLoading,
+    error 
+  };
 };

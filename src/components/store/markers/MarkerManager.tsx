@@ -1,16 +1,16 @@
 
 import { useRef, useState } from 'react';
-import { useToast } from "@/components/ui/use-toast";
 import { renderInfoWindowContent } from '../info-window/InfoWindowRenderer';
 
 interface MarkerManagerProps {
   map: google.maps.Map;
   userLocation: google.maps.LatLngLiteral;
   onStoreSelect: (store: google.maps.places.PlaceResult) => void;
+  toast: any; // Accept toast as a prop instead of using the hook
 }
 
-const MarkerManager = ({ map, userLocation, onStoreSelect }: MarkerManagerProps) => {
-  const { toast } = useToast();
+// This is now a regular function, not a React component
+const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);

@@ -40,7 +40,14 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         return;
       }
 
-      const manager = MarkerManager({ map, userLocation, onStoreSelect });
+      // Pass toast to MarkerManager
+      const manager = MarkerManager({ 
+        map, 
+        userLocation, 
+        onStoreSelect,
+        toast 
+      });
+      
       setMarkerManager(manager);
       
       const placesService = PlacesSearchService({
