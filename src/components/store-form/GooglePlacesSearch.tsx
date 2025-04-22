@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface GooglePlacesSearchProps {
@@ -24,23 +24,30 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
 }) => {
   const { toast } = useToast();
   const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Vérifier si l'API Google Maps est chargée
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
       if (window.google && window.google.maps && window.google.maps.places) {
         setIsApiLoaded(true);
-      } else {
-        // Réessayer après un court délai
-        setTimeout(checkGoogleMapsLoaded, 500);
+        return true;
       }
+      return false;
     };
     
-    checkGoogleMapsLoaded();
-    
-    return () => {
-      // Cleanup si nécessaire
-    };
+    // Vérifier immédiatement
+    if (!checkGoogleMapsLoaded()) {
+      // Si pas chargé, vérifier périodiquement
+      const interval = setInterval(() => {
+        if (checkGoogleMapsLoaded()) {
+          clearInterval(interval);
+        }
+      }, 500);
+      
+      // Nettoyer l'intervalle si le composant est démonté
+      return () => clearInterval(interval);
+    }
   }, []);
 
   const handleSearch = () => {
@@ -54,6 +61,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
     }
 
     const searchQuery = `${formData.address}, ${formData.city}`;
+    setIsSearching(true);
     
     try {
       const service = new window.google.maps.places.PlacesService(
@@ -66,8 +74,13 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
           fields: ['place_id', 'name', 'formatted_address', 'geometry']
         },
         (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          setIsSearching(false);
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
             onPlaceSelect(results[0]);
+            toast({
+              title: "Établissement trouvé",
+              description: `"${results[0].name}" a été trouvé avec succès`,
+            });
           } else {
             toast({
               title: "Aucun établissement trouvé",
@@ -78,6 +91,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         }
       );
     } catch (error) {
+      setIsSearching(false);
       console.error("Erreur lors de la recherche Google Places:", error);
       toast({
         title: "Erreur de recherche",
@@ -130,10 +144,19 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         variant="outline" 
         className="w-full"
         onClick={handleSearch}
-        disabled={!isApiLoaded}
+        disabled={!isApiLoaded || isSearching}
       >
-        <Search className="w-4 h-4 mr-2" />
-        {isApiLoaded ? "Rechercher l'établissement" : "Chargement de Google Maps..."}
+        {isSearching ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Recherche en cours...
+          </>
+        ) : (
+          <>
+            <Search className="w-4 h-4 mr-2" />
+            {isApiLoaded ? "Rechercher l'établissement" : "Chargement de Google Maps..."}
+          </>
+        )}
       </Button>
       
       {!isApiLoaded && (

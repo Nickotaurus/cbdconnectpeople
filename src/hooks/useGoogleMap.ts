@@ -44,12 +44,13 @@ export const useGoogleMap = () => {
 
         // Create and load the Google Maps script
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsCallback`;
         script.async = true;
         script.defer = true;
         
-        script.onload = () => {
-          console.log("Google Maps API loaded successfully");
+        // Define a global callback function that will be called when the script is loaded
+        window.initGoogleMapsCallback = () => {
+          console.log("Google Maps API loaded successfully via callback");
           setApiKeyLoaded(true);
           scriptLoadingRef.current = false;
         };
@@ -77,9 +78,33 @@ export const useGoogleMap = () => {
     };
 
     loadGoogleMapsApi();
+    
+    // Handle global callback definition for TypeScript
+    return () => {
+      // Clean up the global callback
+      if (window.initGoogleMapsCallback) {
+        delete window.initGoogleMapsCallback;
+      }
+    };
   }, [toast]);
 
-  const initializeMap = useCallback(async (mapElement: HTMLElement | null) => {
+  // Get user location
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      try {
+        const location = await getCurrentLocation();
+        setUserLocation(location);
+      } catch (error) {
+        console.error('Error getting location:', error);
+        // Use a default location if geolocation fails
+        setUserLocation({ lat: 48.856614, lng: 2.3522219 }); // Default to Paris, France
+      }
+    };
+
+    fetchUserLocation();
+  }, []);
+
+  const initializeMap = useCallback(async (mapElement: HTMLElement) => {
     if (!mapElement) {
       console.error("Map element not found");
       return null;
@@ -90,14 +115,27 @@ export const useGoogleMap = () => {
       return null;
     }
 
+    console.log("Initializing map with element:", mapElement);
     setIsLoading(true);
+    
     try {
-      console.log("Initializing map with element:", mapElement);
-      const location = await getCurrentLocation();
-      console.log("Got user location:", location);
-      setUserLocation(location);
+      // Make sure we have a user location
+      let location = userLocation;
+      if (!location) {
+        try {
+          location = await getCurrentLocation();
+          setUserLocation(location);
+        } catch (error) {
+          console.error('Error getting location for map:', error);
+          // Use default location
+          location = { lat: 48.856614, lng: 2.3522219 }; // Paris, France
+        }
+      }
+
+      console.log("Using location for map:", location);
       const map = initializeGoogleMap(mapElement, location);
       mapRef.current = map;
+      console.log("Map initialized successfully");
       return map;
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -110,7 +148,7 @@ export const useGoogleMap = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [apiKeyLoaded, toast]);
+  }, [apiKeyLoaded, toast, userLocation]);
 
   return {
     map: mapRef.current,
@@ -120,3 +158,10 @@ export const useGoogleMap = () => {
     apiKeyLoaded
   };
 };
+
+// Add global callback type definition
+declare global {
+  interface Window {
+    initGoogleMapsCallback?: () => void;
+  }
+}

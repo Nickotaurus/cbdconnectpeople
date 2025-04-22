@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MapPin, Loader2 } from "lucide-react";
@@ -22,6 +22,7 @@ interface StoreSearchProps {
 const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
+  const mapElementRef = useRef<HTMLDivElement>(null);
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -44,15 +45,21 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   };
 
   useEffect(() => {
+    // Initialize map only after dialog is fully open and DOM is updated
     if (isOpen && apiKeyLoaded) {
-      console.log("Dialog open and API key loaded, initializing map");
-      const mapElement = document.getElementById('store-search-map');
-      if (mapElement) {
-        console.log("Map element found, initializing");
-        initializeMap(mapElement);
-      } else {
-        console.error("Map element not found!");
-      }
+      console.log("Dialog open and API key loaded, waiting for DOM update");
+      
+      // Using a small timeout to ensure the DOM is fully updated
+      const timer = setTimeout(() => {
+        if (mapElementRef.current) {
+          console.log("Map element found, initializing", mapElementRef.current);
+          initializeMap(mapElementRef.current);
+        } else {
+          console.error("Map element still not found after timeout!");
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [isOpen, apiKeyLoaded, initializeMap]);
 
@@ -90,7 +97,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             </div>
           )}
           
-          <div id="store-search-map" className="w-full h-full rounded-md" />
+          <div id="store-search-map" ref={mapElementRef} className="w-full h-full rounded-md" />
           
           {map && userLocation && (
             <StoreMarkers 
