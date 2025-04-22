@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { filterPartners } from '@/utils/partnerUtils';
@@ -86,117 +85,142 @@ export const usePartners = (searchTerm: string, categoryFilter: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useTestData, setUseTestData] = useState(false);
+  
+  const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    const fetchPartnerProfiles = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchPartnerProfiles = async () => {
+    if (!isMountedRef.current) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log("🔍 Fetching partner profiles");
       
-      try {
-        console.log("🔍 Fetching partner profiles");
-        
-        // Detailed query to inspect ALL partner profiles
-        const { data: allProfiles, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'partner');
-        
-        if (profileError) {
-          console.error("❌ Error fetching profiles:", profileError);
-          setError("Impossible de charger les profils partenaires");
-          return;
-        }
+      const { data: allProfiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'partner');
+      
+      if (profileError) {
+        console.error("❌ Error fetching profiles:", profileError);
+        setError("Impossible de charger les profils partenaires");
+        return;
+      }
 
-        console.log("📋 Total partner profiles found:", allProfiles?.length || 0);
-        
-        if (allProfiles && allProfiles.length > 0) {
-          allProfiles.forEach(profile => {
-            console.log("🕵️ Profile Details:", {
-              id: profile.id,
-              name: profile.name,
-              role: profile.role,
-              verified: profile.is_verified,
-              category: profile.partner_category,
-              partners_favorites: profile.partner_favorites
-            });
-          });
-        }
-
-        // Filtered query with precise conditions
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'partner')
-          .eq('is_verified', true)
-          .not('partner_category', 'is', null);
-        
-        if (error) {
-          console.error("❌ Error filtering partners:", error);
-          toast({
-            title: "Erreur de chargement",
-            description: "Impossible de charger les partenaires.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        console.log("✅ Filtered partner profiles:", data?.length || 0);
-        
-        if (data && data.length > 0) {
-          data.forEach(profile => {
-            console.log("✨ Partner Profile:", {
-              id: profile.id,
-              name: profile.name,
-              category: profile.partner_category,
-              location: profile.partner_favorites?.[3] || 'Non spécifiée',
-              description: profile.partner_favorites?.[6] || 'Aucune description'
-            });
-          });
-          
-          const formattedProfiles = data.map(profile => ({
+      if (!isMountedRef.current) return;
+      
+      console.log("📋 Total partner profiles found:", allProfiles?.length || 0);
+      
+      if (allProfiles && allProfiles.length > 0) {
+        allProfiles.forEach(profile => {
+          console.log("🕵️ Profile Details:", {
             id: profile.id,
-            name: profile.name || 'Partenaire sans nom',
-            category: (profile.partner_category || 'other') as PartnerCategory,
-            location: profile.partner_favorites?.[3] || 'France',
-            description: profile.partner_favorites?.[6] || 'Aucune description',
-            certifications: profile.certifications || [],
-            distance: Math.floor(Math.random() * 300),
-            imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
-          }));
+            name: profile.name,
+            role: profile.role,
+            verified: profile.is_verified,
+            category: profile.partner_category,
+            partners_favorites: profile.partner_favorites
+          });
+        });
+      }
 
-          console.log("🏆 Formatted Profiles:", formattedProfiles);
-          setPartnerProfiles(formattedProfiles);
-          
-          const filtered = filterPartners(formattedProfiles, searchTerm, categoryFilter);
-          console.log("🔍 Filtered Partners Result:", filtered.map(p => p.name));
-          setFilteredPartners(filtered);
-          setUseTestData(false);
-        } else {
-          console.warn("❗ No partner profiles found matching criteria - Using test data");
-          setPartnerProfiles(testPartnerData);
-          const filtered = filterPartners(testPartnerData, searchTerm, categoryFilter);
-          setFilteredPartners(filtered);
-          setUseTestData(true);
-        }
-      } catch (err) {
-        console.error("🚨 Unexpected error:", err);
-        setError("Une erreur s'est produite lors du chargement des partenaires");
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'partner')
+        .eq('is_verified', true)
+        .not('partner_category', 'is', null);
+      
+      if (!isMountedRef.current) return;
+      
+      if (error) {
+        console.error("❌ Error filtering partners:", error);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger les partenaires.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("✅ Filtered partner profiles:", data?.length || 0);
+      
+      if (data && data.length > 0) {
+        data.forEach(profile => {
+          console.log("✨ Partner Profile:", {
+            id: profile.id,
+            name: profile.name,
+            category: profile.partner_category,
+            location: profile.partner_favorites?.[3] || 'Non spécifiée',
+            description: profile.partner_favorites?.[6] || 'Aucune description'
+          });
+        });
         
-        // En cas d'erreur, utiliser les données de test
-        console.log("⚠️ Using test data due to error");
+        const formattedProfiles = data.map(profile => ({
+          id: profile.id,
+          name: profile.name || 'Partenaire sans nom',
+          category: (profile.partner_category || 'other') as PartnerCategory,
+          location: profile.partner_favorites?.[3] || 'France',
+          description: profile.partner_favorites?.[6] || 'Aucune description',
+          certifications: profile.certifications || [],
+          distance: Math.floor(Math.random() * 300),
+          imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+        }));
+
+        if (!isMountedRef.current) return;
+        
+        console.log("🏆 Formatted Profiles:", formattedProfiles);
+        setPartnerProfiles(formattedProfiles);
+        
+        const filtered = filterPartners(formattedProfiles, searchTerm, categoryFilter);
+        console.log("🔍 Filtered Partners Result:", filtered.map(p => p.name));
+        setFilteredPartners(filtered);
+        setUseTestData(false);
+      } else {
+        if (!isMountedRef.current) return;
+        
+        console.warn("❗ No partner profiles found matching criteria - Using test data");
         setPartnerProfiles(testPartnerData);
         const filtered = filterPartners(testPartnerData, searchTerm, categoryFilter);
         setFilteredPartners(filtered);
         setUseTestData(true);
-      } finally {
+      }
+    } catch (err) {
+      if (!isMountedRef.current) return;
+      
+      console.error("🚨 Unexpected error:", err);
+      setError("Une erreur s'est produite lors du chargement des partenaires");
+      
+      console.log("⚠️ Using test data due to error");
+      setPartnerProfiles(testPartnerData);
+      const filtered = filterPartners(testPartnerData, searchTerm, categoryFilter);
+      setFilteredPartners(filtered);
+      setUseTestData(true);
+    } finally {
+      if (isMountedRef.current) {
         setIsLoading(false);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchPartnerProfiles();
-    const intervalId = setInterval(fetchPartnerProfiles, 30000); // Rafraîchissement toutes les 30 secondes
-    return () => clearInterval(intervalId);
+    
+    const intervalId = setInterval(fetchPartnerProfiles, 60000);
+    
+    return () => {
+      clearInterval(intervalId);
+      isMountedRef.current = false;
+    };
   }, [searchTerm, categoryFilter]);
+
+  useEffect(() => {
+    if (partnerProfiles.length > 0) {
+      const filtered = filterPartners(partnerProfiles, searchTerm, categoryFilter);
+      setFilteredPartners(filtered);
+    }
+  }, [searchTerm, categoryFilter, partnerProfiles]);
 
   return { partnerProfiles, filteredPartners, isLoading, error, useTestData };
 };
