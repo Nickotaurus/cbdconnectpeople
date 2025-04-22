@@ -70,9 +70,15 @@ export const renderInfoWindowContent = (
   `;
 
   const address = place.formatted_address || place.vicinity || 'Adresse non disponible';
-  const storeType = place.types?.some(type => ['store', 'shop', 'establishment'].includes(type)) 
-    ? '<div class="store-type">Boutique CBD</div>' 
-    : '';
+  
+  // Fix: Check if place.types exists before using it
+  const isCBDStore = place.types ? 
+    place.types.some(type => ['store', 'shop', 'establishment'].includes(type)) : 
+    true; // Default to true if types not available
+  
+  const storeType = isCBDStore ? 
+    '<div class="store-type">Boutique CBD</div>' : 
+    '';
 
   return `
     ${styles}

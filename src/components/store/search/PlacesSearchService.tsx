@@ -43,7 +43,8 @@ const PlacesSearchService = ({
         location: userLocation,
         radius: term.radius,
         keyword: term.keyword,
-        type: ['store', 'shop'] // Ajout de types pour améliorer la pertinence
+        // Fix: use a single type instead of an array
+        type: 'store' // Now using a single type string value
       };
       
       console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
@@ -130,20 +131,20 @@ const PlacesSearchService = ({
     setIsSearching(false);
   };
 
-  // Ajout d'une fonction de recherche textuelle pour permettre aux utilisateurs
-  // de rechercher explicitement leur boutique
+  // Fix: Use findPlaceFromQuery instead of textSearch
   const textSearch = async (query: string) => {
     setIsSearching(true);
     
+    // Use findPlaceFromQuery instead since textSearch is not available 
+    // in the current type definitions
     const request = {
       query: `${query} cbd`,
-      location: userLocation,
-      radius: 50000
+      fields: ['name', 'geometry', 'formatted_address', 'place_id', 'rating', 'user_ratings_total', 'vicinity']
     };
     
     try {
       await new Promise((resolve) => {
-        service.textSearch(request, (results, status) => {
+        service.findPlaceFromQuery(request, (results, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
             console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`);
             setHasResults(results.length > 0);
@@ -153,12 +154,14 @@ const PlacesSearchService = ({
             });
           } else {
             console.warn(`Statut de recherche textuelle: ${status}`);
+            setHasResults(false);
           }
           resolve(true);
         });
       });
     } catch (error) {
       console.error(`Erreur lors de la recherche textuelle:`, error);
+      setHasResults(false);
     }
     
     setIsSearching(false);

@@ -120,6 +120,7 @@ declare namespace google {
         photos?: {
           getUrl: () => string;
         }[];
+        types?: string[]; // Add the types property that was missing
       }
 
       interface PlaceDetailsRequest {
@@ -140,7 +141,14 @@ declare namespace google {
         location: LatLng | LatLngLiteral;
         radius: number;
         keyword?: string;
-        type?: string;
+        type?: string; // This should be a string, not an array
+      }
+
+      // Add textSearch request interface
+      interface TextSearchRequest {
+        query: string;
+        location?: LatLng | LatLngLiteral;
+        radius?: number;
       }
 
       class PlacesService {
@@ -166,6 +174,14 @@ declare namespace google {
           request: PlaceDetailsRequest,
           callback: (
             result: PlaceResult | null,
+            status: PlacesServiceStatus
+          ) => void
+        ): void;
+        // Add textSearch method
+        textSearch(
+          request: TextSearchRequest,
+          callback: (
+            results: PlaceResult[] | null,
             status: PlacesServiceStatus
           ) => void
         ): void;
