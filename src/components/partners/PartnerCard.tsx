@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,10 +84,10 @@ const PartnerCard = ({
             onClick={handleContactClick}
           >
             {!hasPremium && <Lock className="h-4 w-4 mr-1" />}
-            {hasPremium ? "Contacter" : "Voir les coordonnées"}
+            {hasPremium ? "Voir les coordonnées" : "Voir les coordonnées"}
           </Button>
         ) : (
-          <Button variant="outline" className="w-full">Voir le détail</Button>
+          <Button variant="outline" className="w-full">Voir les coordonnées</Button>
         )}
       </CardFooter>
     </Card>
