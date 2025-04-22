@@ -11,16 +11,30 @@ export const useGoogleMap = () => {
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
   const { toast } = useToast();
   const scriptLoadingRef = useRef(false);
+  const initializationAttemptsRef = useRef(0);
 
   // Load the Google Maps API script
   useEffect(() => {
     const loadGoogleMapsApi = async () => {
       // If Google Maps API is already loaded or currently loading
-      if (window.google?.maps || scriptLoadingRef.current) {
-        if (window.google?.maps) {
-          console.log("Google Maps API already loaded");
+      if (window.google?.maps?.Map) {
+        console.log("Google Maps API already loaded with Map constructor");
+        setApiKeyLoaded(true);
+        return;
+      }
+      
+      if (window.google?.maps) {
+        console.log("Google Maps API partially loaded, checking for full functionality");
+        // Check if the Maps object is fully loaded with all required functionality
+        if (window.google.maps.places?.PlacesService) {
+          console.log("Places API is available");
           setApiKeyLoaded(true);
+          return;
         }
+      }
+      
+      if (scriptLoadingRef.current) {
+        console.log("Script is already being loaded");
         return;
       }
 
@@ -41,6 +55,13 @@ export const useGoogleMap = () => {
         }
 
         console.log("Fetched Google Maps API key, loading script");
+
+        // Remove any existing script to prevent duplicate loading
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          existingScript.remove();
+          console.log("Removed existing Google Maps script");
+        }
 
         // Create and load the Google Maps script
         const script = document.createElement('script');
@@ -93,10 +114,12 @@ export const useGoogleMap = () => {
     const fetchUserLocation = async () => {
       try {
         const location = await getCurrentLocation();
+        console.log("User location obtained:", location);
         setUserLocation(location);
       } catch (error) {
         console.error('Error getting location:', error);
         // Use a default location if geolocation fails
+        console.log("Using default location (Paris)");
         setUserLocation({ lat: 48.856614, lng: 2.3522219 }); // Default to Paris, France
       }
     };
@@ -114,6 +137,24 @@ export const useGoogleMap = () => {
       console.log("API not loaded yet, waiting");
       return null;
     }
+    
+    if (!window.google?.maps?.Map) {
+      console.error("Google Maps API not fully loaded");
+      // Increment attempts counter
+      initializationAttemptsRef.current += 1;
+      
+      // If we've tried too many times, show error
+      if (initializationAttemptsRef.current > 3) {
+        toast({
+          title: "Erreur",
+          description: "L'API Google Maps n'est pas correctement chargée",
+          variant: "destructive"
+        });
+        return null;
+      }
+      
+      return null;
+    }
 
     console.log("Initializing map with element:", mapElement);
     setIsLoading(true);
@@ -124,11 +165,13 @@ export const useGoogleMap = () => {
       if (!location) {
         try {
           location = await getCurrentLocation();
+          console.log("Got user location for map:", location);
           setUserLocation(location);
         } catch (error) {
           console.error('Error getting location for map:', error);
           // Use default location
           location = { lat: 48.856614, lng: 2.3522219 }; // Paris, France
+          console.log("Using default location for map:", location);
         }
       }
 
@@ -136,6 +179,8 @@ export const useGoogleMap = () => {
       const map = initializeGoogleMap(mapElement, location);
       mapRef.current = map;
       console.log("Map initialized successfully");
+      // Reset attempts counter on success
+      initializationAttemptsRef.current = 0;
       return map;
     } catch (error) {
       console.error('Error initializing map:', error);

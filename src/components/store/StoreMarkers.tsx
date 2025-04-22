@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
 interface StoreMarkersProps {
@@ -12,12 +12,42 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
   const { toast } = useToast();
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   
   useEffect(() => {
     const initializeMarkers = async () => {
-      if (!map || !userLocation) return;
+      if (!map || !userLocation) {
+        console.log("Map or user location not available for markers");
+        return;
+      }
 
       try {
+        if (!google?.maps?.places) {
+          console.error("Google Places API not loaded");
+          toast({
+            title: "Erreur",
+            description: "API Google Places non disponible",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Add a user marker
+        new google.maps.Marker({
+          position: userLocation,
+          map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: "#4F46E5",
+            fillOpacity: 1,
+            strokeColor: "#312E81",
+            strokeWeight: 2,
+            scale: 8
+          },
+          title: "Votre position"
+        });
+
+        setIsSearching(true);
         // Utiliser directement l'API Google Places
         const service = new google.maps.places.PlacesService(map);
         
@@ -29,7 +59,10 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         };
 
         service.nearbySearch(request, (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          setIsSearching(false);
+          
+          if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            console.log("Found CBD shops:", results.length);
             clearMarkers();
             
             results.forEach(place => {
@@ -49,7 +82,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
 
                 // Récupérer les détails du lieu
                 service.getDetails(
-                  { placeId: place.place_id || "", fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total'] },
+                  { placeId: place.place_id || "", fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry'] },
                   (placeDetails, detailStatus) => {
                     if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
                       const infoWindow = new google.maps.InfoWindow({
@@ -80,15 +113,25 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
               markersRef.current.push(marker);
             });
           } else {
-            console.error('Nearby search error:', status);
-            toast({
-              title: "Recherche infructueuse",
-              description: "Aucune boutique CBD trouvée à proximité",
-              variant: "destructive"
-            });
+            console.warn('Nearby search result:', status, results?.length || 0);
+            
+            if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              toast({
+                title: "Aucun résultat",
+                description: "Aucune boutique CBD trouvée à proximité",
+                variant: "destructive"
+              });
+            } else if (status !== google.maps.places.PlacesServiceStatus.OK) {
+              toast({
+                title: "Recherche infructueuse",
+                description: `Erreur lors de la recherche: ${status}`,
+                variant: "destructive"
+              });
+            }
           }
         });
       } catch (error) {
+        setIsSearching(false);
         console.error('Error loading markers:', error);
         toast({
           title: "Erreur",
@@ -129,7 +172,14 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
     `;
   };
 
+  // Si la recherche est en cours, on affiche rien (le chargement est géré par le parent)
   return null;
 };
+
+declare global {
+  interface Window {
+    selectStore: (placeId: string) => void;
+  }
+}
 
 export default StoreMarkers;
