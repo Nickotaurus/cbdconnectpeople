@@ -29,12 +29,33 @@ const MarkerManager = ({ map, userLocation, onStoreSelect }: MarkerManagerProps)
     
     if (exists) return;
     
-    const marker = new google.maps.Marker({
+    // Check if the place name contains CBD-related terms to customize marker
+    const lowerName = (place.name || '').toLowerCase();
+    const isCbdStore = lowerName.includes('cbd') || 
+                      lowerName.includes('chanvre') || 
+                      lowerName.includes('cannabis');
+    
+    // Use a custom marker for CBD stores
+    const markerOptions: google.maps.MarkerOptions = {
       position: place.geometry.location,
       map,
       title: place.name,
       animation: google.maps.Animation.DROP
-    });
+    };
+    
+    // Add a custom icon for CBD stores to make them stand out
+    if (isCbdStore) {
+      markerOptions.icon = {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#4F46E5',
+        fillOpacity: 1,
+        strokeColor: '#312E81',
+        strokeWeight: 2,
+        scale: 8
+      };
+    }
+    
+    const marker = new google.maps.Marker(markerOptions);
 
     marker.addListener('click', () => {
       if (activeInfoWindow.current) {
@@ -44,7 +65,7 @@ const MarkerManager = ({ map, userLocation, onStoreSelect }: MarkerManagerProps)
       service.getDetails(
         { 
           placeId: place.place_id || "", 
-          fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry'] 
+          fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry', 'types', 'vicinity'] 
         },
         (placeDetails, detailStatus) => {
           if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
@@ -53,13 +74,21 @@ const MarkerManager = ({ map, userLocation, onStoreSelect }: MarkerManagerProps)
               ariaLabel: placeDetails.name,
             });
 
-            if (!window.selectStore) {
-              window.selectStore = (placeId: string) => {
-                if (placeId === place.place_id && placeDetails) {
-                  onStoreSelect(placeDetails);
-                }
-              };
-            }
+            // Définir la fonction globale de sélection
+            window.selectStore = (placeId: string) => {
+              console.log(`Sélection du magasin: ${placeId}`);
+              if (placeId === placeDetails.place_id) {
+                console.log("Boutique sélectionnée:", placeDetails.name);
+                onStoreSelect(placeDetails);
+                // Fermer la fenêtre d'info après sélection
+                infoWindow.close();
+                // Notification de succès
+                toast({
+                  title: "Boutique sélectionnée",
+                  description: `Vous avez sélectionné: ${placeDetails.name}`,
+                });
+              }
+            };
 
             infoWindow.open(map, marker);
             activeInfoWindow.current = infoWindow;

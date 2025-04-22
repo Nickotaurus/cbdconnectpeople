@@ -66,6 +66,21 @@ export const renderInfoWindowContent = (
         border-radius: 12px;
         margin-bottom: 8px;
       }
+      /* Amélioration pour mettre en évidence les boutiques CBD */
+      .cbd-store {
+        border-left: 4px solid #4F46E5;
+        background-color: #F8FAFC;
+      }
+      .cbd-badge {
+        display: inline-block;
+        background-color: #4F46E5;
+        color: white;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 12px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
     </style>
   `;
 
@@ -76,14 +91,25 @@ export const renderInfoWindowContent = (
     place.types.some(type => ['store', 'shop', 'establishment'].includes(type)) : 
     true; // Default to true if types not available
   
+  // Check if name contains CBD-related terms
+  const name = place.name || 'Boutique';
+  const lowerName = name.toLowerCase();
+  const isCbdInName = lowerName.includes('cbd') || lowerName.includes('chanvre') || lowerName.includes('cannabis');
+  
+  // Add CBD badge next to name if relevant
+  const cbdBadge = isCbdInName ? '<span class="cbd-badge">CBD</span>' : '';
+  
+  // Apply special class to CBD stores
+  const storeContainerClass = isCbdInName ? 'store-info-window cbd-store' : 'store-info-window';
+  
   const storeType = isCBDStore ? 
     '<div class="store-type">Boutique CBD</div>' : 
     '';
 
   return `
     ${styles}
-    <div class="store-info-window">
-      <h3 class="store-name">${place.name || 'Boutique CBD'}</h3>
+    <div class="${storeContainerClass}">
+      <h3 class="store-name">${name}${cbdBadge}</h3>
       ${storeType}
       ${place.rating ? `
         <div class="store-rating">
