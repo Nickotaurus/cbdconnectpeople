@@ -36,7 +36,8 @@ export const createUserLocationMarker = (
 export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("La géolocalisation n'est pas supportée par votre navigateur"));
+      console.warn("Géolocalisation non supportée, utilisation de Paris par défaut");
+      resolve({ lat: 48.8566, lng: 2.3522 }); // Paris par défaut
       return;
     }
 
@@ -48,10 +49,16 @@ export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {
         });
       },
       (error) => {
-        console.error("Erreur de géolocalisation:", error);
-        resolve({ lat: 48.8566, lng: 2.3522 }); // Paris as fallback
+        console.warn("Erreur de géolocalisation:", error);
+        
+        toast({
+          title: "Position non autorisée",
+          description: "Utilisation de Paris comme position par défaut",
+          variant: "default"
+        });
+        
+        resolve({ lat: 48.8566, lng: 2.3522 }); // Paris par défaut
       }
     );
   });
 };
-
