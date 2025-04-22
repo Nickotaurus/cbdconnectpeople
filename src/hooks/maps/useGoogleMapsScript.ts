@@ -3,6 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
+// Add declaration to extend Window interface
+declare global {
+  interface Window {
+    initGoogleMapsCallback: () => void;
+  }
+}
+
 export const useGoogleMapsScript = () => {
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
   const scriptLoadingRef = useRef(false);
