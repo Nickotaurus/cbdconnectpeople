@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -24,14 +23,14 @@ const PlacesSearchService = ({
   const [service] = useState(new google.maps.places.PlacesService(map));
 
   const searchStores = async () => {
-    // Amélioration des termes de recherche pour trouver plus de boutiques CBD
+    // Termes de recherche plus neutres et diversifiés
     const searchTerms = [
-      { keyword: 'cbd', radius: 50000 },
-      { keyword: 'boutique cbd', radius: 50000 },
-      { keyword: 'cbd shop', radius: 50000 },
-      { keyword: 'chanvre', radius: 30000 },
-      { keyword: 'cannabis légal', radius: 30000 },
-      { keyword: 'hemp shop', radius: 30000 }
+      { keyword: 'bien-être chanvre', radius: 50000 },
+      { keyword: 'herboristerie bien-être', radius: 50000 },
+      { keyword: 'boutique naturelle', radius: 50000 },
+      { keyword: 'magasin chanvre', radius: 30000 },
+      { keyword: 'produits naturels', radius: 30000 },
+      { keyword: 'herboristerie', radius: 30000 }
     ];
 
     setIsSearching(true);
@@ -43,8 +42,7 @@ const PlacesSearchService = ({
         location: userLocation,
         radius: term.radius,
         keyword: term.keyword,
-        // Fix: use a single type instead of an array
-        type: 'store' // Now using a single type string value
+        type: 'store'
       };
       
       console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
@@ -55,30 +53,30 @@ const PlacesSearchService = ({
             if (status === google.maps.places.PlacesServiceStatus.OK && results) {
               console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
               
-              // Filtrage des résultats pour ne pas dupliquer les établissements
+              // Filtrage des résultats pertinents
               const newResults = results.filter(place => {
                 if (!place.place_id || processedPlaceIds.has(place.place_id)) {
                   return false;
                 }
                 
-                // Ajout d'un filtre supplémentaire pour s'assurer de la pertinence
+                // Filtre plus inclusif avec les nouveaux termes
                 const name = place.name?.toLowerCase() || '';
                 const vicinity = place.vicinity?.toLowerCase() || '';
-                const isCbdRelated = 
-                  name.includes('cbd') || 
+                const isRelevant = 
+                  name.includes('bien-être') || 
+                  name.includes('naturel') || 
                   name.includes('chanvre') || 
-                  name.includes('hemp') || 
-                  name.includes('cannabis') ||
-                  vicinity.includes('cbd');
+                  name.includes('herboristerie') ||
+                  vicinity.includes('naturel') ||
+                  vicinity.includes('bien-être');
                 
-                if (isCbdRelated) {
+                if (isRelevant) {
                   processedPlaceIds.add(place.place_id);
                   return true;
                 }
                 
-                // Si le terme de recherche est juste 'cbd', acceptons tous les résultats
-                // car Google a déjà filtré pour nous
-                if (term.keyword === 'cbd') {
+                // Si le terme est générique, vérifions d'autres critères
+                if (term.keyword === 'herboristerie' || term.keyword === 'produits naturels') {
                   processedPlaceIds.add(place.place_id);
                   return true;
                 }
@@ -94,16 +92,12 @@ const PlacesSearchService = ({
                   onAddMarker(place, service);
                 });
               }
-            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-              console.log(`Aucun résultat pour "${term.keyword}"`);
-            } else {
-              console.warn(`Statut de recherche pour ${term.keyword}: ${status}`);
             }
             resolve(true);
           });
         });
         
-        // Ajout d'un délai plus long entre les recherches pour respecter les limites d'API
+        // Délai entre les recherches
         await new Promise(resolve => setTimeout(resolve, 500));
         
       } catch (error) {
@@ -111,19 +105,16 @@ const PlacesSearchService = ({
       }
     }
     
-    console.log(`Total des établissements CBD trouvés: ${totalFound}`);
-    
-    // Notification à l'utilisateur sur le résultat de la recherche
     if (totalFound === 0) {
       toast({
-        title: "Aucune boutique CBD trouvée",
+        title: "Aucun établissement trouvé",
         description: "Vous pouvez ajouter votre boutique manuellement",
         variant: "default"
       });
     } else {
       toast({
         title: "Résultats de recherche",
-        description: `${totalFound} boutiques CBD trouvées dans votre région`,
+        description: `${totalFound} établissements trouvés dans votre région`,
         variant: "default"
       });
     }
