@@ -1,9 +1,29 @@
 
+import React, { useRef, useState } from 'react';
+import { ToastAction } from "@/components/ui/toast";
+import StoreInfoWindow from '../StoreInfoWindow';
+
+// Define MarkerManagerProps interface
+interface MarkerManagerProps {
+  map: google.maps.Map;
+  userLocation: google.maps.LatLngLiteral;
+  onStoreSelect: (store: google.maps.places.PlaceResult) => void;
+  toast: any; // Using any for simplicity, but ideally should use the correct toast type
+}
+
 const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasResults, setHasResults] = useState(false);
+
+  // Render info window content function
+  const renderInfoWindowContent = (
+    place: google.maps.places.PlaceResult, 
+    onSelect: () => void
+  ) => {
+    return StoreInfoWindow({ place, onSelect });
+  };
 
   const addMarker = (
     place: google.maps.places.PlaceResult,
