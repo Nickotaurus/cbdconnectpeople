@@ -24,51 +24,147 @@ const PlacesSearchService = ({
   const [service] = useState(new google.maps.places.PlacesService(map));
 
   const searchStores = async () => {
+    // Amélioration des termes de recherche pour trouver plus de boutiques CBD
     const searchTerms = [
-      { keyword: 'boutique CBD', radius: 50000 },
-      { keyword: 'shop CBD', radius: 50000 },
-      { keyword: 'CBD store', radius: 50000 },
-      { keyword: 'CBD', radius: 30000 }
+      { keyword: 'cbd', radius: 50000 },
+      { keyword: 'boutique cbd', radius: 50000 },
+      { keyword: 'cbd shop', radius: 50000 },
+      { keyword: 'chanvre', radius: 30000 },
+      { keyword: 'cannabis légal', radius: 30000 },
+      { keyword: 'hemp shop', radius: 30000 }
     ];
 
     setIsSearching(true);
+    let totalFound = 0;
+    const processedPlaceIds = new Set<string>();
     
     for (const term of searchTerms) {
       const request = {
         location: userLocation,
         radius: term.radius,
-        keyword: term.keyword
+        keyword: term.keyword,
+        type: ['store', 'shop'] // Ajout de types pour améliorer la pertinence
       };
       
       console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
       
       try {
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve) => {
           service.nearbySearch(request, (results, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && results) {
               console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
-              setHasResults(true);
               
-              results.forEach(place => {
-                onAddMarker(place, service);
+              // Filtrage des résultats pour ne pas dupliquer les établissements
+              const newResults = results.filter(place => {
+                if (!place.place_id || processedPlaceIds.has(place.place_id)) {
+                  return false;
+                }
+                
+                // Ajout d'un filtre supplémentaire pour s'assurer de la pertinence
+                const name = place.name?.toLowerCase() || '';
+                const vicinity = place.vicinity?.toLowerCase() || '';
+                const isCbdRelated = 
+                  name.includes('cbd') || 
+                  name.includes('chanvre') || 
+                  name.includes('hemp') || 
+                  name.includes('cannabis') ||
+                  vicinity.includes('cbd');
+                
+                if (isCbdRelated) {
+                  processedPlaceIds.add(place.place_id);
+                  return true;
+                }
+                
+                // Si le terme de recherche est juste 'cbd', acceptons tous les résultats
+                // car Google a déjà filtré pour nous
+                if (term.keyword === 'cbd') {
+                  processedPlaceIds.add(place.place_id);
+                  return true;
+                }
+                
+                return false;
               });
+              
+              if (newResults.length > 0) {
+                setHasResults(true);
+                totalFound += newResults.length;
+                
+                newResults.forEach(place => {
+                  onAddMarker(place, service);
+                });
+              }
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              console.log(`Aucun résultat pour "${term.keyword}"`);
+            } else {
+              console.warn(`Statut de recherche pour ${term.keyword}: ${status}`);
             }
             resolve(true);
           });
         });
         
-        // Add delay between searches to respect API rate limits
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Ajout d'un délai plus long entre les recherches pour respecter les limites d'API
+        await new Promise(resolve => setTimeout(resolve, 500));
         
       } catch (error) {
         console.error(`Erreur lors de la recherche pour ${term.keyword}:`, error);
       }
     }
     
+    console.log(`Total des établissements CBD trouvés: ${totalFound}`);
+    
+    // Notification à l'utilisateur sur le résultat de la recherche
+    if (totalFound === 0) {
+      toast({
+        title: "Aucune boutique CBD trouvée",
+        description: "Vous pouvez ajouter votre boutique manuellement",
+        variant: "default"
+      });
+    } else {
+      toast({
+        title: "Résultats de recherche",
+        description: `${totalFound} boutiques CBD trouvées dans votre région`,
+        variant: "default"
+      });
+    }
+    
     setIsSearching(false);
   };
 
-  return { searchStores };
+  // Ajout d'une fonction de recherche textuelle pour permettre aux utilisateurs
+  // de rechercher explicitement leur boutique
+  const textSearch = async (query: string) => {
+    setIsSearching(true);
+    
+    const request = {
+      query: `${query} cbd`,
+      location: userLocation,
+      radius: 50000
+    };
+    
+    try {
+      await new Promise((resolve) => {
+        service.textSearch(request, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`);
+            setHasResults(results.length > 0);
+            
+            results.forEach(place => {
+              onAddMarker(place, service);
+            });
+          } else {
+            console.warn(`Statut de recherche textuelle: ${status}`);
+          }
+          resolve(true);
+        });
+      });
+    } catch (error) {
+      console.error(`Erreur lors de la recherche textuelle:`, error);
+    }
+    
+    setIsSearching(false);
+  };
+
+  return { searchStores, textSearch };
 };
 
 export default PlacesSearchService;
