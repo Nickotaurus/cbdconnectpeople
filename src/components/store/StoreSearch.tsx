@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MapPin, Loader2 } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
 import StoreMarkers from './StoreMarkers';
@@ -44,11 +44,13 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && apiKeyLoaded) {
       const mapElement = document.getElementById('store-search-map');
-      initializeMap(mapElement);
+      if (mapElement) {
+        initializeMap(mapElement);
+      }
     }
-  }, [isOpen, apiKeyLoaded]);
+  }, [isOpen, apiKeyLoaded, initializeMap]);
 
   return (
     <>
@@ -62,7 +64,11 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[800px] h-[600px]">
-          <DialogTitle className="sr-only">Recherche de boutique CBD</DialogTitle>
+          <DialogTitle>Recherche de boutique CBD</DialogTitle>
+          <DialogDescription className="sr-only">
+            Recherchez votre boutique CBD sur la carte
+          </DialogDescription>
+          
           {(isLoading || !apiKeyLoaded) && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
               <div className="flex flex-col items-center">
@@ -73,7 +79,9 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
               </div>
             </div>
           )}
+          
           <div id="store-search-map" className="w-full h-full rounded-md" />
+          
           {map && userLocation && (
             <StoreMarkers 
               map={map}

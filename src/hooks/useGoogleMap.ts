@@ -1,7 +1,7 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCurrentLocation, initializeGoogleMap } from '@/utils/mapUtils';
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { getGoogleMapsApiKey } from '@/utils/googlePlacesService';
 
 export const useGoogleMap = () => {
@@ -9,15 +9,23 @@ export const useGoogleMap = () => {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
+  const { toast } = useToast();
+  const scriptLoadingRef = useRef(false);
 
   // Load the Google Maps API script
   useEffect(() => {
     const loadGoogleMapsApi = async () => {
-      if (window.google?.maps) {
-        setApiKeyLoaded(true);
+      // If Google Maps API is already loaded or currently loading
+      if (window.google?.maps || scriptLoadingRef.current) {
+        if (window.google?.maps) {
+          console.log("Google Maps API already loaded");
+          setApiKeyLoaded(true);
+        }
         return;
       }
 
+      scriptLoadingRef.current = true;
+      
       try {
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
@@ -29,6 +37,8 @@ export const useGoogleMap = () => {
           return;
         }
 
+        console.log("Fetched Google Maps API key, loading script");
+
         // Create and load the Google Maps script
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
@@ -38,6 +48,7 @@ export const useGoogleMap = () => {
         script.onload = () => {
           console.log("Google Maps API loaded successfully");
           setApiKeyLoaded(true);
+          scriptLoadingRef.current = false;
         };
         
         script.onerror = () => {
@@ -47,6 +58,7 @@ export const useGoogleMap = () => {
             description: "Impossible de charger l'API Google Maps",
             variant: "destructive"
           });
+          scriptLoadingRef.current = false;
         };
         
         document.head.appendChild(script);
@@ -57,26 +69,29 @@ export const useGoogleMap = () => {
           description: "Erreur lors du chargement de l'API Google Maps",
           variant: "destructive"
         });
+        scriptLoadingRef.current = false;
       }
     };
 
     loadGoogleMapsApi();
-  }, []);
+  }, [toast]);
 
-  const initializeMap = async (mapElement: HTMLElement | null) => {
-    if (!mapElement) return null;
+  const initializeMap = useCallback(async (mapElement: HTMLElement | null) => {
+    if (!mapElement) {
+      console.error("Map element not found");
+      return null;
+    }
+    
     if (!apiKeyLoaded) {
-      toast({
-        title: "Chargement",
-        description: "En attente du chargement de l'API Google Maps...",
-        variant: "default"
-      });
+      console.log("API not loaded yet, waiting");
       return null;
     }
 
     setIsLoading(true);
     try {
+      console.log("Initializing map with element:", mapElement);
       const location = await getCurrentLocation();
+      console.log("Got user location:", location);
       setUserLocation(location);
       const map = initializeGoogleMap(mapElement, location);
       mapRef.current = map;
@@ -92,7 +107,7 @@ export const useGoogleMap = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [apiKeyLoaded, toast]);
 
   return {
     map: mapRef.current,
