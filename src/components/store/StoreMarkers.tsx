@@ -44,7 +44,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
       const manager = MarkerManager({ 
         map, 
         userLocation, 
-        onStoreSelect,
+        onStoreSelect, 
         toast 
       });
       

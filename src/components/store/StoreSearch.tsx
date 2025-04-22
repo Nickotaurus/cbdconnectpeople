@@ -6,6 +6,12 @@ import { MapPin, Loader2, AlertCircle, Search, Store } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
 import StoreMarkers from './StoreMarkers';
 import './StoreSearch.css';
+import { Input } from "@/components/ui/input";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/components/ui/use-toast";
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -19,6 +25,15 @@ interface StoreSearchProps {
   }) => void;
 }
 
+// Form schema for manual address entry
+const manualAddressSchema = z.object({
+  address: z.string().min(5, "L'adresse est requise (min. 5 caractères)"),
+  city: z.string().min(2, "La ville est requise"),
+  postalCode: z.string().min(5, "Code postal requis"),
+});
+
+type ManualAddressFormValues = z.infer<typeof manualAddressSchema>;
+
 const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
@@ -26,6 +41,19 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [mapError, setMapError] = useState<string | null>(null);
   const [noResults, setNoResults] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [isSearchingPlace, setIsSearchingPlace] = useState(false);
+  const [manualSearchResults, setManualSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
+  const { toast } = useToast();
+
+  const form = useForm<ManualAddressFormValues>({
+    resolver: zodResolver(manualAddressSchema),
+    defaultValues: {
+      address: "",
+      city: "",
+      postalCode: "",
+    },
+  });
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -87,19 +115,90 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     }
   }, [isOpen, apiKeyLoaded, initializeMap]);
 
-  // Fonction pour ajouter manuellement une boutique si la recherche échoue
+  // Handle manual search
+  const handleManualSearch = async (values: ManualAddressFormValues) => {
+    if (!apiKeyLoaded || !google?.maps?.places) {
+      toast({
+        title: "API Google indisponible",
+        description: "Impossible d'effectuer la recherche. Veuillez réessayer ultérieurement.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const fullAddress = `${values.address}, ${values.postalCode} ${values.city}, France`;
+    setIsSearchingPlace(true);
+    setManualSearchResults([]);
+
+    try {
+      // Create a temporary div for the PlacesService
+      const serviceDiv = document.createElement('div');
+      const service = new google.maps.places.PlacesService(serviceDiv);
+
+      // Search for places matching the address
+      service.findPlaceFromQuery({
+        query: fullAddress,
+        fields: ['name', 'formatted_address', 'place_id', 'geometry']
+      }, (results, status) => {
+        setIsSearchingPlace(false);
+        
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          setManualSearchResults(results);
+          
+          // If only one result, fetch more details
+          if (results.length === 1) {
+            getPlaceDetails(results[0].place_id!);
+          }
+        } else {
+          toast({
+            title: "Aucun établissement trouvé",
+            description: "Nous n'avons pas trouvé d'établissement correspondant à cette adresse. Veuillez vérifier l'adresse saisie.",
+            variant: "destructive"
+          });
+        }
+      });
+    } catch (error) {
+      setIsSearchingPlace(false);
+      console.error("Error searching for place:", error);
+      toast({
+        title: "Erreur de recherche",
+        description: "Une erreur est survenue lors de la recherche. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Get detailed information about a place
+  const getPlaceDetails = (placeId: string) => {
+    if (!apiKeyLoaded || !google?.maps?.places) return;
+    
+    try {
+      // Create a temporary div for the PlacesService
+      const serviceDiv = document.createElement('div');
+      const service = new google.maps.places.PlacesService(serviceDiv);
+      
+      service.getDetails({ 
+        placeId, 
+        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours'] 
+      }, (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          handleStoreSelect(place);
+        } else {
+          toast({
+            title: "Erreur",
+            description: "Impossible de récupérer les détails de l'établissement.",
+            variant: "destructive"
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error getting place details:", error);
+    }
+  };
+
+  // Fonction pour ajouter manuellement une boutique
   const handleManualAdd = () => {
-    // Créer un objet avec des valeurs par défaut qui peuvent être modifiées par l'utilisateur ensuite
-    onStoreSelect({
-      name: 'Ma boutique CBD',
-      address: '',
-      city: '',
-      postalCode: '',
-      latitude: userLocation?.lat || 48.8566,
-      longitude: userLocation?.lng || 2.3522,
-      placeId: `manual_${Date.now()}` // Créer un ID unique pour l'entrée manuelle
-    });
-    setIsOpen(false);
+    setShowManualForm(true);
   };
 
   return (
@@ -109,6 +208,8 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
           console.log("Opening store search dialog");
           setMapError(null);
           setNoResults(false);
+          setShowManualForm(false);
+          setManualSearchResults([]);
           setIsOpen(true);
         }} 
         className="w-full"
@@ -119,7 +220,11 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
       <Dialog open={isOpen} onOpenChange={(open) => {
         console.log("Dialog open state changed to:", open);
-        if (!open) setMapError(null);
+        if (!open) {
+          setMapError(null);
+          setShowManualForm(false);
+          setManualSearchResults([]);
+        }
         setIsOpen(open);
       }}>
         <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
@@ -149,7 +254,106 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             </div>
           )}
           
-          {mapError ? (
+          {showManualForm ? (
+            <div className="flex-1 flex flex-col">
+              <div className="p-4 mb-4 bg-slate-50 rounded-md">
+                <h3 className="font-medium mb-2">Ajout manuel de boutique</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Veuillez saisir l'adresse complète de votre boutique pour que nous puissions la trouver.
+                </p>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleManualSearch)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Adresse complète</FormLabel>
+                          <FormControl>
+                            <Input placeholder="123 rue de la Paix" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="postalCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Code postal</FormLabel>
+                            <FormControl>
+                              <Input placeholder="75001" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ville</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Paris" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowManualForm(false)}
+                      >
+                        Retour
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={isSearchingPlace}
+                      >
+                        {isSearchingPlace ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Recherche...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-4 h-4 mr-2" />
+                            Rechercher l'établissement
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </div>
+              
+              {/* Display search results */}
+              {manualSearchResults.length > 0 && (
+                <div className="flex-1 overflow-y-auto">
+                  <h3 className="font-medium mb-2">Résultats de recherche</h3>
+                  <div className="space-y-2">
+                    {manualSearchResults.map((place) => (
+                      <div 
+                        key={place.place_id} 
+                        className="p-3 border rounded-md hover:bg-slate-50 cursor-pointer"
+                        onClick={() => getPlaceDetails(place.place_id!)}
+                      >
+                        <p className="font-medium">{place.name || "Établissement"}</p>
+                        <p className="text-sm text-muted-foreground">{place.formatted_address}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : mapError ? (
             <div className="flex-1 flex flex-col items-center justify-center">
               <AlertCircle className="h-12 w-12 text-destructive mb-4" />
               <p className="text-center text-destructive font-medium mb-2">{mapError}</p>
@@ -196,7 +400,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             </>
           )}
           
-          {map && userLocation && !mapError && (
+          {map && userLocation && !mapError && !showManualForm && (
             <StoreMarkers 
               map={map}
               userLocation={userLocation}

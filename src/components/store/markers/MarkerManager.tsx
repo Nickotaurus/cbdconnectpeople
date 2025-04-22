@@ -9,7 +9,6 @@ interface MarkerManagerProps {
   toast: any; // Accept toast as a prop instead of using the hook
 }
 
-// This is now a regular function, not a React component
 const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
