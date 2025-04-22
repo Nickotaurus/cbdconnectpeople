@@ -122,40 +122,66 @@ const PlacesSearchService = ({
     setIsSearching(false);
   };
 
-  // Fix: Use findPlaceFromQuery instead of textSearch
+  // Improved text search implementation
   const textSearch = async (query: string) => {
     setIsSearching(true);
     
-    // Use findPlaceFromQuery instead since textSearch is not available 
-    // in the current type definitions
-    const request = {
-      query: `${query} cbd`,
-      fields: ['name', 'geometry', 'formatted_address', 'place_id', 'rating', 'user_ratings_total', 'vicinity']
-    };
-    
     try {
+      // Create a complete search request with location bounds
+      const request = {
+        query: `${query}`, // No need to append CBD, let user's query be more general
+        location: userLocation,
+        radius: 50000, // 50km radius
+        fields: ['name', 'geometry', 'formatted_address', 'place_id', 'rating', 'user_ratings_total', 'vicinity']
+      };
+      
+      console.log(`Executing text search for: "${query}"`);
+      
       await new Promise((resolve) => {
-        service.findPlaceFromQuery(request, (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`);
-            setHasResults(results.length > 0);
+        // Use nearbySearch instead of findPlaceFromQuery for better results
+        service.nearbySearch(request, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`, results);
+            setHasResults(true);
             
+            // Process results
             results.forEach(place => {
               onAddMarker(place, service);
             });
           } else {
-            console.warn(`Statut de recherche textuelle: ${status}`);
+            console.warn(`Statut de recherche textuelle: ${status}`, results);
             setHasResults(false);
+            
+            // Try textSearch as a fallback if nearbySearch fails
+            const textRequest = {
+              query: query,
+              location: userLocation,
+              radius: 50000
+            };
+            
+            service.textSearch(textRequest, (textResults, textStatus) => {
+              if (textStatus === google.maps.places.PlacesServiceStatus.OK && textResults && textResults.length > 0) {
+                console.log(`Recherche textuelle a trouvé ${textResults.length} résultats`);
+                setHasResults(true);
+                
+                textResults.forEach(place => {
+                  onAddMarker(place, service);
+                });
+              } else {
+                console.warn(`Recherche textuelle a échoué: ${textStatus}`);
+                setHasResults(false);
+              }
+              resolve(true);
+            });
           }
-          resolve(true);
         });
       });
     } catch (error) {
       console.error(`Erreur lors de la recherche textuelle:`, error);
       setHasResults(false);
+    } finally {
+      setIsSearching(false);
     }
-    
-    setIsSearching(false);
   };
 
   return { searchStores, textSearch };

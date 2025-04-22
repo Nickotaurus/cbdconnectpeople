@@ -1,14 +1,4 @@
 
-import { useRef, useState } from 'react';
-import { renderInfoWindowContent } from '../info-window/InfoWindowRenderer';
-
-interface MarkerManagerProps {
-  map: google.maps.Map;
-  userLocation: google.maps.LatLngLiteral;
-  onStoreSelect: (store: google.maps.places.PlaceResult) => void;
-  toast: any; // Accept toast as a prop instead of using the hook
-}
-
 const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
@@ -19,14 +9,23 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
     place: google.maps.places.PlaceResult,
     service: google.maps.places.PlacesService
   ) => {
-    if (!place.geometry?.location) return;
+    if (!place.geometry?.location) {
+      console.error("Place has no location:", place);
+      return;
+    }
     
+    // Vérifier si le marqueur existe déjà
     const exists = markersRef.current.some(marker => 
       marker.getPosition()?.lat() === place.geometry?.location.lat() && 
       marker.getPosition()?.lng() === place.geometry?.location.lng()
     );
     
-    if (exists) return;
+    if (exists) {
+      console.log("Marker already exists for this location");
+      return;
+    }
+    
+    console.log("Adding marker for:", place.name, place);
     
     // Check if the place name contains CBD-related terms to customize marker
     const lowerName = (place.name || '').toLowerCase();
@@ -91,6 +90,8 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
 
             infoWindow.open(map, marker);
             activeInfoWindow.current = infoWindow;
+          } else {
+            console.error("Error fetching place details:", detailStatus);
           }
         }
       );

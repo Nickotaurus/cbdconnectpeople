@@ -40,35 +40,35 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         return;
       }
 
-      // Pass toast to MarkerManager
-      const manager = MarkerManager({ 
-        map, 
-        userLocation, 
-        onStoreSelect, 
-        toast 
-      });
-      
-      setMarkerManager(manager);
-      
-      const placesService = PlacesSearchService({
-        map,
-        userLocation,
-        onAddMarker: manager.addMarker,
-        setIsSearching: (value) => {
-          manager.setIsSearching(value);
-          setIsSearching(value);
-        },
-        setHasResults: (value) => {
-          manager.setHasResults(value);
-          setNoResults(!value);
-        }
-      });
-      setSearchService(placesService);
-
-      // Nettoyer les marqueurs existants
-      manager.clearMarkers();
-      
       try {
+        // Pass toast to MarkerManager
+        const manager = MarkerManager({ 
+          map, 
+          userLocation, 
+          onStoreSelect, 
+          toast 
+        });
+        
+        setMarkerManager(manager);
+        
+        const placesService = PlacesSearchService({
+          map,
+          userLocation,
+          onAddMarker: manager.addMarker,
+          setIsSearching: (value) => {
+            manager.setIsSearching(value);
+            setIsSearching(value);
+          },
+          setHasResults: (value) => {
+            manager.setHasResults(value);
+            setNoResults(!value);
+          }
+        });
+        setSearchService(placesService);
+
+        // Nettoyer les marqueurs existants
+        manager.clearMarkers();
+        
         // Recherche automatique au chargement de la carte
         await placesService.searchStores();
       } catch (error) {
@@ -90,7 +90,15 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
 
   // Fonction pour gérer la recherche manuelle
   const handleSearch = async () => {
-    if (!searchService || !markerManager) return;
+    if (!searchService || !markerManager || !map) {
+      console.error("Services not initialized for search");
+      toast({
+        title: "Erreur",
+        description: "Les services de recherche ne sont pas initialisés",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (!searchQuery.trim()) {
       toast({
@@ -106,7 +114,9 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
     setNoResults(false);
     
     try {
+      console.log("Début de la recherche pour:", searchQuery);
       await searchService.textSearch(searchQuery);
+      console.log("Recherche terminée");
     } catch (error) {
       console.error('Error searching for stores:', error);
       toast({
