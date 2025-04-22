@@ -1,8 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { MapPin, Loader2, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { MapPin, Loader2, AlertCircle, Search, Store } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
 import StoreMarkers from './StoreMarkers';
 import './StoreSearch.css';
@@ -24,6 +24,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
   const mapElementRef = useRef<HTMLDivElement>(null);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [noResults, setNoResults] = useState(false);
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
@@ -61,6 +62,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
               setMapError("Impossible d'initialiser la carte. Veuillez réessayer.");
             } else {
               setMapError(null);
+              setNoResults(false);
             }
           } catch (error) {
             console.error("Error during map initialization:", error);
@@ -76,12 +78,28 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     }
   }, [isOpen, apiKeyLoaded, initializeMap]);
 
+  // Fonction pour ajouter manuellement une boutique si la recherche échoue
+  const handleManualAdd = () => {
+    // Créer un objet avec des valeurs par défaut qui peuvent être modifiées par l'utilisateur ensuite
+    onStoreSelect({
+      name: 'Ma boutique CBD',
+      address: '',
+      city: '',
+      postalCode: '',
+      latitude: userLocation?.lat || 48.8566,
+      longitude: userLocation?.lng || 2.3522,
+      placeId: `manual_${Date.now()}` // Créer un ID unique pour l'entrée manuelle
+    });
+    setIsOpen(false);
+  };
+
   return (
     <>
       <Button 
         onClick={() => {
           console.log("Opening store search dialog");
           setMapError(null);
+          setNoResults(false);
           setIsOpen(true);
         }} 
         className="w-full"
@@ -97,8 +115,8 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       }}>
         <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
           <DialogTitle>Recherche de boutique CBD</DialogTitle>
-          <DialogDescription className="sr-only">
-            Recherchez votre boutique CBD sur la carte
+          <DialogDescription>
+            Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement.
           </DialogDescription>
           
           {(isLoading || !apiKeyLoaded) && (
@@ -117,19 +135,41 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
               <AlertCircle className="h-12 w-12 text-destructive mb-4" />
               <p className="text-center text-destructive font-medium mb-2">{mapError}</p>
               <p className="text-center text-muted-foreground mb-4">Veuillez vous assurer que la géolocalisation est activée et que votre connexion internet est stable.</p>
-              <Button 
-                onClick={() => {
-                  setMapError(null);
-                  if (mapElementRef.current && apiKeyLoaded) {
-                    initializeMap(mapElementRef.current);
-                  }
-                }}
-              >
-                Réessayer
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    setMapError(null);
+                    if (mapElementRef.current && apiKeyLoaded) {
+                      initializeMap(mapElementRef.current);
+                    }
+                  }}
+                >
+                  Réessayer
+                </Button>
+                <Button variant="outline" onClick={handleManualAdd}>
+                  <Store className="w-4 h-4 mr-2" />
+                  Ajouter manuellement
+                </Button>
+              </div>
             </div>
           ) : (
-            <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
+            <>
+              <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
+              {noResults && (
+                <div className="p-4 bg-amber-50 text-amber-800 rounded-md mt-4">
+                  <p className="font-medium flex items-center">
+                    <AlertCircle className="w-4 h-4 mr-2" /> 
+                    Aucune boutique CBD trouvée à proximité
+                  </p>
+                </div>
+              )}
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={handleManualAdd} className="w-full sm:w-auto">
+                  <Store className="w-4 h-4 mr-2" />
+                  Ajouter ma boutique manuellement
+                </Button>
+              </DialogFooter>
+            </>
           )}
           
           {map && userLocation && !mapError && (

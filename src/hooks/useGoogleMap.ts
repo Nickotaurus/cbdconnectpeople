@@ -12,13 +12,14 @@ export const useGoogleMap = () => {
   const { toast } = useToast();
   const scriptLoadingRef = useRef(false);
   const initializationAttemptsRef = useRef(0);
+  const apiLoadAttemptsRef = useRef(0);
 
   // Load the Google Maps API script
   useEffect(() => {
     const loadGoogleMapsApi = async () => {
       // If Google Maps API is already loaded or currently loading
-      if (window.google?.maps?.Map) {
-        console.log("Google Maps API already loaded with Map constructor");
+      if (window.google?.maps?.Map && window.google.maps.places?.PlacesService) {
+        console.log("Google Maps API already loaded with Map and Places");
         setApiKeyLoaded(true);
         return;
       }
@@ -39,9 +40,10 @@ export const useGoogleMap = () => {
       }
 
       scriptLoadingRef.current = true;
+      apiLoadAttemptsRef.current++;
       
       try {
-        console.log("Fetching Google Maps API key...");
+        console.log(`Fetching Google Maps API key... (attempt ${apiLoadAttemptsRef.current})`);
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
           console.error("No API key returned from getGoogleMapsApiKey");
@@ -65,6 +67,11 @@ export const useGoogleMap = () => {
 
         // Create and load the Google Maps script
         const script = document.createElement('script');
+        
+        // Utiliser le site URL actuel pour l'autorisation
+        const currentUrl = window.location.origin;
+        console.log("Current URL for Maps API authorization:", currentUrl);
+        
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsCallback`;
         script.async = true;
         script.defer = true;
@@ -78,12 +85,22 @@ export const useGoogleMap = () => {
         
         script.onerror = (e) => {
           console.error("Failed to load Google Maps API:", e);
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger l'API Google Maps",
-            variant: "destructive"
-          });
-          scriptLoadingRef.current = false;
+          
+          // Si on a moins de 3 tentatives, réessaie après un délai
+          if (apiLoadAttemptsRef.current < 3) {
+            console.log(`Will retry loading API in 2 seconds (attempt ${apiLoadAttemptsRef.current}/3)`);
+            setTimeout(() => {
+              scriptLoadingRef.current = false;
+              loadGoogleMapsApi();
+            }, 2000);
+          } else {
+            toast({
+              title: "Erreur",
+              description: "Impossible de charger l'API Google Maps après plusieurs tentatives",
+              variant: "destructive"
+            });
+            scriptLoadingRef.current = false;
+          }
         };
         
         document.head.appendChild(script);

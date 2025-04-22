@@ -13,6 +13,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [hasResults, setHasResults] = useState(false);
   
   useEffect(() => {
     const initializeMarkers = async () => {
@@ -48,93 +49,131 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         });
 
         setIsSearching(true);
+        
         // Utiliser directement l'API Google Places
         const service = new google.maps.places.PlacesService(map);
         
-        // Recherche des boutiques CBD à proximité
-        const request = {
-          location: userLocation,
-          radius: 50000, // 50km
-          keyword: 'boutique CBD'
-        };
-
-        service.nearbySearch(request, (results, status) => {
-          setIsSearching(false);
+        console.log("Searching for CBD shops near:", userLocation);
+        
+        // Utilisons plusieurs termes de recherche pour augmenter les chances de trouver des boutiques
+        const searchTerms = [
+          { keyword: 'boutique CBD', radius: 50000 },
+          { keyword: 'shop CBD', radius: 50000 },
+          { keyword: 'magasin CBD', radius: 50000 },
+          { keyword: 'CBD', radius: 30000 }
+        ];
+        
+        // Fonction pour effectuer une recherche avec un terme spécifique
+        const performSearch = (term: { keyword: string, radius: number }) => {
+          const request = {
+            location: userLocation,
+            radius: term.radius,
+            keyword: term.keyword
+          };
           
-          if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-            console.log("Found CBD shops:", results.length);
-            clearMarkers();
-            
-            results.forEach(place => {
-              if (!place.geometry?.location) return;
-
-              const marker = new google.maps.Marker({
-                position: place.geometry.location,
-                map,
-                title: place.name,
-                animation: google.maps.Animation.DROP
-              });
-
-              marker.addListener('click', () => {
-                if (activeInfoWindow.current) {
-                  activeInfoWindow.current.close();
-                }
-
-                // Récupérer les détails du lieu
-                service.getDetails(
-                  { placeId: place.place_id || "", fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry'] },
-                  (placeDetails, detailStatus) => {
-                    if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
-                      const infoWindow = new google.maps.InfoWindow({
-                        content: renderInfoWindowContent(placeDetails, () => onStoreSelect(placeDetails)),
-                        ariaLabel: placeDetails.name,
-                      });
-
-                      // Fix: Define the selectStore function in a way that doesn't conflict with the global declaration
-                      if (!window.selectStore) {
-                        window.selectStore = (placeId: string) => {
-                          console.log("Store selected via info window:", placeId);
-                          // Find the right place details and call onStoreSelect
-                          if (placeId === place.place_id && placeDetails) {
-                            onStoreSelect(placeDetails);
-                          }
-                        };
-                      }
-
-                      infoWindow.open(map, marker);
-                      activeInfoWindow.current = infoWindow;
-                    } else {
-                      console.error('Error fetching place details:', detailStatus);
-                      toast({
-                        title: "Erreur",
-                        description: "Impossible de récupérer les détails de cette boutique",
-                        variant: "destructive"
-                      });
-                    }
-                  }
+          console.log(`Searching for: ${term.keyword} with radius: ${term.radius}m`);
+          
+          service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+              console.log(`Found ${results.length} places with keyword: ${term.keyword}`);
+              setHasResults(true);
+              
+              results.forEach(place => {
+                if (!place.geometry?.location) return;
+                
+                // Vérifier si nous avons déjà un marqueur à cette position
+                const exists = markersRef.current.some(marker => 
+                  marker.getPosition()?.lat() === place.geometry?.location.lat() && 
+                  marker.getPosition()?.lng() === place.geometry?.location.lng()
                 );
-              });
+                
+                if (exists) return; // Éviter les doublons
+                
+                const marker = new google.maps.Marker({
+                  position: place.geometry.location,
+                  map,
+                  title: place.name,
+                  animation: google.maps.Animation.DROP
+                });
 
-              markersRef.current.push(marker);
-            });
-          } else {
-            console.warn('Nearby search result:', status, results?.length || 0);
+                marker.addListener('click', () => {
+                  if (activeInfoWindow.current) {
+                    activeInfoWindow.current.close();
+                  }
+
+                  // Récupérer les détails du lieu
+                  service.getDetails(
+                    { placeId: place.place_id || "", fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry'] },
+                    (placeDetails, detailStatus) => {
+                      if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+                        const infoWindow = new google.maps.InfoWindow({
+                          content: renderInfoWindowContent(placeDetails, () => onStoreSelect(placeDetails)),
+                          ariaLabel: placeDetails.name,
+                        });
+
+                        // Fix: Define the selectStore function in a way that doesn't conflict with the global declaration
+                        if (!window.selectStore) {
+                          window.selectStore = (placeId: string) => {
+                            console.log("Store selected via info window:", placeId);
+                            // Find the right place details and call onStoreSelect
+                            if (placeId === place.place_id && placeDetails) {
+                              onStoreSelect(placeDetails);
+                            }
+                          };
+                        }
+
+                        infoWindow.open(map, marker);
+                        activeInfoWindow.current = infoWindow;
+                      } else {
+                        console.error('Error fetching place details:', detailStatus);
+                        toast({
+                          title: "Erreur",
+                          description: "Impossible de récupérer les détails de cette boutique",
+                          variant: "destructive"
+                        });
+                      }
+                    }
+                  );
+                });
+
+                markersRef.current.push(marker);
+              });
+            } else {
+              console.warn(`No results for keyword: ${term.keyword}. Status: ${status}`);
+            }
             
-            if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+            setIsSearching(false);
+          });
+        };
+        
+        // Effectuer les recherches séquentiellement avec un délai
+        let searchCount = 0;
+        
+        const executeNextSearch = () => {
+          if (searchCount < searchTerms.length) {
+            performSearch(searchTerms[searchCount]);
+            searchCount++;
+            
+            // Continue with next search term after a delay
+            setTimeout(executeNextSearch, 1000);
+          } else {
+            setIsSearching(false);
+            
+            // Si aucun résultat n'a été trouvé après toutes les recherches
+            if (!hasResults && markersRef.current.length === 0) {
+              console.warn("No CBD shops found after all searches");
               toast({
                 title: "Aucun résultat",
-                description: "Aucune boutique CBD trouvée à proximité",
-                variant: "destructive"
-              });
-            } else if (status !== google.maps.places.PlacesServiceStatus.OK) {
-              toast({
-                title: "Recherche infructueuse",
-                description: `Erreur lors de la recherche: ${status}`,
+                description: "Aucune boutique CBD trouvée à proximité. Essayez d'ajouter votre boutique manuellement.",
                 variant: "destructive"
               });
             }
           }
-        });
+        };
+        
+        // Start the search sequence
+        executeNextSearch();
+        
       } catch (error) {
         setIsSearching(false);
         console.error('Error loading markers:', error);
@@ -155,7 +194,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
       // Reset the global selectStore function when component unmounts
       window.selectStore = undefined;
     };
-  }, [map, userLocation, onStoreSelect, toast]);
+  }, [map, userLocation, onStoreSelect, toast, hasResults]);
 
   const clearMarkers = () => {
     markersRef.current.forEach(marker => marker.setMap(null));
