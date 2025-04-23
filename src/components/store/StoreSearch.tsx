@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -210,6 +211,13 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     }
   };
 
+  // Transform Google PlaceResult[] to SearchResult[]
+  const transformedResults = manualSearchResults.map(place => ({
+    place_id: place.place_id || '', // Ensure place_id is not undefined
+    name: place.name,
+    formatted_address: place.formatted_address
+  }));
+
   return (
     <>
       <Button 
@@ -258,7 +266,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
                 isSearching={isSearchingPlace}
               />
               <SearchResults
-                results={manualSearchResults}
+                results={transformedResults}
                 onSelectPlace={getPlaceDetails}
               />
             </div>
