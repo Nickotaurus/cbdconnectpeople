@@ -45,6 +45,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [isSearchingPlace, setIsSearchingPlace] = useState(false);
   const [manualSearchResults, setManualSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
   const { toast } = useToast();
+  const [mapInitialized, setMapInitialized] = useState(false);
 
   const form = useForm<ManualAddressFormValues>({
     resolver: zodResolver(manualAddressSchema),
@@ -56,23 +57,51 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   });
 
   const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
-    if (!placeDetails.formatted_address || !placeDetails.geometry?.location) return;
+    if (!placeDetails.formatted_address || !placeDetails.geometry?.location) {
+      toast({
+        title: "Données incomplètes",
+        description: "Les informations de l'établissement sont incomplètes",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const addressComponents = placeDetails.formatted_address.split(',');
-    const city = addressComponents[1]?.trim() || '';
-    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
-    const placeLocation = placeDetails.geometry.location;
+    try {
+      const addressComponents = placeDetails.formatted_address.split(',');
+      const city = addressComponents[1]?.trim() || '';
+      const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+      const placeLocation = placeDetails.geometry.location;
 
-    onStoreSelect({
-      name: placeDetails.name || '',
-      address: addressComponents[0]?.trim() || '',
-      city,
-      postalCode,
-      latitude: placeLocation.lat(),
-      longitude: placeLocation.lng(),
-      placeId: placeDetails.place_id as string
-    });
-    setIsOpen(false);
+      console.log("Selecting store with details:", {
+        name: placeDetails.name,
+        address: addressComponents[0]?.trim(),
+        city,
+        postalCode,
+        location: {
+          lat: placeLocation.lat(),
+          lng: placeLocation.lng()
+        },
+        placeId: placeDetails.place_id
+      });
+
+      onStoreSelect({
+        name: placeDetails.name || '',
+        address: addressComponents[0]?.trim() || '',
+        city,
+        postalCode,
+        latitude: placeLocation.lat(),
+        longitude: placeLocation.lng(),
+        placeId: placeDetails.place_id as string
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error processing place details:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du traitement des données de l'établissement",
+        variant: "destructive"
+      });
+    }
   };
 
   // Vérifier la disponibilité de la localisation
@@ -86,38 +115,37 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
   // Initialiser la carte
   useEffect(() => {
-    if (isOpen && apiKeyLoaded) {
-      console.log("Dialog open and API key loaded, waiting for DOM update");
+    if (isOpen && apiKeyLoaded && mapElementRef.current && !mapInitialized) {
+      console.log("Dialog open and API key loaded, initializing map");
       
-      const timer = setTimeout(() => {
-        if (mapElementRef.current) {
-          console.log("Map element found, initializing", mapElementRef.current);
-          try {
-            const mapInstance = initializeMap(mapElementRef.current);
-            if (!mapInstance) {
-              console.error("Map initialization failed");
-              setMapError("Impossible d'initialiser la carte. Veuillez réessayer.");
-            } else {
-              setMapError(null);
-              setNoResults(false);
-            }
-          } catch (error) {
-            console.error("Error during map initialization:", error);
-            setMapError("Erreur lors de l'initialisation de la carte");
-          }
+      try {
+        const mapInstance = initializeMap(mapElementRef.current);
+        if (mapInstance) {
+          console.log("Map initialized successfully");
+          setMapError(null);
+          setMapInitialized(true);
+          setNoResults(false);
         } else {
-          console.error("Map element still not found after timeout!");
-          setMapError("Élément de carte non trouvé");
+          console.error("Map initialization returned null");
+          setMapError("Impossible d'initialiser la carte. Veuillez réessayer.");
         }
-      }, 300);
-      
-      return () => clearTimeout(timer);
+      } catch (error) {
+        console.error("Error during map initialization:", error);
+        setMapError("Erreur lors de l'initialisation de la carte");
+      }
     }
-  }, [isOpen, apiKeyLoaded, initializeMap]);
+  }, [isOpen, apiKeyLoaded, initializeMap, mapInitialized]);
+
+  // Reset map initialization state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setMapInitialized(false);
+    }
+  }, [isOpen]);
 
   // Handle manual search
   const handleManualSearch = async (values: ManualAddressFormValues) => {
-    if (!apiKeyLoaded || !google?.maps?.places) {
+    if (!apiKeyLoaded) {
       toast({
         title: "API Google indisponible",
         description: "Impossible d'effectuer la recherche. Veuillez réessayer ultérieurement.",
@@ -131,16 +159,22 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     setManualSearchResults([]);
 
     try {
+      if (!google?.maps?.places) {
+        throw new Error("Google Places API not available");
+      }
+      
       // Create a temporary div for the PlacesService
       const serviceDiv = document.createElement('div');
       const service = new google.maps.places.PlacesService(serviceDiv);
 
-      // Search for places matching the address
-      service.findPlaceFromQuery({
+      console.log("Searching for address:", fullAddress);
+      
+      // First try using textSearch which works better for addresses
+      service.textSearch({
         query: fullAddress,
         fields: ['name', 'formatted_address', 'place_id', 'geometry']
       }, (results, status) => {
-        setIsSearchingPlace(false);
+        console.log("Text search result:", status, results?.length || 0);
         
         if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
           setManualSearchResults(results);
@@ -150,10 +184,29 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             getPlaceDetails(results[0].place_id!);
           }
         } else {
-          toast({
-            title: "Aucun établissement trouvé",
-            description: "Nous n'avons pas trouvé d'établissement correspondant à cette adresse. Veuillez vérifier l'adresse saisie.",
-            variant: "destructive"
+          // Fallback to findPlaceFromQuery
+          service.findPlaceFromQuery({
+            query: fullAddress,
+            fields: ['name', 'formatted_address', 'place_id', 'geometry']
+          }, (queryResults, queryStatus) => {
+            console.log("Find place query result:", queryStatus, queryResults?.length || 0);
+            
+            setIsSearchingPlace(false);
+            
+            if (queryStatus === google.maps.places.PlacesServiceStatus.OK && queryResults && queryResults.length > 0) {
+              setManualSearchResults(queryResults);
+              
+              // If only one result, fetch more details
+              if (queryResults.length === 1) {
+                getPlaceDetails(queryResults[0].place_id!);
+              }
+            } else {
+              toast({
+                title: "Aucun établissement trouvé",
+                description: "Nous n'avons pas trouvé d'établissement correspondant à cette adresse. Veuillez vérifier l'adresse saisie.",
+                variant: "destructive"
+              });
+            }
           });
         }
       });
@@ -170,9 +223,18 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
 
   // Get detailed information about a place
   const getPlaceDetails = (placeId: string) => {
-    if (!apiKeyLoaded || !google?.maps?.places) return;
+    if (!apiKeyLoaded || !google?.maps?.places) {
+      toast({
+        title: "API Google indisponible",
+        description: "Impossible d'obtenir les détails de l'établissement.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
+      console.log("Getting details for place ID:", placeId);
+      
       // Create a temporary div for the PlacesService
       const serviceDiv = document.createElement('div');
       const service = new google.maps.places.PlacesService(serviceDiv);
@@ -181,9 +243,12 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         placeId, 
         fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours'] 
       }, (place, status) => {
+        console.log("Place details result:", status);
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          console.log("Got place details:", place);
           handleStoreSelect(place);
         } else {
+          console.error("Failed to get place details:", status);
           toast({
             title: "Erreur",
             description: "Impossible de récupérer les détails de l'établissement.",
@@ -193,6 +258,11 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       });
     } catch (error) {
       console.error("Error getting place details:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la récupération des détails.",
+        variant: "destructive"
+      });
     }
   };
 

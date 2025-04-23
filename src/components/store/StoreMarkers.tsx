@@ -30,7 +30,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         return;
       }
 
-      if (!google?.maps?.places) {
+      if (!window.google?.maps?.places) {
         console.error("Google Places API not loaded");
         toast({
           title: "Erreur",
@@ -41,6 +41,8 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
       }
 
       try {
+        console.log("Initializing marker manager with map and user location:", userLocation);
+        
         // Pass toast to MarkerManager
         const manager = MarkerManager({ 
           map, 
@@ -91,7 +93,11 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
   // Fonction pour gérer la recherche manuelle
   const handleSearch = async () => {
     if (!searchService || !markerManager || !map) {
-      console.error("Services not initialized for search");
+      console.error("Services not initialized for search", {
+        searchService: !!searchService,
+        markerManager: !!markerManager,
+        map: !!map
+      });
       toast({
         title: "Erreur",
         description: "Les services de recherche ne sont pas initialisés",

@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cbd_shops: {
+        Row: {
+          address: string | null
+          city: string | null
+          id: number
+          lat: number | null
+          lng: number | null
+          name: string
+          source: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          id?: number
+          lat?: number | null
+          lng?: number | null
+          name: string
+          source?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          id?: number
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       classified_images: {
         Row: {
           classified_id: string

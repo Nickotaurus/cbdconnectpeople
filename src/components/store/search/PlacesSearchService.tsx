@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -20,9 +21,23 @@ const PlacesSearchService = ({
   setHasResults
 }: PlacesSearchServiceProps) => {
   const { toast } = useToast();
-  const [service] = useState(new google.maps.places.PlacesService(map));
+  const [service] = useState<google.maps.places.PlacesService | null>(
+    // Check if map is available before creating the service
+    map ? new google.maps.places.PlacesService(map) : null
+  );
 
   const searchStores = async () => {
+    if (!service) {
+      console.error("Places service not initialized");
+      toast({
+        title: "Erreur d'initialisation",
+        description: "Le service de recherche n'est pas disponible",
+        variant: "destructive"
+      });
+      setIsSearching(false);
+      return;
+    }
+
     // Termes de recherche plus neutres et diversifiés
     const searchTerms = [
       { keyword: 'bien-être chanvre', radius: 50000 },
@@ -37,93 +52,127 @@ const PlacesSearchService = ({
     let totalFound = 0;
     const processedPlaceIds = new Set<string>();
     
-    for (const term of searchTerms) {
-      const request = {
-        location: userLocation,
-        radius: term.radius,
-        keyword: term.keyword,
-        type: 'store'
-      };
-      
-      console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
-      
-      try {
-        await new Promise((resolve) => {
-          service.nearbySearch(request, (results, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-              console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
-              
-              // Filtrage des résultats pertinents
-              const newResults = results.filter(place => {
-                if (!place.place_id || processedPlaceIds.has(place.place_id)) {
-                  return false;
-                }
-                
-                // Filtre plus inclusif avec les nouveaux termes
-                const name = place.name?.toLowerCase() || '';
-                const vicinity = place.vicinity?.toLowerCase() || '';
-                const isRelevant = 
-                  name.includes('bien-être') || 
-                  name.includes('naturel') || 
-                  name.includes('chanvre') || 
-                  name.includes('herboristerie') ||
-                  vicinity.includes('naturel') ||
-                  vicinity.includes('bien-être');
-                
-                if (isRelevant) {
-                  processedPlaceIds.add(place.place_id);
-                  return true;
-                }
-                
-                // Si le terme est générique, vérifions d'autres critères
-                if (term.keyword === 'herboristerie' || term.keyword === 'produits naturels') {
-                  processedPlaceIds.add(place.place_id);
-                  return true;
-                }
-                
-                return false;
-              });
-              
-              if (newResults.length > 0) {
-                setHasResults(true);
-                totalFound += newResults.length;
-                
-                newResults.forEach(place => {
-                  onAddMarker(place, service);
-                });
-              }
+    try {
+      for (const term of searchTerms) {
+        const request = {
+          location: userLocation,
+          radius: term.radius,
+          keyword: term.keyword,
+          type: 'store'
+        };
+        
+        console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
+        
+        try {
+          await new Promise<void>((resolve) => {
+            if (!service) {
+              console.error("Service not available during search execution");
+              resolve();
+              return;
             }
-            resolve(true);
+
+            service.nearbySearch(request, (results, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
+                
+                // Filtrage des résultats pertinents
+                const newResults = results.filter(place => {
+                  if (!place.place_id || processedPlaceIds.has(place.place_id)) {
+                    return false;
+                  }
+                  
+                  // Filtre plus inclusif avec les nouveaux termes
+                  const name = place.name?.toLowerCase() || '';
+                  const vicinity = place.vicinity?.toLowerCase() || '';
+                  const isRelevant = 
+                    name.includes('bien-être') || 
+                    name.includes('naturel') || 
+                    name.includes('chanvre') || 
+                    name.includes('herboristerie') ||
+                    vicinity.includes('naturel') ||
+                    vicinity.includes('bien-être');
+                  
+                  if (isRelevant) {
+                    processedPlaceIds.add(place.place_id);
+                    return true;
+                  }
+                  
+                  // Si le terme est générique, vérifions d'autres critères
+                  if (term.keyword === 'herboristerie' || term.keyword === 'produits naturels') {
+                    processedPlaceIds.add(place.place_id);
+                    return true;
+                  }
+                  
+                  return false;
+                });
+                
+                if (newResults.length > 0) {
+                  setHasResults(true);
+                  totalFound += newResults.length;
+                  
+                  newResults.forEach(place => {
+                    if (service) {
+                      onAddMarker(place, service);
+                    }
+                  });
+                }
+              } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                console.log(`Aucun résultat trouvé pour "${term.keyword}"`);
+              } else {
+                console.warn(`Erreur de recherche pour "${term.keyword}": ${status}`);
+              }
+              resolve();
+            });
           });
-        });
-        
-        // Délai entre les recherches
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-      } catch (error) {
-        console.error(`Erreur lors de la recherche pour ${term.keyword}:`, error);
+          
+          // Délai entre les recherches
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (error) {
+          console.error(`Erreur lors de la recherche pour ${term.keyword}:`, error);
+        }
       }
-    }
-    
-    if (totalFound === 0) {
+      
+      if (totalFound === 0) {
+        setHasResults(false);
+        toast({
+          title: "Aucun établissement trouvé",
+          description: "Vous pouvez ajouter votre boutique manuellement",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Résultats de recherche",
+          description: `${totalFound} établissements trouvés dans votre région`,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur globale lors de la recherche:', error);
       toast({
-        title: "Aucun établissement trouvé",
-        description: "Vous pouvez ajouter votre boutique manuellement",
-        variant: "default"
+        title: "Erreur de recherche",
+        description: "Une erreur est survenue lors de la recherche d'établissements",
+        variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Résultats de recherche",
-        description: `${totalFound} établissements trouvés dans votre région`,
-        variant: "default"
-      });
+      setHasResults(false);
+    } finally {
+      setIsSearching(false);
     }
-    
-    setIsSearching(false);
   };
 
   // Improved text search implementation
   const textSearch = async (query: string) => {
+    if (!service) {
+      console.error("Places service not initialized for text search");
+      toast({
+        title: "Erreur d'initialisation",
+        description: "Le service de recherche n'est pas disponible",
+        variant: "destructive"
+      });
+      setIsSearching(false);
+      return;
+    }
+    
     setIsSearching(true);
     
     try {
@@ -135,11 +184,13 @@ const PlacesSearchService = ({
         fields: ['name', 'geometry', 'formatted_address', 'place_id', 'rating', 'user_ratings_total', 'vicinity']
       };
       
-      console.log(`Executing text search for: "${query}"`);
+      console.log(`Executing text search for: "${query}"`, request);
       
-      await new Promise((resolve) => {
-        // Use nearbySearch instead of findPlaceFromQuery for better results
-        service.nearbySearch(request, (results, status) => {
+      await new Promise<void>((resolve) => {
+        // Use textSearch which is better for address searches
+        service.textSearch(request, (results, status) => {
+          console.log("Text search status:", status, results?.length || 0);
+          
           if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
             console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`, results);
             setHasResults(true);
@@ -148,30 +199,52 @@ const PlacesSearchService = ({
             results.forEach(place => {
               onAddMarker(place, service);
             });
+            
+            toast({
+              title: "Recherche terminée",
+              description: `${results.length} établissements trouvés`,
+              variant: "default"
+            });
           } else {
             console.warn(`Statut de recherche textuelle: ${status}`, results);
             setHasResults(false);
             
-            // Try textSearch as a fallback if nearbySearch fails
-            const textRequest = {
-              query: query,
+            // Try nearbySearch as a fallback if textSearch fails
+            const nearbyRequest = {
               location: userLocation,
-              radius: 50000
+              radius: 50000,
+              keyword: query
             };
             
-            service.textSearch(textRequest, (textResults, textStatus) => {
-              if (textStatus === google.maps.places.PlacesServiceStatus.OK && textResults && textResults.length > 0) {
-                console.log(`Recherche textuelle a trouvé ${textResults.length} résultats`);
+            console.log("Trying fallback nearbySearch", nearbyRequest);
+            
+            service.nearbySearch(nearbyRequest, (nearbyResults, nearbyStatus) => {
+              console.log("Nearby search status:", nearbyStatus, nearbyResults?.length || 0);
+              
+              if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && nearbyResults && nearbyResults.length > 0) {
+                console.log(`Recherche à proximité a trouvé ${nearbyResults.length} résultats`);
                 setHasResults(true);
                 
-                textResults.forEach(place => {
+                nearbyResults.forEach(place => {
                   onAddMarker(place, service);
                 });
+                
+                toast({
+                  title: "Recherche terminée",
+                  description: `${nearbyResults.length} établissements trouvés à proximité`,
+                  variant: "default"
+                });
               } else {
-                console.warn(`Recherche textuelle a échoué: ${textStatus}`);
+                console.warn(`Recherche à proximité a échoué: ${nearbyStatus}`);
                 setHasResults(false);
+                
+                toast({
+                  title: "Aucun résultat",
+                  description: "Aucun établissement trouvé pour cette recherche. Essayez d'autres termes ou ajoutez manuellement votre boutique.",
+                  variant: "default"
+                });
               }
-              resolve(true);
+              resolve();
             });
           }
         });
@@ -179,6 +252,12 @@ const PlacesSearchService = ({
     } catch (error) {
       console.error(`Erreur lors de la recherche textuelle:`, error);
       setHasResults(false);
+      
+      toast({
+        title: "Erreur de recherche",
+        description: "Une erreur est survenue lors de la recherche. Veuillez réessayer.",
+        variant: "destructive"
+      });
     } finally {
       setIsSearching(false);
     }
