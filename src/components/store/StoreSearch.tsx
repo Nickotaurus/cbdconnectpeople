@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -8,7 +9,9 @@ import SearchResults from './search/SearchResults';
 import MapError from './search/MapError';
 import SearchBar from './search/SearchBar';
 import DialogWrapper from './search/DialogWrapper';
+import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 import { useToast } from "@/components/ui/use-toast";
+import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 import './StoreSearch.css';
 
 interface StoreSearchProps {
@@ -20,10 +23,20 @@ interface StoreSearchProps {
     latitude: number;
     longitude: number;
     placeId: string;
+    photos?: string[];
+    phone?: string;
+    website?: string;
+    rating?: number;
+    totalReviews?: number;
   }) => void;
+  isRegistration?: boolean;
 }
 
-const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
+const SUGGESTION_TERMS = [
+  "CBD", "Chanvre", "Cannabis légal", "Herboristerie", "Bien-être"
+];
+
+const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
   const mapElementRef = useRef<HTMLDivElement>(null);
@@ -36,8 +49,21 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const { toast } = useToast();
   const [mapInitialized, setMapInitialized] = useState(false);
   const [noResults, setNoResults] = useState(false);
+  const [foundBusinessProfile, setFoundBusinessProfile] = useState<{
+    name: string;
+    address: string;
+    phone?: string;
+    website?: string;
+    rating?: number;
+    totalReviews?: number;
+    photos?: string[];
+    placeId: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
 
-  const handleStoreSelect = (placeDetails: google.maps.places.PlaceResult) => {
+  const handleStoreSelect = async (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) {
       toast({
         title: "Données incomplètes",
@@ -65,6 +91,19 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         placeId: placeDetails.place_id
       });
 
+      // Si c'est pour l'inscription, on cherche les détails business
+      if (isRegistration && placeDetails.place_id) {
+        setIsLoadingBusinessProfile(true);
+        const businessDetails = await findBusinessByPlaceId(placeDetails.place_id);
+        setIsLoadingBusinessProfile(false);
+        
+        if (businessDetails) {
+          setFoundBusinessProfile(businessDetails);
+          return; // Attendre l'acceptation de l'utilisateur
+        }
+      }
+
+      // Sinon, on procède normalement
       onStoreSelect({
         name: placeDetails.name || '',
         address: addressComponents[0]?.trim() || '',
@@ -83,6 +122,54 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleAcceptBusinessProfile = () => {
+    if (!foundBusinessProfile) return;
+    
+    // Extraire les informations de l'adresse
+    const addressComponents = foundBusinessProfile.address.split(',');
+    const city = addressComponents[1]?.trim() || '';
+    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+    
+    onStoreSelect({
+      name: foundBusinessProfile.name,
+      address: addressComponents[0]?.trim() || '',
+      city,
+      postalCode,
+      latitude: foundBusinessProfile.latitude,
+      longitude: foundBusinessProfile.longitude,
+      placeId: foundBusinessProfile.placeId,
+      photos: foundBusinessProfile.photos,
+      phone: foundBusinessProfile.phone,
+      website: foundBusinessProfile.website,
+      rating: foundBusinessProfile.rating,
+      totalReviews: foundBusinessProfile.totalReviews
+    });
+    setIsOpen(false);
+    setFoundBusinessProfile(null);
+  };
+
+  const handleRejectBusinessProfile = () => {
+    if (!foundBusinessProfile) return;
+    
+    // Extraire les informations de l'adresse
+    const addressComponents = foundBusinessProfile.address.split(',');
+    const city = addressComponents[1]?.trim() || '';
+    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+    
+    // Procéder avec les données minimales
+    onStoreSelect({
+      name: foundBusinessProfile.name,
+      address: addressComponents[0]?.trim() || '',
+      city,
+      postalCode,
+      latitude: foundBusinessProfile.latitude,
+      longitude: foundBusinessProfile.longitude,
+      placeId: foundBusinessProfile.placeId
+    });
+    setIsOpen(false);
+    setFoundBusinessProfile(null);
   };
 
   const getPlaceDetails = (placeId: string) => {
@@ -104,7 +191,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       
       service.getDetails({ 
         placeId, 
-        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours'] 
+        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours', 'photos'] 
       }, (place, status) => {
         console.log("Place details result:", status);
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
@@ -244,6 +331,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
             setMapError(null);
             setShowManualForm(false);
             setManualSearchResults([]);
+            setFoundBusinessProfile(null);
           }
           setIsOpen(open);
         }}
@@ -251,7 +339,21 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         apiKeyLoaded={apiKeyLoaded}
         onManualAdd={() => setShowManualForm(true)}
         showManualForm={showManualForm}
+        title={isRegistration ? "Recherchez votre boutique" : "Recherche de boutique CBD"}
+        description={isRegistration 
+          ? "Recherchez votre boutique pour récupérer automatiquement les informations de Google Business."
+          : "Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement."
+        }
       >
+        {foundBusinessProfile && (
+          <GoogleBusinessIntegration 
+            businessDetails={foundBusinessProfile}
+            isLoading={isLoadingBusinessProfile}
+            onAccept={handleAcceptBusinessProfile}
+            onReject={handleRejectBusinessProfile}
+          />
+        )}
+        
         {showManualForm ? (
           <div className="flex-1 flex flex-col">
             <ManualAddressForm
@@ -280,11 +382,29 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
           <>
             <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
             {map && userLocation && !mapError && !showManualForm && (
-              <StoreMarkers 
-                map={map}
-                userLocation={userLocation}
-                onStoreSelect={handleStoreSelect}
-              />
+              <>
+                <SearchBar 
+                  searchQuery={searchQuery}
+                  onSearchQueryChange={handleSearchQueryChange}
+                  onSearch={() => {
+                    if (map && searchQuery) {
+                      // La recherche est gérée par StoreMarkers
+                    }
+                  }}
+                  isSearching={isLoading}
+                  noResults={noResults}
+                  suggestionTerms={SUGGESTION_TERMS}
+                  onSuggestionClick={(term) => {
+                    setSearchQuery(term);
+                    // Déclencher la recherche automatiquement
+                  }}
+                />
+                <StoreMarkers 
+                  map={map}
+                  userLocation={userLocation}
+                  onStoreSelect={handleStoreSelect}
+                />
+              </>
             )}
           </>
         )}

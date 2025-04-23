@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -11,6 +12,8 @@ interface SearchBarProps {
   onSearch: () => void;
   isSearching: boolean;
   noResults: boolean;
+  suggestionTerms?: string[];
+  onSuggestionClick?: (term: string) => void;
 }
 
 const SearchBar = ({
@@ -18,7 +21,9 @@ const SearchBar = ({
   onSearchQueryChange,
   onSearch,
   isSearching,
-  noResults
+  noResults,
+  suggestionTerms = [],
+  onSuggestionClick
 }: SearchBarProps) => {
   return (
     <div className="absolute left-0 right-0 top-0 p-4 z-20">
@@ -49,6 +54,21 @@ const SearchBar = ({
             Rechercher
           </Button>
         </div>
+        
+        {suggestionTerms.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2 mb-2">
+            {suggestionTerms.map((term, i) => (
+              <Badge 
+                key={i} 
+                variant="outline" 
+                className="cursor-pointer hover:bg-secondary"
+                onClick={() => onSuggestionClick && onSuggestionClick(term)}
+              >
+                {term}
+              </Badge>
+            ))}
+          </div>
+        )}
         
         {noResults && (
           <div className="p-2 bg-amber-50 text-amber-800 rounded-md flex items-center text-sm">

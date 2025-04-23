@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      boutiques_physiques: {
+        Row: {
+          adresse: string | null
+          coord_lat: number | null
+          coord_lng: number | null
+          date_maj_google: string | null
+          google_place_id: string | null
+          id: string
+          nb_avis_google: number | null
+          nom: string | null
+          note_google: number | null
+          photos: Json | null
+        }
+        Insert: {
+          adresse?: string | null
+          coord_lat?: number | null
+          coord_lng?: number | null
+          date_maj_google?: string | null
+          google_place_id?: string | null
+          id?: string
+          nb_avis_google?: number | null
+          nom?: string | null
+          note_google?: number | null
+          photos?: Json | null
+        }
+        Update: {
+          adresse?: string | null
+          coord_lat?: number | null
+          coord_lng?: number | null
+          date_maj_google?: string | null
+          google_place_id?: string | null
+          id?: string
+          nb_avis_google?: number | null
+          nom?: string | null
+          note_google?: number | null
+          photos?: Json | null
+        }
+        Relationships: []
+      }
       cbd_shops: {
         Row: {
           address: string | null

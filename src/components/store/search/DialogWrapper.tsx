@@ -13,6 +13,8 @@ interface DialogWrapperProps {
   apiKeyLoaded: boolean;
   onManualAdd: () => void;
   showManualForm: boolean;
+  title?: string;
+  description?: string;
 }
 
 const DialogWrapper = ({
@@ -22,14 +24,16 @@ const DialogWrapper = ({
   isLoading,
   apiKeyLoaded,
   onManualAdd,
-  showManualForm
+  showManualForm,
+  title = "Recherche de boutique CBD",
+  description = "Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement."
 }: DialogWrapperProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
-        <DialogTitle>Recherche de boutique CBD</DialogTitle>
+        <DialogTitle>{title}</DialogTitle>
         <DialogDescription>
-          Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement.
+          {description}
         </DialogDescription>
         
         {(isLoading || !apiKeyLoaded) && (
