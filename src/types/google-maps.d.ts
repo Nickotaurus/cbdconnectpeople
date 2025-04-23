@@ -1,4 +1,3 @@
-
 // Type definitions for Google Maps JavaScript API
 declare namespace google {
   namespace maps {
@@ -110,8 +109,8 @@ declare namespace google {
       interface PlaceResult {
         place_id?: string;
         formatted_address?: string;
-        formatted_phone_number?: string; // Added this property
-        website?: string; // Added this property
+        formatted_phone_number?: string;
+        website?: string;
         geometry?: {
           location: LatLng;
         };
@@ -119,11 +118,10 @@ declare namespace google {
         rating?: number;
         user_ratings_total?: number;
         vicinity?: string;
-        photos?: PlacePhoto[]; // Updated to use the new interface
+        photos?: PlacePhoto[];
         types?: string[];
       }
 
-      // Added PlacePhoto interface
       interface PlacePhoto {
         getUrl: (options?: PhotoOptions) => string;
         height: number;
@@ -131,7 +129,6 @@ declare namespace google {
         html_attributions: string[];
       }
 
-      // Added PhotoOptions interface
       interface PhotoOptions {
         maxWidth?: number;
         maxHeight?: number;
@@ -155,10 +152,9 @@ declare namespace google {
         location: LatLng | LatLngLiteral;
         radius: number;
         keyword?: string;
-        type?: string; // This should be a string, not an array
+        type?: string;
       }
 
-      // Add textSearch request interface
       interface TextSearchRequest {
         query: string;
         location?: LatLng | LatLngLiteral;
@@ -191,7 +187,6 @@ declare namespace google {
             status: PlacesServiceStatus
           ) => void
         ): void;
-        // Add textSearch method
         textSearch(
           request: TextSearchRequest,
           callback: (
@@ -204,7 +199,6 @@ declare namespace google {
   }
 }
 
-// Add this to ensure window.google is correctly typed
 interface Window {
   google: typeof google;
   selectStore?: (placeId: string) => void;

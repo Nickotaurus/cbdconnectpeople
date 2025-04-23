@@ -41,15 +41,18 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
         },
         (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-            // Carefully check for the existence of properties and access them safely
+            // Utiliser correctement getUrl avec des paramètres optionnels
             const photos = place.photos
-              ? place.photos.slice(0, 5).map(photo => photo.getUrl()) // Remove the parameters here
+              ? place.photos.slice(0, 5).map(photo => photo.getUrl({
+                  maxWidth: 800,
+                  maxHeight: 600
+                }))
               : [];
             
             const businessDetails: BusinessDetails = {
               name: place.name || '',
               address: place.formatted_address || '',
-              // Use type assertions to safely access these properties
+              // Utiliser type assertions pour accéder en toute sécurité à ces propriétés
               phone: (place as any).formatted_phone_number,
               website: (place as any).website,
               rating: place.rating,
