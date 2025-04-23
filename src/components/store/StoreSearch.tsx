@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -172,7 +171,6 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
       // First try using textSearch which works better for addresses
       service.textSearch({
         query: fullAddress,
-        fields: ['name', 'formatted_address', 'place_id', 'geometry']
       }, (results, status) => {
         console.log("Text search result:", status, results?.length || 0);
         

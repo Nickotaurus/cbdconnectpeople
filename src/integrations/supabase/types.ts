@@ -216,6 +216,7 @@ export type Database = {
           claimed_by: string | null
           description: string | null
           id: string
+          is_verified: boolean | null
           latitude: number
           logo_url: string | null
           longitude: number
@@ -223,6 +224,8 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           postal_code: string
+          registration_date: string | null
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -231,6 +234,7 @@ export type Database = {
           claimed_by?: string | null
           description?: string | null
           id?: string
+          is_verified?: boolean | null
           latitude: number
           logo_url?: string | null
           longitude: number
@@ -238,6 +242,8 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           postal_code: string
+          registration_date?: string | null
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -246,6 +252,7 @@ export type Database = {
           claimed_by?: string | null
           description?: string | null
           id?: string
+          is_verified?: boolean | null
           latitude?: number
           logo_url?: string | null
           longitude?: number
@@ -253,6 +260,8 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           postal_code?: string
+          registration_date?: string | null
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []

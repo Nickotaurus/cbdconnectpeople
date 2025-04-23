@@ -5,12 +5,13 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import StoreForm from '@/components/StoreForm';
 import { Store } from '@/types/store';
+import { useToast } from "@/components/ui/use-toast";
 
 const AddStore = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
-  // Get registration info if coming from registration flow
   const { fromRegistration, storeType, requiresSubscription } = 
     (location.state as { 
       fromRegistration?: boolean; 
@@ -18,7 +19,13 @@ const AddStore = () => {
       requiresSubscription?: boolean;
     }) || {};
 
-  const handleStoreAdded = (store: Store) => {
+  const handleStoreAdded = async (store: Store) => {
+    toast({
+      title: "Boutique ajoutée avec succès",
+      description: "Votre boutique a été référencée dans l'annuaire. Vous pouvez maintenant accéder à votre espace boutique.",
+      duration: 5000,
+    });
+
     // If coming from registration and requires subscription (ecommerce or both)
     if (fromRegistration && requiresSubscription) {
       setTimeout(() => {
@@ -30,9 +37,9 @@ const AddStore = () => {
         });
       }, 1500);
     } else {
-      // Normal flow - just go to the store detail page
+      // Navigate to store dashboard
       setTimeout(() => {
-        navigate(`/store/${store.id}`);
+        navigate(`/store/${store.id}/admin`);
       }, 1500);
     }
   };

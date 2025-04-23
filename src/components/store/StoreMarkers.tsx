@@ -1,7 +1,7 @@
-
 import { useEffect, useState } from 'react';
 import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
+import { useStores } from '@/hooks/useStores';
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,8 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
   const [isSearching, setIsSearching] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [searchService, setSearchService] = useState<ReturnType<typeof PlacesSearchService> | null>(null);
-  
-  // État pour stocker les marqueurs
   const [markerManager, setMarkerManager] = useState<ReturnType<typeof MarkerManager> | null>(null);
+  const { stores: supabaseStores, isLoading: isLoadingStores } = useStores();
   
   useEffect(() => {
     const initializeMarkers = async () => {
@@ -30,20 +29,9 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         return;
       }
 
-      if (!window.google?.maps?.places) {
-        console.error("Google Places API not loaded");
-        toast({
-          title: "Erreur",
-          description: "API Google Places non disponible",
-          variant: "destructive"
-        });
-        return;
-      }
-
       try {
         console.log("Initializing marker manager with map and user location:", userLocation);
         
-        // Pass toast to MarkerManager
         const manager = MarkerManager({ 
           map, 
           userLocation, 
@@ -52,6 +40,27 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         });
         
         setMarkerManager(manager);
+        
+        // Clear existing markers
+        manager.clearMarkers();
+        
+        // Add Supabase stores to the map
+        if (supabaseStores.length > 0) {
+          const service = new google.maps.places.PlacesService(map);
+          
+          for (const store of supabaseStores) {
+            const placeResult: google.maps.places.PlaceResult = {
+              name: store.name,
+              formatted_address: `${store.address}, ${store.city}`,
+              geometry: {
+                location: new google.maps.LatLng(store.latitude, store.longitude)
+              },
+              place_id: store.id
+            };
+            
+            manager.addMarker(placeResult, service);
+          }
+        }
         
         const placesService = PlacesSearchService({
           map,
@@ -68,11 +77,6 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         });
         setSearchService(placesService);
 
-        // Nettoyer les marqueurs existants
-        manager.clearMarkers();
-        
-        // Recherche automatique au chargement de la carte
-        await placesService.searchStores();
       } catch (error) {
         console.error('Error loading markers:', error);
         toast({
@@ -83,14 +87,15 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
       }
     };
 
-    initializeMarkers();
+    if (!isLoadingStores) {
+      initializeMarkers();
+    }
 
     return () => {
       window.selectStore = undefined;
     };
-  }, [map, userLocation, onStoreSelect, toast]);
+  }, [map, userLocation, onStoreSelect, toast, supabaseStores, isLoadingStores]);
 
-  // Fonction pour gérer la recherche manuelle
   const handleSearch = async () => {
     if (!searchService || !markerManager || !map) {
       console.error("Services not initialized for search", {
@@ -133,7 +138,6 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
     }
   };
 
-  // Rendu du composant de recherche
   return (
     <div className="absolute left-0 right-0 top-0 p-4 z-20">
       <div className="bg-white rounded-md shadow-md p-3">
