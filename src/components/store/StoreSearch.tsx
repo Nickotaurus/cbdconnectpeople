@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { MapPin, Store, Loader2, AlertCircle, Search } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
 import StoreMarkers from './StoreMarkers';
 import ManualAddressForm from './search/ManualAddressForm';
 import SearchResults from './search/SearchResults';
 import MapError from './search/MapError';
+import SearchBar from './search/SearchBar';
+import DialogWrapper from './search/DialogWrapper';
 import { useToast } from "@/components/ui/use-toast";
 import './StoreSearch.css';
 
@@ -32,6 +32,7 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
   const [showManualForm, setShowManualForm] = useState(false);
   const [isSearchingPlace, setIsSearchingPlace] = useState(false);
   const [manualSearchResults, setManualSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const [mapInitialized, setMapInitialized] = useState(false);
   const [noResults, setNoResults] = useState(false);
@@ -211,9 +212,12 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
     }
   };
 
-  // Transform Google PlaceResult[] to SearchResult[]
+  const handleSearchQueryChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
   const transformedResults = manualSearchResults.map(place => ({
-    place_id: place.place_id || '', // Ensure place_id is not undefined
+    place_id: place.place_id || '',
     name: place.name,
     formatted_address: place.formatted_address
   }));
@@ -233,76 +237,58 @@ const StoreSearch = ({ onStoreSelect }: StoreSearchProps) => {
         Rechercher ma boutique CBD
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={(open) => {
-        if (!open) {
-          setMapError(null);
-          setShowManualForm(false);
-          setManualSearchResults([]);
-        }
-        setIsOpen(open);
-      }}>
-        <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
-          <DialogTitle>Recherche de boutique CBD</DialogTitle>
-          <DialogDescription>
-            Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement.
-          </DialogDescription>
-          
-          {(isLoading || !apiKeyLoaded) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-8 w-8 animate-spin mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {!apiKeyLoaded ? "Chargement de l'API Google Maps..." : "Initialisation de la carte..."}
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {showManualForm ? (
-            <div className="flex-1 flex flex-col">
-              <ManualAddressForm
-                onSubmit={handleManualSearch}
-                onBack={() => setShowManualForm(false)}
-                isSearching={isSearchingPlace}
-              />
-              <SearchResults
-                results={transformedResults}
-                onSelectPlace={getPlaceDetails}
-              />
-            </div>
-          ) : mapError ? (
-            <MapError
-              error={mapError}
-              errorType={errorType}
-              onRetry={() => {
-                setMapError(null);
-                if (mapElementRef.current && apiKeyLoaded) {
-                  initializeMap(mapElementRef.current);
-                }
-              }}
-              onManualAdd={() => setShowManualForm(true)}
+      <DialogWrapper
+        isOpen={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMapError(null);
+            setShowManualForm(false);
+            setManualSearchResults([]);
+          }
+          setIsOpen(open);
+        }}
+        isLoading={isLoading}
+        apiKeyLoaded={apiKeyLoaded}
+        onManualAdd={() => setShowManualForm(true)}
+        showManualForm={showManualForm}
+      >
+        {showManualForm ? (
+          <div className="flex-1 flex flex-col">
+            <ManualAddressForm
+              onSubmit={handleManualSearch}
+              onBack={() => setShowManualForm(false)}
+              isSearching={isSearchingPlace}
             />
-          ) : (
-            <>
-              <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
-              <DialogFooter className="mt-4">
-                <Button variant="outline" onClick={() => setShowManualForm(true)} className="w-full sm:w-auto">
-                  <Store className="w-4 h-4 mr-2" />
-                  Ajouter ma boutique manuellement
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-          
-          {map && userLocation && !mapError && !showManualForm && (
-            <StoreMarkers 
-              map={map}
-              userLocation={userLocation}
-              onStoreSelect={handleStoreSelect}
+            <SearchResults
+              results={transformedResults}
+              onSelectPlace={getPlaceDetails}
             />
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        ) : mapError ? (
+          <MapError
+            error={mapError}
+            errorType={errorType}
+            onRetry={() => {
+              setMapError(null);
+              if (mapElementRef.current && apiKeyLoaded) {
+                initializeMap(mapElementRef.current);
+              }
+            }}
+            onManualAdd={() => setShowManualForm(true)}
+          />
+        ) : (
+          <>
+            <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
+            {map && userLocation && !mapError && !showManualForm && (
+              <StoreMarkers 
+                map={map}
+                userLocation={userLocation}
+                onStoreSelect={handleStoreSelect}
+              />
+            )}
+          </>
+        )}
+      </DialogWrapper>
     </>
   );
 };
