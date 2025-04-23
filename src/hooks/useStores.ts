@@ -19,7 +19,43 @@ export const useStores = () => {
 
         if (error) throw error;
 
-        setStores(data || []);
+        // Transformer les données de Supabase pour correspondre à l'interface Store
+        const transformedStores: Store[] = (data || []).map(store => ({
+          id: store.id,
+          name: store.name,
+          address: store.address,
+          city: store.city,
+          postalCode: store.postal_code,
+          latitude: store.latitude,
+          longitude: store.longitude,
+          phone: store.phone || '',
+          website: store.website || '',
+          openingHours: [], // Données à implémenter ultérieurement
+          description: store.description || '',
+          imageUrl: store.photo_url || '',
+          logo_url: store.logo_url,
+          photo_url: store.photo_url,
+          rating: 0, // Valeur par défaut
+          reviewCount: 0, // Valeur par défaut
+          reviews: [], // Données à implémenter ultérieurement
+          products: [], // Données à implémenter ultérieurement
+          // Ajout d'autres champs avec des valeurs par défaut si nécessaires
+          incentive: undefined,
+          coupon: {
+            code: '',
+            discount: '',
+            validUntil: new Date().toISOString(),
+            usageCount: 0,
+            isAffiliate: false
+          },
+          lotteryPrize: undefined,
+          isPremium: false,
+          premiumUntil: undefined,
+          isEcommerce: false,
+          ecommerceUrl: undefined
+        }));
+
+        setStores(transformedStores);
       } catch (error) {
         console.error('Error fetching stores:', error);
         toast({
