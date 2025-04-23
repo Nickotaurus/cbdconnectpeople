@@ -110,6 +110,8 @@ declare namespace google {
       interface PlaceResult {
         place_id?: string;
         formatted_address?: string;
+        formatted_phone_number?: string; // Added this property
+        website?: string; // Added this property
         geometry?: {
           location: LatLng;
         };
@@ -117,10 +119,22 @@ declare namespace google {
         rating?: number;
         user_ratings_total?: number;
         vicinity?: string;
-        photos?: {
-          getUrl: () => string;
-        }[];
-        types?: string[]; // Add the types property that was missing
+        photos?: PlacePhoto[]; // Updated to use the new interface
+        types?: string[];
+      }
+
+      // Added PlacePhoto interface
+      interface PlacePhoto {
+        getUrl: (options?: PhotoOptions) => string;
+        height: number;
+        width: number;
+        html_attributions: string[];
+      }
+
+      // Added PhotoOptions interface
+      interface PhotoOptions {
+        maxWidth?: number;
+        maxHeight?: number;
       }
 
       interface PlaceDetailsRequest {
