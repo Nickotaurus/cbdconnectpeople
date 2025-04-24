@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
@@ -7,13 +6,14 @@ import StoreMarkers from './StoreMarkers';
 import ManualAddressForm from './search/ManualAddressForm';
 import SearchResults from './search/SearchResults';
 import MapError from './search/MapError';
-import SearchBar from './search/SearchBar';
+import StoreSearchBar from './search/StoreSearchBar';
 import DialogWrapper from './search/DialogWrapper';
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
-import { useToast } from "@/components/ui/use-toast";
+import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
+import { useStoreSearch } from '@/hooks/store/useStoreSearch';
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 import './StoreSearch.css';
-import { getGoogleMapsApiKey } from '@/services/googleApiService';
+import { useToast } from "@/components/ui/use-toast";
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -39,17 +39,10 @@ const SUGGESTION_TERMS = [
 
 const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { map, isLoading, userLocation, initializeMap, apiKeyLoaded } = useGoogleMap();
-  const mapElementRef = useRef<HTMLDivElement>(null);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const [errorType, setErrorType] = useState<string | null>(null);
+  const { map, isLoading, userLocation, initializeMap } = useGoogleMap();
+  const { isApiLoaded } = useGooglePlacesApi();
   const [showManualForm, setShowManualForm] = useState(false);
-  const [isSearchingPlace, setIsSearchingPlace] = useState(false);
   const [manualSearchResults, setManualSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const { toast } = useToast();
-  const [mapInitialized, setMapInitialized] = useState(false);
-  const [noResults, setNoResults] = useState(false);
   const [foundBusinessProfile, setFoundBusinessProfile] = useState<{
     name: string;
     address: string;
@@ -63,23 +56,17 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     longitude: number;
   } | null>(null);
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
-  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Charger la clé API Google Maps
-  useEffect(() => {
-    const loadApiKey = async () => {
-      try {
-        const apiKey = await getGoogleMapsApiKey();
-        console.log("API key loaded:", apiKey ? "Yes" : "No");
-        setGoogleMapsApiKey(apiKey || null);
-      } catch (error) {
-        console.error("Error loading Google Maps API key:", error);
-        setGoogleMapsApiKey(null);
-      }
-    };
-    
-    loadApiKey();
-  }, []);
+  const {
+    isSearching,
+    setIsSearching,
+    noResults,
+    setNoResults,
+    searchQuery,
+    setSearchQuery,
+    handleSearch
+  } = useStoreSearch({ onStoreSelect });
 
   const handleStoreSelect = async (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) {
@@ -274,7 +261,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     }
     
     try {
-      const apiKey = googleMapsApiKey || await getGoogleMapsApiKey();
+      const apiKey = await getGoogleMapsApiKey();
       
       if (!apiKey) {
         console.error("No Google Maps API key available");
@@ -298,7 +285,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
           console.log("Google Maps API loaded successfully via callback");
           // Fix: We don't have setApiKeyLoaded, let's use our state hook
           // setApiKeyLoaded(true);
-          setMapInitialized(false);  // Reset to allow reinitializing
           resolve();
         };
         
@@ -315,42 +301,13 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     }
   };
 
-  useEffect(() => {
-    if (isOpen && apiKeyLoaded && mapElementRef.current && !mapInitialized) {
-      console.log("Dialog open and API key loaded, initializing map");
-      
-      try {
-        const mapInstance = initializeMap(mapElementRef.current);
-        if (mapInstance) {
-          console.log("Map initialized successfully");
-          setMapError(null);
-          setMapInitialized(true);
-          setNoResults(false);
-        } else {
-          console.error("Map initialization returned null");
-          setMapError("Impossible d'initialiser la carte. Veuillez réessayer.");
-        }
-      } catch (error) {
-        console.error("Error during map initialization:", error);
-        setMapError("Erreur lors de l'initialisation de la carte");
-      }
-    }
-  }, [isOpen, apiKeyLoaded, initializeMap, mapInitialized]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setMapInitialized(false);
-      setMapError(null);
-    }
-  }, [isOpen]);
-
   const handleManualSearch = async (values: {
     address: string;
     city: string;
     postalCode: string;
   }) => {
     const fullAddress = `${values.address}, ${values.postalCode} ${values.city}, France`;
-    setIsSearchingPlace(true);
+    setIsSearching(true);
     setManualSearchResults([]);
 
     try {
@@ -377,7 +334,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
           query: fullAddress
         },
         (results, status) => {
-          setIsSearchingPlace(false);
+          setIsSearching(false);
           document.body.removeChild(serviceDiv);
           
           if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
@@ -427,7 +384,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         }
       );
     } catch (error) {
-      setIsSearchingPlace(false);
+      setIsSearching(false);
       console.error("Error searching for place:", error);
       toast({
         title: "Erreur de recherche",
@@ -437,21 +394,10 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     }
   };
 
-  const handleSearchQueryChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const transformedResults = manualSearchResults.map(place => ({
-    place_id: place.place_id || '',
-    name: place.name,
-    formatted_address: place.formatted_address
-  }));
-
   return (
     <>
       <Button 
         onClick={() => {
-          setMapError(null);
           setShowManualForm(false);
           setManualSearchResults([]);
           setIsOpen(true);
@@ -466,7 +412,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         isOpen={isOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setMapError(null);
             setShowManualForm(false);
             setManualSearchResults([]);
             setFoundBusinessProfile(null);
@@ -474,7 +419,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
           setIsOpen(open);
         }}
         isLoading={isLoading}
-        apiKeyLoaded={apiKeyLoaded}
+        apiKeyLoaded={isApiLoaded}
         onManualAdd={() => setShowManualForm(true)}
         showManualForm={showManualForm}
         title={isRegistration ? "Recherchez votre boutique" : "Recherche de boutique CBD"}
@@ -493,59 +438,39 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         )}
         
         {showManualForm ? (
-          <div className="flex-1 flex flex-col">
-            <ManualAddressForm
-              onSubmit={handleManualSearch}
-              onBack={() => setShowManualForm(false)}
-              isSearching={isSearchingPlace}
-            />
-            <SearchResults
-              results={transformedResults}
-              onSelectPlace={getPlaceDetails}
-            />
-          </div>
-        ) : mapError ? (
-          <MapError
-            error={mapError}
-            errorType={errorType}
-            onRetry={() => {
-              setMapError(null);
-              loadGoogleMapsAPI().then(() => {
-                if (mapElementRef.current && apiKeyLoaded) {
-                  initializeMap(mapElementRef.current);
-                }
-              });
-            }}
-            onManualAdd={() => setShowManualForm(true)}
+          <ManualAddressForm
+            onSubmit={handleManualSearch}
+            onBack={() => setShowManualForm(false)}
+            isSearching={isSearching}
           />
         ) : (
           <>
-            <div id="store-search-map" ref={mapElementRef} className="w-full flex-1 rounded-md" />
-            {map && userLocation && !mapError && !showManualForm && (
-              <>
-                <SearchBar 
-                  searchQuery={searchQuery}
-                  onSearchQueryChange={handleSearchQueryChange}
-                  onSearch={() => {
-                    if (map && searchQuery) {
-                      // La recherche est gérée par StoreMarkers
-                    }
-                  }}
-                  isSearching={isLoading}
-                  noResults={noResults}
-                  suggestionTerms={SUGGESTION_TERMS}
-                  onSuggestionClick={(term) => {
-                    setSearchQuery(term);
-                    // Déclencher la recherche automatiquement
-                  }}
-                />
-                <StoreMarkers 
-                  map={map}
-                  userLocation={userLocation}
-                  onStoreSelect={handleStoreSelect}
-                />
-              </>
-            )}
+            <div id="store-search-map" className="w-full flex-1 rounded-md relative">
+              {map && userLocation && (
+                <>
+                  <StoreSearchBar 
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
+                    onSearch={handleSearch}
+                    isSearching={isSearching}
+                    noResults={noResults}
+                  />
+                  <StoreMarkers 
+                    map={map}
+                    userLocation={userLocation}
+                    onStoreSelect={handleStoreSelect}
+                  />
+                </>
+              )}
+            </div>
+            <SearchResults
+              results={manualSearchResults.map(place => ({
+                place_id: place.place_id || '',
+                name: place.name,
+                formatted_address: place.formatted_address
+              }))}
+              onSelectPlace={getPlaceDetails}
+            />
           </>
         )}
       </DialogWrapper>
