@@ -3,10 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
-// Add declaration to extend Window interface
+// Update the declaration to match the global one in types/google-maps.d.ts
 declare global {
   interface Window {
-    initGoogleMapsCallback: () => void;
+    initGoogleMapsCallback?: () => void;  // Make it optional with ?
   }
 }
 

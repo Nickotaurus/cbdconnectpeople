@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -98,10 +97,21 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         placeId: placeDetails.place_id
       });
 
-      // Si c'est pour l'inscription, on cherche les détails business
       if (isRegistration && placeDetails.place_id) {
         setIsLoadingBusinessProfile(true);
-        const businessDetails = await findBusinessByPlaceId(placeDetails.place_id);
+        const businessDetails = await findBusinessByPlaceId(placeDetails.place_id) as {
+          name: string;
+          address: string;
+          phone?: string;
+          website?: string;
+          rating?: number;
+          totalReviews?: number;
+          photos?: string[];
+          placeId: string;
+          latitude: number;
+          longitude: number;
+        } | null;
+        
         setIsLoadingBusinessProfile(false);
         
         if (businessDetails) {
@@ -113,7 +123,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         }
       }
 
-      // Procéder avec les informations disponibles
       onStoreSelect({
         name: placeDetails.name || '',
         address: addressComponents[0]?.trim() || '',
@@ -137,7 +146,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   const handleAcceptBusinessProfile = () => {
     if (!foundBusinessProfile) return;
     
-    // Extraire les informations de l'adresse
     const addressComponents = foundBusinessProfile.address.split(',');
     const city = addressComponents[1]?.trim() || '';
     const postalCodeMatch = foundBusinessProfile.address.match(/\b\d{5}\b/);
@@ -164,13 +172,11 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   const handleRejectBusinessProfile = () => {
     if (!foundBusinessProfile) return;
     
-    // Extraire les informations de l'adresse
     const addressComponents = foundBusinessProfile.address.split(',');
     const city = addressComponents[1]?.trim() || '';
     const postalCodeMatch = foundBusinessProfile.address.match(/\b\d{5}\b/);
     const postalCode = postalCodeMatch ? postalCodeMatch[0] : '';
     
-    // Procéder avec les données minimales
     onStoreSelect({
       name: foundBusinessProfile.name,
       address: addressComponents[0]?.trim() || '',
@@ -186,7 +192,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const getPlaceDetails = (placeId: string) => {
     if (!window.google?.maps?.places) {
-      // Essayer de charger l'API Google Maps
       loadGoogleMapsAPI().then(() => {
         if (window.google?.maps?.places) {
           fetchPlaceDetails(placeId);
@@ -215,7 +220,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     try {
       console.log("Getting details for place ID:", placeId);
       
-      // Create a visible div for the PlacesService (can help with some Google Maps issues)
       const serviceDiv = document.createElement('div');
       serviceDiv.style.width = '1px';
       serviceDiv.style.height = '1px';
@@ -254,7 +258,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     }
   };
 
-  // Charger l'API Google Maps
   const loadGoogleMapsAPI = async () => {
     if (window.google?.maps?.places) {
       console.log("Google Maps API already loaded");
@@ -270,7 +273,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
       }
       
       return new Promise<void>((resolve, reject) => {
-        // Vérifier si un script existe déjà
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
           console.log("Google Maps script already exists, removing it");
@@ -346,7 +348,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
           } else {
             console.warn("Place text search result:", status);
             
-            // Essayer une méthode alternative
             const alternateDiv = document.createElement('div');
             alternateDiv.style.width = '1px';
             alternateDiv.style.height = '1px';

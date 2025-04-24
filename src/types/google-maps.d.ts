@@ -1,4 +1,3 @@
-
 // Type definitions for Google Maps JavaScript API
 declare namespace google {
   namespace maps {
@@ -203,5 +202,5 @@ declare namespace google {
 interface Window {
   google: typeof google;
   selectStore?: (placeId: string) => void;
-  initGoogleMapsCallback?: () => void;
+  initGoogleMapsCallback?: () => void;  // Make sure to use optional (?) here
 }
