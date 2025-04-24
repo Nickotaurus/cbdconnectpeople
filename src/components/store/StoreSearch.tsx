@@ -13,6 +13,7 @@ import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 import { useToast } from "@/components/ui/use-toast";
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 import './StoreSearch.css';
+import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -62,6 +63,23 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     longitude: number;
   } | null>(null);
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
+
+  // Charger la clé API Google Maps
+  useEffect(() => {
+    const loadApiKey = async () => {
+      try {
+        const apiKey = await getGoogleMapsApiKey();
+        console.log("API key loaded:", apiKey ? "Yes" : "No");
+        setGoogleMapsApiKey(apiKey || null);
+      } catch (error) {
+        console.error("Error loading Google Maps API key:", error);
+        setGoogleMapsApiKey(null);
+      }
+    };
+    
+    loadApiKey();
+  }, []);
 
   const handleStoreSelect = async (placeDetails: google.maps.places.PlaceResult) => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) {
@@ -76,7 +94,8 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     try {
       const addressComponents = placeDetails.formatted_address.split(',');
       const city = addressComponents[1]?.trim() || '';
-      const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+      const postalCodeMatch = placeDetails.formatted_address.match(/\b\d{5}\b/);
+      const postalCode = postalCodeMatch ? postalCodeMatch[0] : '';
       const placeLocation = placeDetails.geometry.location;
 
       console.log("Selecting store with details:", {
@@ -98,12 +117,15 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         setIsLoadingBusinessProfile(false);
         
         if (businessDetails) {
+          console.log("Found business details:", businessDetails);
           setFoundBusinessProfile(businessDetails);
           return; // Attendre l'acceptation de l'utilisateur
+        } else {
+          console.log("No business details found, continuing with basic info");
         }
       }
 
-      // Sinon, on procède normalement
+      // Procéder avec les informations disponibles
       onStoreSelect({
         name: placeDetails.name || '',
         address: addressComponents[0]?.trim() || '',
@@ -111,7 +133,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         postalCode,
         latitude: placeLocation.lat(),
         longitude: placeLocation.lng(),
-        placeId: placeDetails.place_id as string
+        placeId: placeDetails.place_id || ''
       });
       setIsOpen(false);
     } catch (error) {
@@ -130,7 +152,8 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     // Extraire les informations de l'adresse
     const addressComponents = foundBusinessProfile.address.split(',');
     const city = addressComponents[1]?.trim() || '';
-    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+    const postalCodeMatch = foundBusinessProfile.address.match(/\b\d{5}\b/);
+    const postalCode = postalCodeMatch ? postalCodeMatch[0] : '';
     
     onStoreSelect({
       name: foundBusinessProfile.name,
@@ -156,7 +179,8 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     // Extraire les informations de l'adresse
     const addressComponents = foundBusinessProfile.address.split(',');
     const city = addressComponents[1]?.trim() || '';
-    const postalCode = addressComponents[0]?.match(/\d{5}/)?.[0] || '';
+    const postalCodeMatch = foundBusinessProfile.address.match(/\b\d{5}\b/);
+    const postalCode = postalCodeMatch ? postalCodeMatch[0] : '';
     
     // Procéder avec les données minimales
     onStoreSelect({
@@ -173,26 +197,52 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   };
 
   const getPlaceDetails = (placeId: string) => {
-    if (!apiKeyLoaded || !google?.maps?.places) {
-      toast({
-        title: "API Google indisponible",
-        description: "Impossible d'obtenir les détails de l'établissement.",
-        variant: "destructive"
+    if (!window.google?.maps?.places) {
+      // Essayer de charger l'API Google Maps
+      loadGoogleMapsAPI().then(() => {
+        if (window.google?.maps?.places) {
+          fetchPlaceDetails(placeId);
+        } else {
+          toast({
+            title: "API Google indisponible",
+            description: "Impossible de charger l'API Google Maps. Veuillez rafraîchir la page.",
+            variant: "destructive"
+          });
+        }
+      }).catch(error => {
+        console.error("Failed to load Google Maps API:", error);
+        toast({
+          title: "Erreur de chargement API",
+          description: "Impossible de charger l'API Google Maps.",
+          variant: "destructive"
+        });
       });
       return;
     }
     
+    fetchPlaceDetails(placeId);
+  };
+
+  const fetchPlaceDetails = (placeId: string) => {
     try {
       console.log("Getting details for place ID:", placeId);
       
-      // Create a temporary div for the PlacesService
+      // Create a visible div for the PlacesService (can help with some Google Maps issues)
       const serviceDiv = document.createElement('div');
+      serviceDiv.style.width = '1px';
+      serviceDiv.style.height = '1px';
+      serviceDiv.style.position = 'absolute';
+      serviceDiv.style.visibility = 'hidden';
+      document.body.appendChild(serviceDiv);
+      
       const service = new google.maps.places.PlacesService(serviceDiv);
       
       service.getDetails({ 
         placeId, 
         fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours', 'photos'] 
       }, (place, status) => {
+        document.body.removeChild(serviceDiv);
+        
         console.log("Place details result:", status);
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           console.log("Got place details:", place);
@@ -213,6 +263,54 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         description: "Une erreur est survenue lors de la récupération des détails.",
         variant: "destructive"
       });
+    }
+  };
+
+  // Charger l'API Google Maps
+  const loadGoogleMapsAPI = async () => {
+    if (window.google?.maps?.places) {
+      console.log("Google Maps API already loaded");
+      return Promise.resolve();
+    }
+    
+    try {
+      const apiKey = googleMapsApiKey || await getGoogleMapsApiKey();
+      
+      if (!apiKey) {
+        console.error("No Google Maps API key available");
+        return Promise.reject(new Error("No API key available"));
+      }
+      
+      return new Promise<void>((resolve, reject) => {
+        // Vérifier si un script existe déjà
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          console.log("Google Maps script already exists, removing it");
+          existingScript.remove();
+        }
+        
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsCallback`;
+        script.async = true;
+        script.defer = true;
+        
+        window.initGoogleMapsCallback = () => {
+          console.log("Google Maps API loaded successfully via callback");
+          setApiKeyLoaded(true);
+          setMapInitialized(false);  // Reset to allow reinitializing
+          resolve();
+        };
+        
+        script.onerror = (err) => {
+          console.error("Failed to load Google Maps API:", err);
+          reject(new Error("Failed to load Google Maps API"));
+        };
+        
+        document.head.appendChild(script);
+      });
+    } catch (error) {
+      console.error("Error in loadGoogleMapsAPI:", error);
+      return Promise.reject(error);
     }
   };
 
@@ -241,6 +339,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   useEffect(() => {
     if (!isOpen) {
       setMapInitialized(false);
+      setMapError(null);
     }
   }, [isOpen]);
 
@@ -254,37 +353,75 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     setManualSearchResults([]);
 
     try {
-      if (!google?.maps?.places) {
-        throw new Error("Google Places API not available");
+      if (!window.google?.maps?.places) {
+        await loadGoogleMapsAPI();
+        
+        if (!window.google?.maps?.places) {
+          throw new Error("Google Places API not available after loading");
+        }
       }
       
       const serviceDiv = document.createElement('div');
-      serviceDiv.style.display = 'none';
+      serviceDiv.style.width = '1px';
+      serviceDiv.style.height = '1px';
+      serviceDiv.style.position = 'absolute';
+      serviceDiv.style.visibility = 'hidden';
       document.body.appendChild(serviceDiv);
       
       const service = new google.maps.places.PlacesService(serviceDiv);
 
-      service.findPlaceFromQuery(
+      console.log("Searching for place with query:", fullAddress);
+      service.textSearch(
         {
-          query: fullAddress,
-          fields: ['name', 'formatted_address', 'place_id', 'geometry']
+          query: fullAddress
         },
         (results, status) => {
-          document.body.removeChild(serviceDiv);
           setIsSearchingPlace(false);
+          document.body.removeChild(serviceDiv);
           
           if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            console.log("Places found:", results);
             setManualSearchResults(results);
             
             if (results.length === 1) {
               getPlaceDetails(results[0].place_id!);
             }
           } else {
-            toast({
-              title: "Aucun établissement trouvé",
-              description: "Vérifiez l'adresse saisie et réessayez",
-              variant: "destructive"
-            });
+            console.warn("Place text search result:", status);
+            
+            // Essayer une méthode alternative
+            const alternateDiv = document.createElement('div');
+            alternateDiv.style.width = '1px';
+            alternateDiv.style.height = '1px';
+            document.body.appendChild(alternateDiv);
+            
+            const alternateService = new google.maps.places.PlacesService(alternateDiv);
+            alternateService.findPlaceFromQuery(
+              {
+                query: fullAddress,
+                fields: ['name', 'formatted_address', 'place_id', 'geometry']
+              },
+              (findResults, findStatus) => {
+                document.body.removeChild(alternateDiv);
+                
+                if (findStatus === google.maps.places.PlacesServiceStatus.OK && 
+                    findResults && findResults.length > 0) {
+                  console.log("Places found with alternate method:", findResults);
+                  setManualSearchResults(findResults);
+                  
+                  if (findResults.length === 1) {
+                    getPlaceDetails(findResults[0].place_id!);
+                  }
+                } else {
+                  console.warn("Alternative search also failed:", findStatus);
+                  toast({
+                    title: "Aucun établissement trouvé",
+                    description: "Vérifiez l'adresse saisie et réessayez",
+                    variant: "destructive"
+                  });
+                }
+              }
+            );
           }
         }
       );
@@ -372,9 +509,11 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
             errorType={errorType}
             onRetry={() => {
               setMapError(null);
-              if (mapElementRef.current && apiKeyLoaded) {
-                initializeMap(mapElementRef.current);
-              }
+              loadGoogleMapsAPI().then(() => {
+                if (mapElementRef.current && apiKeyLoaded) {
+                  initializeMap(mapElementRef.current);
+                }
+              });
             }}
             onManualAdd={() => setShowManualForm(true)}
           />

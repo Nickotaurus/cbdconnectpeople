@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
 interface GooglePlacesSearchProps {
   formData: {
@@ -27,7 +28,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [apiCheckAttempts, setApiCheckAttempts] = useState(0);
 
-  // Vérifier si l'API Google Maps est chargée
+  // Vérifier si l'API Google Maps est chargée et la charger si nécessaire
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
       if (window.google && window.google.maps && window.google.maps.places && window.google.maps.places.PlacesService) {
@@ -38,28 +39,70 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
       return false;
     };
     
-    // Vérifier immédiatement
+    const loadGoogleMapsAPI = async () => {
+      if (checkGoogleMapsLoaded()) {
+        return;
+      }
+      
+      try {
+        const apiKey = await getGoogleMapsApiKey();
+        if (!apiKey) {
+          throw new Error("No API key returned");
+        }
+        
+        return new Promise<void>((resolve, reject) => {
+          // Si un script existe déjà, ne pas en ajouter un nouveau
+          if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+            console.log("Google Maps script already exists, waiting...");
+            const checkInterval = setInterval(() => {
+              if (checkGoogleMapsLoaded()) {
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 500);
+            return;
+          }
+          
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+          script.async = true;
+          script.defer = true;
+          
+          script.onload = () => {
+            console.log('Google Maps API loaded successfully');
+            setIsApiLoaded(true);
+            resolve();
+          };
+          
+          script.onerror = (err) => {
+            console.error('Failed to load Google Maps API:', err);
+            reject(new Error('Failed to load Google Maps API'));
+          };
+          
+          document.head.appendChild(script);
+        });
+      } catch (error) {
+        console.error("Error loading Google Maps API:", error);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger l'API Google Maps",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    loadGoogleMapsAPI();
+    
+    // Vérifier périodiquement si l'API est chargée
     if (!checkGoogleMapsLoaded()) {
-      // Si pas chargé, vérifier périodiquement avec un délai croissant
       const interval = setInterval(() => {
         if (checkGoogleMapsLoaded()) {
           clearInterval(interval);
         } else {
           setApiCheckAttempts(prev => prev + 1);
-          // Après 10 tentatives (5s), afficher un message d'erreur
-          if (apiCheckAttempts > 10) {
-            console.error("Google Maps API not loaded after multiple attempts");
-            toast({
-              title: "API non disponible",
-              description: "L'API Google Maps n'a pas pu être chargée correctement",
-              variant: "destructive"
-            });
-            clearInterval(interval);
-          }
         }
-      }, 500);
+      }, 1000);
       
-      // Nettoyer l'intervalle si le composant est démonté
       return () => clearInterval(interval);
     }
   }, [toast, apiCheckAttempts]);
@@ -83,26 +126,31 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
       return;
     }
 
-    const searchQuery = `${formData.address}, ${formData.city}`;
+    const searchQuery = `${formData.address}, ${formData.city}, ${formData.postalCode || ''}`;
     setIsSearching(true);
     
     try {
-      // Créer un div temporaire pour le service
+      // Créer un div visible pour le service (sinon Google Maps peut avoir des problèmes)
       const mapDiv = document.createElement('div');
-      mapDiv.style.display = 'none';
+      mapDiv.style.width = '1px';
+      mapDiv.style.height = '1px';
+      mapDiv.style.position = 'absolute';
+      mapDiv.style.top = '0';
+      mapDiv.style.left = '0';
+      mapDiv.style.visibility = 'hidden';
       document.body.appendChild(mapDiv);
       
+      console.log("Creating Places service with div:", mapDiv);
       const service = new window.google.maps.places.PlacesService(mapDiv);
 
-      service.findPlaceFromQuery(
+      console.log("Searching for place with query:", searchQuery);
+      service.textSearch(
         {
           query: searchQuery,
           fields: ['place_id', 'name', 'formatted_address', 'geometry']
         },
         (results, status) => {
           setIsSearching(false);
-          // Suppression du div temporaire
-          document.body.removeChild(mapDiv);
           
           if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
             console.log("Place found:", results[0]);
@@ -113,12 +161,35 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
             });
           } else {
             console.warn("Place search result:", status);
-            toast({
-              title: "Aucun établissement trouvé",
-              description: "Vérifiez l'adresse saisie et réessayez",
-              variant: "destructive"
-            });
+            
+            // Essayer une autre méthode si textSearch échoue
+            service.findPlaceFromQuery(
+              {
+                query: searchQuery,
+                fields: ['place_id', 'name', 'formatted_address', 'geometry']
+              },
+              (findResults, findStatus) => {
+                if (findStatus === window.google.maps.places.PlacesServiceStatus.OK && 
+                    findResults && findResults.length > 0) {
+                  console.log("Place found with alternate method:", findResults[0]);
+                  onPlaceSelect(findResults[0]);
+                  toast({
+                    title: "Établissement trouvé",
+                    description: `"${findResults[0].name}" a été trouvé avec succès`,
+                  });
+                } else {
+                  toast({
+                    title: "Aucun établissement trouvé",
+                    description: "Vérifiez l'adresse saisie et réessayez",
+                    variant: "destructive"
+                  });
+                }
+              }
+            );
           }
+          
+          // Nettoyer le div après utilisation
+          document.body.removeChild(mapDiv);
         }
       );
     } catch (error) {
@@ -190,13 +261,13 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         )}
       </Button>
       
-      {!isApiLoaded && apiCheckAttempts > 5 && (
+      {!isApiLoaded && apiCheckAttempts > 3 && (
         <div className="border border-amber-200 bg-amber-50 p-3 rounded-md flex items-start">
           <AlertCircle className="w-5 h-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm text-amber-800 font-medium">Problème de chargement</p>
             <p className="text-xs text-amber-700">
-              L'API Google Maps semble prendre du temps à se charger. Vous pouvez essayer de rafraîchir la page ou utiliser la recherche sur carte.
+              L'API Google Maps prend du temps à se charger. Essayez de rafraîchir la page ou vérifiez votre connexion internet.
             </p>
           </div>
         </div>
