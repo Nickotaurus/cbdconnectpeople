@@ -1,0 +1,6 @@
+
+{
+  "platform": "deno",
+  "memory": 128,
+  "timeout": 5
+}

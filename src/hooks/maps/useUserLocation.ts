@@ -1,47 +1,68 @@
 
 import { useState, useEffect } from 'react';
-import { getCurrentLocation } from '@/utils/mapUtils';
 import { useToast } from "@/components/ui/use-toast";
 
 export const useUserLocation = () => {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchUserLocation = async () => {
-      setIsLoading(true);
-      try {
-        console.log("Tentative de récupération de la position...");
-        const location = await getCurrentLocation();
-        console.log("Position obtenue:", location);
-        setUserLocation(location);
-        setError(null);
-      } catch (error: any) {
-        console.error('Erreur critique lors de la récupération de la position:', error);
-        setError(error.message || 'Erreur de géolocalisation');
-        
-        // Toujours utiliser Paris comme position par défaut en cas d'erreur
-        const parisLocation = { lat: 48.856614, lng: 2.3522219 };
-        setUserLocation(parisLocation);
-        
-        toast({
-          title: "Localisation non disponible",
-          description: "Position par défaut utilisée (Paris). Vérifiez vos paramètres de confidentialité.",
-          variant: "default"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Default location (Paris)
+    const defaultLocation = { lat: 48.8566, lng: 2.3522 };
 
-    fetchUserLocation();
+    try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            setLocationError(null);
+          },
+          (error) => {
+            console.error("Error getting geolocation:", error);
+            
+            let errorMessage = "Accès à votre position refusé";
+            switch(error.code) {
+              case 1:
+                errorMessage = "Vous avez refusé l'accès à votre position";
+                break;
+              case 2:
+                errorMessage = "Position indisponible actuellement";
+                break;
+              case 3:
+                errorMessage = "Délai d'attente dépassé";
+                break;
+            }
+            
+            setLocationError(errorMessage);
+            setUserLocation(defaultLocation);
+            
+            toast({
+              title: "Accès à la position impossible",
+              description: "Nous utilisons une position approximative. Pour une meilleure expérience, autorisez la géolocalisation.",
+              variant: "default",
+            });
+          },
+          { 
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          }
+        );
+      } else {
+        setLocationError("La géolocalisation n'est pas supportée par votre navigateur.");
+        setUserLocation(defaultLocation);
+      }
+    } catch (e) {
+      console.error("Unexpected geolocation error:", e);
+      setUserLocation(defaultLocation);
+      setLocationError("Une erreur inattendue est survenue lors de l'accès à votre position.");
+    }
   }, [toast]);
 
   return { 
-    userLocation, 
-    isLoading,
-    error 
+    userLocation: userLocation || { lat: 48.8566, lng: 2.3522 }, 
+    locationError 
   };
 };

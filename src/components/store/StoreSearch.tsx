@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -5,7 +6,6 @@ import { useGoogleMap } from '@/hooks/useGoogleMap';
 import StoreMarkers from './StoreMarkers';
 import ManualAddressForm from './search/ManualAddressForm';
 import SearchResults from './search/SearchResults';
-import MapError from './search/MapError';
 import StoreSearchBar from './search/StoreSearchBar';
 import DialogWrapper from './search/DialogWrapper';
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
@@ -14,6 +14,7 @@ import { useStoreSearch } from '@/hooks/store/useStoreSearch';
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 import './StoreSearch.css';
 import { useToast } from "@/components/ui/use-toast";
+import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
 interface StoreSearchProps {
   onStoreSelect: (store: {
@@ -283,8 +284,6 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         
         window.initGoogleMapsCallback = () => {
           console.log("Google Maps API loaded successfully via callback");
-          // Fix: We don't have setApiKeyLoaded, let's use our state hook
-          // setApiKeyLoaded(true);
           resolve();
         };
         

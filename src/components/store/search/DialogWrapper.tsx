@@ -1,61 +1,79 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Store } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 
 interface DialogWrapperProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  children: React.ReactNode;
   isLoading: boolean;
   apiKeyLoaded: boolean;
   onManualAdd: () => void;
   showManualForm: boolean;
-  title?: string;
-  description?: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
 }
 
 const DialogWrapper = ({
   isOpen,
   onOpenChange,
-  children,
   isLoading,
   apiKeyLoaded,
   onManualAdd,
   showManualForm,
-  title = "Recherche de boutique CBD",
-  description = "Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement."
+  title,
+  description,
+  children
 }: DialogWrapperProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] h-[600px] flex flex-col">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>
-          {description}
-        </DialogDescription>
+      <DialogContent className="max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {description}
+          </DialogDescription>
+        </DialogHeader>
         
-        {(isLoading || !apiKeyLoaded) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-8 w-8 animate-spin mb-2" />
-              <p className="text-sm text-muted-foreground">
-                {!apiKeyLoaded ? "Chargement de l'API Google Maps..." : "Initialisation de la carte..."}
+        {isLoading && !showManualForm ? (
+          <div className="flex flex-col items-center justify-center p-8">
+            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-4"></div>
+            <p className="text-muted-foreground">Chargement de la carte...</p>
+          </div>
+        ) : !apiKeyLoaded && !showManualForm ? (
+          <div className="bg-destructive/10 p-4 rounded-md flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+            <div>
+              <h4 className="font-semibold mb-1">API Google Maps indisponible</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                L'API Google Maps n'a pas pu être chargée. Veuillez utiliser la saisie manuelle ou réessayer ultérieurement.
               </p>
+              <Button onClick={onManualAdd} variant="secondary">Saisie manuelle</Button>
             </div>
+          </div>
+        ) : (
+          <div className="flex flex-col flex-1 overflow-hidden min-h-[50vh]">
+            {children}
           </div>
         )}
         
-        {children}
-        
         {!showManualForm && (
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={onManualAdd} className="w-full sm:w-auto">
-              <Store className="w-4 h-4 mr-2" />
-              Ajouter ma boutique manuellement
+          <div className="pt-2 flex justify-between items-center">
+            <p className="text-xs text-muted-foreground">
+              {apiKeyLoaded 
+                ? "Vous pouvez rechercher votre magasin sur la carte ou utiliser la saisie manuelle."
+                : "L'API Google Maps n'est pas disponible. Utilisez la saisie manuelle."}
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onManualAdd}
+              disabled={showManualForm}
+            >
+              Saisie manuelle
             </Button>
-          </DialogFooter>
+          </div>
         )}
       </DialogContent>
     </Dialog>

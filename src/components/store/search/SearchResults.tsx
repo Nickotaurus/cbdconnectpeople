@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 
 interface SearchResult {
   place_id: string;
@@ -13,21 +15,29 @@ interface SearchResultsProps {
 }
 
 const SearchResults = ({ results, onSelectPlace }: SearchResultsProps) => {
-  if (!results.length) return null;
-
+  if (results.length === 0) return null;
+  
   return (
-    <div className="flex-1 overflow-y-auto">
-      <h3 className="font-medium mb-2">Résultats de recherche</h3>
+    <div className="my-4 space-y-2">
+      <h3 className="text-sm font-semibold">Résultats de la recherche :</h3>
       <div className="space-y-2">
         {results.map((place) => (
-          <div 
-            key={place.place_id} 
-            className="p-3 border rounded-md hover:bg-slate-50 cursor-pointer"
+          <Button
+            key={place.place_id}
+            variant="outline"
+            className="w-full justify-start text-left h-auto py-2.5"
             onClick={() => onSelectPlace(place.place_id)}
           >
-            <p className="font-medium">{place.name || "Établissement"}</p>
-            <p className="text-sm text-muted-foreground">{place.formatted_address}</p>
-          </div>
+            <div className="flex flex-row gap-2 items-start">
+              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">{place.name || "Sans nom"}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {place.formatted_address}
+                </p>
+              </div>
+            </div>
+          </Button>
         ))}
       </div>
     </div>

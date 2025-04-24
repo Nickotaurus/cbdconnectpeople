@@ -160,7 +160,6 @@ declare namespace google {
         query: string;
         location?: LatLng | LatLngLiteral;
         radius?: number;
-        // Note: TextSearchRequest doesn't support 'fields' property
       }
 
       class PlacesService {
@@ -204,4 +203,5 @@ declare namespace google {
 interface Window {
   google: typeof google;
   selectStore?: (placeId: string) => void;
+  initGoogleMapsCallback?: () => void;
 }
