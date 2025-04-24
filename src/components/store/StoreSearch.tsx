@@ -296,7 +296,8 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         
         window.initGoogleMapsCallback = () => {
           console.log("Google Maps API loaded successfully via callback");
-          setApiKeyLoaded(true);
+          // Fix: We don't have setApiKeyLoaded, let's use our state hook
+          // setApiKeyLoaded(true);
           setMapInitialized(false);  // Reset to allow reinitializing
           resolve();
         };

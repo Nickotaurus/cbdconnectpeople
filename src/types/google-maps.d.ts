@@ -1,3 +1,4 @@
+
 // Type definitions for Google Maps JavaScript API
 declare namespace google {
   namespace maps {
@@ -159,6 +160,7 @@ declare namespace google {
         query: string;
         location?: LatLng | LatLngLiteral;
         radius?: number;
+        // Note: TextSearchRequest doesn't support 'fields' property
       }
 
       class PlacesService {

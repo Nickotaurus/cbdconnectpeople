@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [apiCheckAttempts, setApiCheckAttempts] = useState(0);
 
-  // Vérifier si l'API Google Maps est chargée et la charger si nécessaire
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
       if (window.google && window.google.maps && window.google.maps.places && window.google.maps.places.PlacesService) {
@@ -51,7 +49,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         }
         
         return new Promise<void>((resolve, reject) => {
-          // Si un script existe déjà, ne pas en ajouter un nouveau
           if (document.querySelector('script[src*="maps.googleapis.com"]')) {
             console.log("Google Maps script already exists, waiting...");
             const checkInterval = setInterval(() => {
@@ -93,7 +90,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
     
     loadGoogleMapsAPI();
     
-    // Vérifier périodiquement si l'API est chargée
     if (!checkGoogleMapsLoaded()) {
       const interval = setInterval(() => {
         if (checkGoogleMapsLoaded()) {
@@ -130,7 +126,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
     setIsSearching(true);
     
     try {
-      // Créer un div visible pour le service (sinon Google Maps peut avoir des problèmes)
       const mapDiv = document.createElement('div');
       mapDiv.style.width = '1px';
       mapDiv.style.height = '1px';
@@ -146,8 +141,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
       console.log("Searching for place with query:", searchQuery);
       service.textSearch(
         {
-          query: searchQuery,
-          fields: ['place_id', 'name', 'formatted_address', 'geometry']
+          query: searchQuery
         },
         (results, status) => {
           setIsSearching(false);
@@ -162,7 +156,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
           } else {
             console.warn("Place search result:", status);
             
-            // Essayer une autre méthode si textSearch échoue
             service.findPlaceFromQuery(
               {
                 query: searchQuery,
@@ -188,7 +181,6 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
             );
           }
           
-          // Nettoyer le div après utilisation
           document.body.removeChild(mapDiv);
         }
       );
