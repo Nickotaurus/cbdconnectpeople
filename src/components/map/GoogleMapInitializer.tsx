@@ -80,8 +80,8 @@ const GoogleMapInitializer = ({
         
         // Add store markers using the AdvancedMarkerElement
         stores.forEach(store => {
-          const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
-                            (store.type || '').toLowerCase().includes('cbd');
+          // Check if it's a CBD store based on name
+          const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
           
           const marker = createStoreMarker(
             mapInstance.current!,
@@ -126,8 +126,8 @@ const GoogleMapInitializer = ({
       if (index < stores.length) {
         const store = stores[index];
         const isSelected = store.id === selectedStoreId;
-        const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
-                          (store.type || '').toLowerCase().includes('cbd');
+        // Check if it's a CBD store based on name
+        const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
         
         // Can't update AdvancedMarkerElement directly, so we replace it
         if (isSelected) {

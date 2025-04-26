@@ -96,9 +96,8 @@ const BasicMap = ({
     
     // Add new markers for each store
     stores.forEach(store => {
-      // Check if it's a CBD store based on name or type
-      const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
-                        (store.type || '').toLowerCase().includes('cbd');
+      // Check if it's a CBD store based on name
+      const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
       
       // Create the marker
       const marker = createStoreMarker(
@@ -133,8 +132,7 @@ const BasicMap = ({
           const store = stores[index];
           if (store.id === selectedStoreId) {
             // Highlight the selected store marker
-            const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
-                              (store.type || '').toLowerCase().includes('cbd');
+            const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
             
             // Replace with a new marker that has the selected appearance
             marker.map = null;
