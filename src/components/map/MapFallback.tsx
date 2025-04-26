@@ -9,7 +9,9 @@ interface MapFallbackProps {
   userLocation: { latitude: number; longitude: number } | null;
   locationError: string | null;
   mapLoadError: string | null;
+  isRefererError?: boolean;
   onStoreClick: (store: Store) => void;
+  domain?: string;
 }
 
 const MapFallback = ({
@@ -18,16 +20,18 @@ const MapFallback = ({
   userLocation,
   locationError,
   mapLoadError,
-  onStoreClick
+  isRefererError = false,
+  onStoreClick,
+  domain = window.location.origin
 }: MapFallbackProps) => {
-  const isRefererError = mapLoadError?.includes('domaine') || 
-                        (typeof window !== 'undefined' && 
-                          document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
+  const isMapError = mapLoadError || isRefererError || 
+                      (typeof window !== 'undefined' && 
+                        document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
 
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto px-4">
-        {mapLoadError ? (
+        {isMapError ? (
           <div className="space-y-4 animate-fade-in">
             <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
             <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
@@ -37,7 +41,11 @@ const MapFallback = ({
               <div className="bg-muted p-4 rounded-md text-sm text-left mb-4">
                 <p className="font-medium mb-2">Erreur technique: RefererNotAllowedMapError</p>
                 <p className="mb-1">Le domaine actuel n'est pas autorisé à utiliser cette clé API Google Maps.</p>
-                <p className="font-mono text-xs mt-2 break-all">URL actuelle: {window.location.href}</p>
+                <p className="font-mono text-xs mt-2 break-all">URL actuelle: {domain}</p>
+                <p className="mt-3 text-xs">
+                  <strong>Solution :</strong> Dans Google Cloud Console → API & Services → Credentials, 
+                  trouvez votre clé API et ajoutez ce domaine dans la liste des referrers autorisés.
+                </p>
               </div>
             )}
             
@@ -100,7 +108,7 @@ const MapFallback = ({
         
         {userLocation && (
           <div className="mt-6 animate-fade-in">
-            <p className="text-sm mb-2">Votre position :</p>
+            <p className="text-xs mb-2">Votre position :</p>
             <div className="bg-background/50 backdrop-blur-sm p-2 rounded-md flex items-center justify-center text-xs">
               <Navigation className="h-3.5 w-3.5 mr-1.5 text-primary" />
               <span>

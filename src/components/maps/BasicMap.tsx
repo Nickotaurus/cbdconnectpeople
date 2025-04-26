@@ -27,15 +27,38 @@ const BasicMap = ({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const { apiKeyLoaded } = useGoogleMapsScript();
+  const { apiKeyLoaded, error: apiError } = useGoogleMapsScript();
   const { toast } = useToast();
   const [locationError, setLocationError] = useState<string | null>(null);
   const [mapLoadError, setMapLoadError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isRefererError, setIsRefererError] = useState<boolean>(false);
+
+  // Check for RefererNotAllowedMapError
+  useEffect(() => {
+    const checkForRefererError = () => {
+      // Give it a moment to render the error if it exists
+      setTimeout(() => {
+        const errorElement = document.querySelector('.gm-err-message');
+        if (errorElement && errorElement.textContent) {
+          const errorText = errorElement.textContent;
+          if (errorText.includes('RefererNotAllowedMapError') || errorText.includes('not authorized')) {
+            console.log("Detected RefererNotAllowedMapError");
+            setMapLoadError("Ce domaine n'est pas autorisé à utiliser cette clé API Google Maps.");
+            setIsRefererError(true);
+          }
+        }
+      }, 500);
+    };
+    
+    if (apiKeyLoaded) {
+      checkForRefererError();
+    }
+  }, [apiKeyLoaded]);
 
   // Initialize the map when API and DOM are ready
   useEffect(() => {
-    if (!apiKeyLoaded || !mapRef.current || mapInstanceRef.current) {
+    if (!apiKeyLoaded || !mapRef.current || mapInstanceRef.current || isRefererError) {
       return;
     }
 
@@ -46,7 +69,8 @@ const BasicMap = ({
         zoom,
         mapTypeControl: false,
         fullscreenControl: false,
-        streetViewControl: false
+        streetViewControl: false,
+        mapId: 'cbd_store_map' // Add a mapId to use with Advanced Markers
       });
       
       // If we have user location, add a marker
@@ -82,7 +106,7 @@ const BasicMap = ({
       
       mapInstanceRef.current = null;
     };
-  }, [apiKeyLoaded, center, zoom, toast, userLocation]);
+  }, [apiKeyLoaded, center, zoom, toast, userLocation, isRefererError]);
 
   // Add store markers when map is ready and stores are available
   useEffect(() => {
@@ -110,7 +134,7 @@ const BasicMap = ({
       
       // Add click handler if onSelectStore is provided
       if (onSelectStore) {
-        marker.addListener('click', () => {
+        marker.addEventListener('gmp-click', () => {
           onSelectStore(store);
         });
       }
@@ -146,7 +170,7 @@ const BasicMap = ({
             
             // Add the click handler again
             if (onSelectStore) {
-              markersRef.current[index].addListener('click', () => {
+              markersRef.current[index].addEventListener('gmp-click', () => {
                 onSelectStore(store);
               });
             }
@@ -177,7 +201,9 @@ const BasicMap = ({
   }, []);
 
   // Show fallback UI when map is not ready
-  if (!apiKeyLoaded) {
+  if (!apiKeyLoaded || mapLoadError || apiError) {
+    const errorMessage = mapLoadError || apiError || "Erreur de chargement de la carte";
+    
     return (
       <div className={`relative ${className}`}>
         <MapFallback 
@@ -185,8 +211,10 @@ const BasicMap = ({
           selectedStoreId={selectedStoreId}
           userLocation={userLocation}
           locationError={locationError}
-          mapLoadError={mapLoadError}
+          mapLoadError={errorMessage}
+          isRefererError={isRefererError}
           onStoreClick={onSelectStore || (() => {})}
+          domain={window.location.origin}
         />
       </div>
     );

@@ -25,6 +25,7 @@ const GoogleMapInitializer = ({
   const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [mapError, setMapError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<string | null>(null);
+  const [isRefererError, setIsRefererError] = useState<boolean>(false);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -36,7 +37,8 @@ const GoogleMapInitializer = ({
         zoom: 13,
         mapTypeControl: false,
         fullscreenControl: false,
-        streetViewControl: false
+        streetViewControl: false,
+        mapId: 'cbd_store_map' // Add a mapId to use with Advanced Markers
       };
       
       mapInstance.current = new window.google.maps.Map(mapContainerRef.current, mapOptions);
@@ -55,6 +57,7 @@ const GoogleMapInitializer = ({
           // Check if it's a referer error
           if (errorText.includes('RefererNotAllowedMapError') || 
               errorText.toLowerCase().includes('not authorized')) {
+            setIsRefererError(true);
             setErrorType('RefererNotAllowedMapError');
             setMapError("Ce domaine n'est pas autorisé à utiliser cette clé API Google Maps.");
             
@@ -92,7 +95,7 @@ const GoogleMapInitializer = ({
           );
           
           if (onSelectStore) {
-            marker.addListener('click', () => {
+            marker.addEventListener('gmp-click', () => {
               onSelectStore(store);
             });
           }
@@ -149,7 +152,7 @@ const GoogleMapInitializer = ({
             
             // Re-add click handler
             if (onSelectStore) {
-              markers.current[index].addListener('click', () => {
+              markers.current[index].addEventListener('gmp-click', () => {
                 onSelectStore(store);
               });
             }
@@ -171,11 +174,12 @@ const GoogleMapInitializer = ({
           </h3>
           <p className="text-muted-foreground mb-4">{mapError}</p>
           
-          {errorType === 'RefererNotAllowedMapError' && (
+          {isRefererError && (
             <div className="bg-muted p-3 rounded text-sm text-left mb-4">
               <p className="font-medium mb-1">Information technique :</p>
               <p>RefererNotAllowedMapError - Votre domaine n'est pas autorisé à utiliser cette clé API.</p>
               <p className="mt-1">Domaine actuel : {window.location.origin}</p>
+              <p className="mt-3 text-xs">Pour résoudre cette erreur, l'administrateur doit ajouter ce domaine dans les paramètres de la clé API Google Maps (Google Cloud Console → API & Services → Credentials).</p>
             </div>
           )}
           
