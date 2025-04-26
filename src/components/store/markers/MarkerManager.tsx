@@ -16,6 +16,22 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasResults, setHasResults] = useState(false);
+  
+  // Créer un div pour le service PlacesService pour éviter les problèmes de réception
+  const serviceDivRef = useRef<HTMLDivElement | null>(null);
+  
+  // Initialisation du service div si nécessaire
+  const getServiceDiv = () => {
+    if (!serviceDivRef.current) {
+      serviceDivRef.current = document.createElement('div');
+      serviceDivRef.current.style.width = '1px';
+      serviceDivRef.current.style.height = '1px';
+      serviceDivRef.current.style.position = 'absolute';
+      serviceDivRef.current.style.visibility = 'hidden';
+      document.body.appendChild(serviceDivRef.current);
+    }
+    return serviceDivRef.current;
+  };
 
   // Render info window content function
   const renderInfoWindowContent = (
@@ -85,8 +101,12 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
           console.error("Place has no place_id:", place);
           return;
         }
+        
+        // Utiliser le div de service créé précedemment
+        const serviceDiv = getServiceDiv();
+        const detailsService = new google.maps.places.PlacesService(serviceDiv);
 
-        service.getDetails(
+        detailsService.getDetails(
           { 
             placeId: place.place_id, 
             fields: ['name', 'formatted_address', 'rating', 'website', 'photos', 'user_ratings_total', 'geometry', 'types', 'vicinity'] 
@@ -133,8 +153,24 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
   };
+  
+  // Nettoyer le service div à la fin
+  const cleanupServiceDiv = () => {
+    if (serviceDivRef.current && serviceDivRef.current.parentNode) {
+      serviceDivRef.current.parentNode.removeChild(serviceDivRef.current);
+      serviceDivRef.current = null;
+    }
+  };
 
-  return { addMarker, clearMarkers, isSearching, setIsSearching, hasResults, setHasResults };
+  return { 
+    addMarker, 
+    clearMarkers, 
+    isSearching, 
+    setIsSearching, 
+    hasResults, 
+    setHasResults,
+    cleanupServiceDiv 
+  };
 };
 
 export default MarkerManager;

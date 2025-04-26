@@ -39,7 +39,7 @@ export const useGoogleMapsScript = () => {
         loaderRef.current = new Loader({
           apiKey,
           version: 'weekly',
-          libraries: ['places']
+          libraries: ['places', 'marker'] // Ajout de 'marker' pour les nouveaux marqueurs avancés
         });
 
         // Charger la bibliothèque

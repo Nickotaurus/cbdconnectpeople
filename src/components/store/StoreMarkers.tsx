@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
 import { useStores } from '@/hooks/useStores';
@@ -21,6 +21,19 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
   const [searchService, setSearchService] = useState<ReturnType<typeof PlacesSearchService> | null>(null);
   const [markerManager, setMarkerManager] = useState<ReturnType<typeof MarkerManager> | null>(null);
   const { stores: supabaseStores, isLoading: isLoadingStores } = useStores();
+  const serviceDivRef = useRef<HTMLDivElement | null>(null);
+  
+  const getServiceDiv = () => {
+    if (!serviceDivRef.current) {
+      serviceDivRef.current = document.createElement('div');
+      serviceDivRef.current.style.width = '1px';
+      serviceDivRef.current.style.height = '1px';
+      serviceDivRef.current.style.position = 'absolute';
+      serviceDivRef.current.style.visibility = 'hidden';
+      document.body.appendChild(serviceDivRef.current);
+    }
+    return serviceDivRef.current;
+  };
   
   useEffect(() => {
     const initializeMarkers = async () => {
@@ -46,7 +59,8 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         
         // Add Supabase stores to the map
         if (supabaseStores.length > 0) {
-          const service = new google.maps.places.PlacesService(map);
+          const serviceDiv = getServiceDiv();
+          const service = new google.maps.places.PlacesService(serviceDiv);
           
           for (const store of supabaseStores) {
             const placeResult: google.maps.places.PlaceResult = {
@@ -92,6 +106,12 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
     }
 
     return () => {
+      if (markerManager) {
+        markerManager.cleanupServiceDiv();
+      }
+      if (serviceDivRef.current && serviceDivRef.current.parentNode) {
+        serviceDivRef.current.parentNode.removeChild(serviceDivRef.current);
+      }
       window.selectStore = undefined;
     };
   }, [map, userLocation, onStoreSelect, toast, supabaseStores, isLoadingStores]);

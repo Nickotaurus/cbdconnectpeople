@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -21,10 +20,12 @@ const PlacesSearchService = ({
   setHasResults
 }: PlacesSearchServiceProps) => {
   const { toast } = useToast();
-  const [service] = useState<google.maps.places.PlacesService | null>(
-    // Check if map is available before creating the service
-    map ? new google.maps.places.PlacesService(map) : null
-  );
+  const [service] = useState<google.maps.places.PlacesService>(() => {
+    const serviceDiv = document.createElement('div');
+    serviceDiv.style.display = 'none';
+    document.body.appendChild(serviceDiv);
+    return new google.maps.places.PlacesService(serviceDiv);
+  });
 
   const searchStores = async () => {
     if (!service) {
@@ -38,7 +39,6 @@ const PlacesSearchService = ({
       return;
     }
 
-    // Termes de recherche plus neutres et diversifiés
     const searchTerms = [
       { keyword: 'bien-être chanvre', radius: 50000 },
       { keyword: 'herboristerie bien-être', radius: 50000 },
@@ -75,13 +75,11 @@ const PlacesSearchService = ({
               if (status === google.maps.places.PlacesServiceStatus.OK && results) {
                 console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
                 
-                // Filtrage des résultats pertinents
                 const newResults = results.filter(place => {
                   if (!place.place_id || processedPlaceIds.has(place.place_id)) {
                     return false;
                   }
                   
-                  // Filtre plus inclusif avec les nouveaux termes
                   const name = place.name?.toLowerCase() || '';
                   const vicinity = place.vicinity?.toLowerCase() || '';
                   const isRelevant = 
@@ -97,7 +95,6 @@ const PlacesSearchService = ({
                     return true;
                   }
                   
-                  // Si le terme est générique, vérifions d'autres critères
                   if (term.keyword === 'herboristerie' || term.keyword === 'produits naturels') {
                     processedPlaceIds.add(place.place_id);
                     return true;
@@ -125,7 +122,6 @@ const PlacesSearchService = ({
             });
           });
           
-          // Délai entre les recherches
           await new Promise(resolve => setTimeout(resolve, 500));
           
         } catch (error) {
@@ -160,7 +156,6 @@ const PlacesSearchService = ({
     }
   };
 
-  // Improved text search implementation
   const textSearch = async (query: string) => {
     if (!service) {
       console.error("Places service not initialized for text search");
@@ -176,18 +171,16 @@ const PlacesSearchService = ({
     setIsSearching(true);
     
     try {
-      // Create a complete search request with location bounds
       const request = {
-        query: `${query}`, // No need to append CBD, let user's query be more general
+        query: `${query}`,
         location: userLocation,
-        radius: 50000, // 50km radius
+        radius: 50000,
         fields: ['name', 'geometry', 'formatted_address', 'place_id', 'rating', 'user_ratings_total', 'vicinity']
       };
       
       console.log(`Executing text search for: "${query}"`, request);
       
       await new Promise<void>((resolve) => {
-        // Use textSearch which is better for address searches
         service.textSearch(request, (results, status) => {
           console.log("Text search status:", status, results?.length || 0);
           
@@ -195,7 +188,6 @@ const PlacesSearchService = ({
             console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`, results);
             setHasResults(true);
             
-            // Process results
             results.forEach(place => {
               onAddMarker(place, service);
             });
@@ -209,7 +201,6 @@ const PlacesSearchService = ({
             console.warn(`Statut de recherche textuelle: ${status}`, results);
             setHasResults(false);
             
-            // Try nearbySearch as a fallback if textSearch fails
             const nearbyRequest = {
               location: userLocation,
               radius: 50000,

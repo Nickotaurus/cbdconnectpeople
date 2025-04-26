@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { useGoogleMap } from '@/hooks/useGoogleMap';
@@ -57,6 +57,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   } | null>(null);
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
   const { toast } = useToast();
+  const serviceDivRef = useRef<HTMLDivElement | null>(null);
 
   const {
     isSearching,
@@ -220,21 +221,23 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     try {
       console.log("Getting details for place ID:", placeId);
       
-      const serviceDiv = document.createElement('div');
-      serviceDiv.style.width = '1px';
-      serviceDiv.style.height = '1px';
-      serviceDiv.style.position = 'absolute';
-      serviceDiv.style.visibility = 'hidden';
-      document.body.appendChild(serviceDiv);
+      if (serviceDivRef.current) {
+        document.body.removeChild(serviceDivRef.current);
+      }
       
-      const service = new google.maps.places.PlacesService(serviceDiv);
+      serviceDivRef.current = document.createElement('div');
+      serviceDivRef.current.style.width = '1px';
+      serviceDivRef.current.style.height = '1px';
+      serviceDivRef.current.style.position = 'absolute';
+      serviceDivRef.current.style.visibility = 'hidden';
+      document.body.appendChild(serviceDivRef.current);
+      
+      const service = new google.maps.places.PlacesService(serviceDivRef.current);
       
       service.getDetails({ 
         placeId, 
         fields: ['name', 'formatted_address', 'place_id', 'geometry', 'website', 'formatted_phone_number', 'opening_hours', 'photos'] 
       }, (place, status) => {
-        document.body.removeChild(serviceDiv);
-        
         console.log("Place details result:", status);
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           console.log("Got place details:", place);
@@ -393,6 +396,14 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
       });
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (serviceDivRef.current && serviceDivRef.current.parentNode) {
+        serviceDivRef.current.parentNode.removeChild(serviceDivRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
