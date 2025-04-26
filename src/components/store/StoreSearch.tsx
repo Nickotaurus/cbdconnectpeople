@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -288,17 +289,19 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         if (existingScript) {
           console.log("Google Maps script already exists, waiting for it to load");
           
-          const checkInterval = setInterval(() => {
-            if (window.google?.maps?.places) {
+          return new Promise<void>((resolve, reject) => {
+            const checkInterval = setInterval(() => {
+              if (window.google?.maps?.places) {
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 500);
+            
+            setTimeout(() => {
               clearInterval(checkInterval);
-              resolve();
-            }
-          }, 500);
-          
-          setTimeout(() => {
-            clearInterval(checkInterval);
-            reject(new Error("Timeout waiting for Google Maps API"));
-          }, 10000);
+              reject(new Error("Timeout waiting for Google Maps API"));
+            }, 10000);
+          });
         }
         
         console.log("Creating new Google Maps script");
