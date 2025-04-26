@@ -206,6 +206,7 @@ const BasicMap = ({
           locationError={locationError}
           mapLoadError={errorMessage}
           isRefererError={isRefererError}
+          showAlternativeUI={true}
           onStoreClick={onSelectStore || (() => {})}
           domain={window.location.origin}
         />

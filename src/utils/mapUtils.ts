@@ -42,9 +42,10 @@ export const createStoreMarker = (
   isSelected: boolean = false,
   isCBDStore: boolean = false
 ): google.maps.marker.AdvancedMarkerElement => {
+  // Utiliser la couleur sage-500 pour les marqueurs
   const pinElement = new google.maps.marker.PinElement({
-    background: isCBDStore ? '#4F46E5' : (isSelected ? '#10B981' : '#F59E0B'),
-    borderColor: isCBDStore ? '#312E81' : (isSelected ? '#047857' : '#D97706'),
+    background: isCBDStore ? '#4F46E5' : (isSelected ? '#78ADA2' : '#F59E0B'),
+    borderColor: isCBDStore ? '#312E81' : (isSelected ? '#5A8279' : '#D97706'),
     glyphColor: '#FFFFFF',
     scale: isSelected ? 1.2 : 1
   });

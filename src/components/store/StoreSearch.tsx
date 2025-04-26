@@ -37,7 +37,17 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
   const { isSearching, setIsSearching, noResults, setNoResults, searchQuery, setSearchQuery, handleSearch } = useStoreSearch({ onStoreSelect });
 
   const handlePlaceSelect = (placeId: string) => {
+    if (!placeId) {
+      console.error("Place ID is missing");
+      return;
+    }
+    
     getPlaceDetails(placeId, async (place) => {
+      if (!place) {
+        console.error("Place details not found");
+        return;
+      }
+      
       const result = await handleStoreSelect(place, isRegistration);
       if (result) {
         if ('photos' in result && result.name && result.address && result.placeId && 
@@ -169,21 +179,33 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         ) : (
           <>
             <div id="store-search-map" className="w-full flex-1 rounded-md relative">
-              {map && userLocation && (
-                <>
-                  <StoreSearchBar 
-                    searchQuery={searchQuery}
-                    onSearchQueryChange={setSearchQuery}
-                    onSearch={handleSearch}
-                    isSearching={isSearching}
-                    noResults={noResults}
-                  />
-                  <StoreMarkers 
-                    map={map}
-                    userLocation={userLocation}
-                    onStoreSelect={handlePlaceSelect}
-                  />
-                </>
+              {isApiLoaded ? (
+                map && userLocation && (
+                  <>
+                    <StoreSearchBar 
+                      searchQuery={searchQuery}
+                      onSearchQueryChange={setSearchQuery}
+                      onSearch={handleSearch}
+                      isSearching={isSearching}
+                      noResults={noResults}
+                    />
+                    <StoreMarkers 
+                      map={map}
+                      userLocation={userLocation}
+                      onStoreSelect={handlePlaceSelect}
+                    />
+                  </>
+                )
+              ) : (
+                // Afficher un message quand l'API n'est pas chargée
+                <div className="flex items-center justify-center h-full bg-muted">
+                  <div className="text-center p-6">
+                    <p className="mb-4">L'API Google Maps n'a pas pu être chargée. Veuillez utiliser la recherche manuelle.</p>
+                    <Button variant="outline" onClick={() => setShowManualForm(true)}>
+                      Passer à la recherche manuelle
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
             <SearchResults

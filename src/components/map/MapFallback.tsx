@@ -2,6 +2,7 @@
 import { MapPin, Navigation, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface MapFallbackProps {
   stores: Store[];
@@ -12,6 +13,7 @@ interface MapFallbackProps {
   isRefererError?: boolean;
   onStoreClick: (store: Store) => void;
   domain?: string;
+  showAlternativeUI?: boolean;
 }
 
 const MapFallback = ({
@@ -22,7 +24,8 @@ const MapFallback = ({
   mapLoadError,
   isRefererError = false,
   onStoreClick,
-  domain = window.location.origin
+  domain = window.location.origin,
+  showAlternativeUI = false
 }: MapFallbackProps) => {
   const isMapError = mapLoadError || isRefererError || 
                       (typeof window !== 'undefined' && 
@@ -64,10 +67,18 @@ const MapFallback = ({
               </p>
             )}
           </div>
+        ) : showAlternativeUI ? (
+          <div className="space-y-4 animate-fade-in">
+            <MapPin className="h-10 w-10 text-sage-500 mx-auto" />
+            <h2 className="text-xl font-semibold mb-2">Recherche de boutiques</h2>
+            <p className="text-muted-foreground mb-4">
+              L'API Google Maps n'est pas disponible, mais vous pouvez toujours rechercher des boutiques manuellement.
+            </p>
+          </div>
         ) : (
           <>
             <div className="animate-bounce mb-4">
-              <MapPin className="h-10 w-10 text-blue-600 mx-auto" />
+              <MapPin className="h-10 w-10 text-sage-500 mx-auto" />
             </div>
             <h2 className="text-xl font-semibold mb-2">Carte interactive</h2>
             <p className="text-muted-foreground mb-4">Chargement de Google Maps en cours...</p>
@@ -88,7 +99,7 @@ const MapFallback = ({
               variant={store.id === selectedStoreId ? "default" : "outline"}
               className={`justify-start transition-all duration-300 ${
                 store.id === selectedStoreId 
-                  ? 'border-blue-600 shadow-md scale-105' 
+                  ? 'border-sage-600 shadow-md scale-105' 
                   : 'hover:bg-secondary/80'
               }`}
               style={{ 
@@ -99,7 +110,7 @@ const MapFallback = ({
               onClick={() => onStoreClick(store)}
             >
               <MapPin className={`h-4 w-4 mr-2 transition-all duration-300 ${
-                store.id === selectedStoreId ? 'text-blue-400' : ''
+                store.id === selectedStoreId ? 'text-sage-400' : ''
               }`} />
               <span className="truncate">{store.name}</span>
             </Button>
@@ -110,7 +121,7 @@ const MapFallback = ({
           <div className="mt-6 animate-fade-in">
             <p className="text-xs mb-2">Votre position :</p>
             <div className="bg-background/50 backdrop-blur-sm p-2 rounded-md flex items-center justify-center text-xs">
-              <Navigation className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
+              <Navigation className="h-3.5 w-3.5 mr-1.5 text-sage-500" />
               <span>
                 {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
               </span>
