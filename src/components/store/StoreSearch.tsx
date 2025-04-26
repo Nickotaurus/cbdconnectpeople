@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -14,40 +13,15 @@ import SearchResults from './search/SearchResults';
 import StoreSearchBar from './search/StoreSearchBar';
 import DialogWrapper from './search/DialogWrapper';
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
+import { StoreData } from '@/types/store-types';
 import './StoreSearch.css';
 
 interface StoreSearchProps {
-  onStoreSelect: (store: {
-    name: string;
-    address: string;
-    city: string;
-    postalCode: string;
-    latitude: number;
-    longitude: number;
-    placeId: string;
-    photos?: string[];
-    phone?: string;
-    website?: string;
-    rating?: number;
-    totalReviews?: number;
-  }) => void;
+  onStoreSelect: (store: StoreData) => void;
   isRegistration?: boolean;
 }
 
-type BusinessProfile = {
-  name: string;
-  address: string;
-  phone?: string;
-  website?: string;
-  rating?: number;
-  totalReviews?: number;
-  photos?: string[];
-  placeId: string;
-  latitude: number;
-  longitude: number;
-  city: string;
-  postalCode: string;
-};
+type BusinessProfile = StoreData;
 
 const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +42,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         if ('photos' in result && result.name && result.address && result.placeId && 
             result.latitude !== undefined && result.longitude !== undefined && 
             result.city !== undefined && result.postalCode !== undefined) {
-          setFoundBusinessProfile(result as BusinessProfile);
+          setFoundBusinessProfile(result);
         } else if (result.name && result.address && result.city && result.postalCode && 
                   result.latitude !== undefined && result.longitude !== undefined && 
                   result.placeId) {
@@ -119,20 +93,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const handleAcceptBusinessProfile = () => {
     if (foundBusinessProfile) {
-      onStoreSelect({
-        name: foundBusinessProfile.name,
-        address: foundBusinessProfile.address,
-        city: foundBusinessProfile.city,
-        postalCode: foundBusinessProfile.postalCode,
-        latitude: foundBusinessProfile.latitude,
-        longitude: foundBusinessProfile.longitude,
-        placeId: foundBusinessProfile.placeId,
-        photos: foundBusinessProfile.photos,
-        phone: foundBusinessProfile.phone,
-        website: foundBusinessProfile.website,
-        rating: foundBusinessProfile.rating,
-        totalReviews: foundBusinessProfile.totalReviews
-      });
+      onStoreSelect(foundBusinessProfile);
       setIsOpen(false);
       setFoundBusinessProfile(null);
     }
@@ -140,7 +101,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const handleRejectBusinessProfile = () => {
     if (foundBusinessProfile) {
-      const basicInfo = {
+      const basicInfo: StoreData = {
         name: foundBusinessProfile.name,
         address: foundBusinessProfile.address,
         city: foundBusinessProfile.city,

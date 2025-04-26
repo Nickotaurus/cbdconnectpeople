@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
@@ -11,7 +10,7 @@ import { Input } from "@/components/ui/input";
 interface StoreMarkersProps {
   map: google.maps.Map | null;
   userLocation: google.maps.LatLngLiteral | null;
-  onStoreSelect: (placeId: string) => void; // Updated to accept placeId
+  onStoreSelect: (placeId: string) => void; 
 }
 
 const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) => {

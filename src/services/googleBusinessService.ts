@@ -1,7 +1,8 @@
 
 import { getGoogleMapsApiKey } from './googleApiService';
+import { BusinessDetails } from '@/types/store-types';
 
-export const findBusinessByPlaceId = async (placeId: string) => {
+export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDetails | null> => {
   try {
     if (!window.google?.maps?.places) {
       console.error("Google Places API not available");

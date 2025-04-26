@@ -2,21 +2,7 @@
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
-
-interface StoreData {
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  latitude: number;
-  longitude: number;
-  placeId: string;
-  photos?: string[];
-  phone?: string;
-  website?: string;
-  rating?: number;
-  totalReviews?: number;
-}
+import { StoreData, BusinessDetails } from '@/types/store-types';
 
 export const useStoreSelection = (onStoreSelect: (store: StoreData) => void) => {
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
@@ -46,19 +32,22 @@ export const useStoreSelection = (onStoreSelect: (store: StoreData) => void) => 
           setIsLoadingBusinessProfile(false);
           
           if (businessDetails && typeof businessDetails === 'object' && 'name' in businessDetails) {
+            // Cast the businessDetails to the correct type with proper type checking
+            const typedBusinessDetails = businessDetails as BusinessDetails;
+            
             return {
-              name: businessDetails.name,
-              address: businessDetails.address,
+              name: typedBusinessDetails.name,
+              address: typedBusinessDetails.address,
               city: city,
               postalCode: postalCode,
-              latitude: businessDetails.latitude,
-              longitude: businessDetails.longitude,
-              placeId: businessDetails.placeId,
-              photos: businessDetails.photos,
-              phone: businessDetails.phone,
-              website: businessDetails.website,
-              rating: businessDetails.rating,
-              totalReviews: businessDetails.totalReviews
+              latitude: typedBusinessDetails.latitude,
+              longitude: typedBusinessDetails.longitude,
+              placeId: typedBusinessDetails.placeId,
+              photos: typedBusinessDetails.photos,
+              phone: typedBusinessDetails.phone,
+              website: typedBusinessDetails.website,
+              rating: typedBusinessDetails.rating,
+              totalReviews: typedBusinessDetails.totalReviews
             };
           }
         } catch (error) {
