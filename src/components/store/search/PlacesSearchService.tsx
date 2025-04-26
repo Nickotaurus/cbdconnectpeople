@@ -1,5 +1,27 @@
-import { useState } from 'react';
+
+import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+
+// Global service registry (same pattern as in MarkerManager)
+const serviceRegistry = {
+  mainDiv: null as HTMLDivElement | null,
+  getDiv: (): HTMLDivElement => {
+    if (!serviceRegistry.mainDiv) {
+      serviceRegistry.mainDiv = document.createElement('div');
+      serviceRegistry.mainDiv.id = 'places-service-global-div';
+      serviceRegistry.mainDiv.style.width = '1px';
+      serviceRegistry.mainDiv.style.height = '1px';
+      serviceRegistry.mainDiv.style.position = 'absolute';
+      serviceRegistry.mainDiv.style.visibility = 'hidden';
+      document.body.appendChild(serviceRegistry.mainDiv);
+    }
+    return serviceRegistry.mainDiv;
+  },
+  getService: (): google.maps.places.PlacesService => {
+    const div = serviceRegistry.getDiv();
+    return new google.maps.places.PlacesService(div);
+  }
+};
 
 interface PlacesSearchServiceProps {
   map: google.maps.Map;
@@ -20,14 +42,18 @@ const PlacesSearchService = ({
   setHasResults
 }: PlacesSearchServiceProps) => {
   const { toast } = useToast();
-  const [service] = useState<google.maps.places.PlacesService>(() => {
-    const serviceDiv = document.createElement('div');
-    serviceDiv.style.display = 'none';
-    document.body.appendChild(serviceDiv);
-    return new google.maps.places.PlacesService(serviceDiv);
-  });
+  const serviceRef = useRef<google.maps.places.PlacesService | null>(null);
+  
+  // Get or create the service only when needed
+  const getService = () => {
+    if (!serviceRef.current) {
+      serviceRef.current = serviceRegistry.getService();
+    }
+    return serviceRef.current;
+  };
 
   const searchStores = async () => {
+    const service = getService();
     if (!service) {
       console.error("Places service not initialized");
       toast({
@@ -157,6 +183,7 @@ const PlacesSearchService = ({
   };
 
   const textSearch = async (query: string) => {
+    const service = getService();
     if (!service) {
       console.error("Places service not initialized for text search");
       toast({

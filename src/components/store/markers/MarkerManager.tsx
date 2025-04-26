@@ -11,27 +11,32 @@ interface MarkerManagerProps {
   toast: any; // Using any for simplicity, but ideally should use the correct toast type
 }
 
+// Global object to track service divs and avoid duplicates
+const serviceBoxRegistry = {
+  mainDiv: null as HTMLDivElement | null,
+  getDiv: (): HTMLDivElement => {
+    if (!serviceBoxRegistry.mainDiv) {
+      serviceBoxRegistry.mainDiv = document.createElement('div');
+      serviceBoxRegistry.mainDiv.id = 'global-places-service-div';
+      serviceBoxRegistry.mainDiv.style.width = '1px';
+      serviceBoxRegistry.mainDiv.style.height = '1px';
+      serviceBoxRegistry.mainDiv.style.position = 'absolute';
+      serviceBoxRegistry.mainDiv.style.visibility = 'hidden';
+      document.body.appendChild(serviceBoxRegistry.mainDiv);
+    }
+    return serviceBoxRegistry.mainDiv;
+  },
+  getService: (): google.maps.places.PlacesService => {
+    const div = serviceBoxRegistry.getDiv();
+    return new google.maps.places.PlacesService(div);
+  }
+};
+
 const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasResults, setHasResults] = useState(false);
-  
-  // Créer un div pour le service PlacesService pour éviter les problèmes de réception
-  const serviceDivRef = useRef<HTMLDivElement | null>(null);
-  
-  // Initialisation du service div si nécessaire
-  const getServiceDiv = () => {
-    if (!serviceDivRef.current) {
-      serviceDivRef.current = document.createElement('div');
-      serviceDivRef.current.style.width = '1px';
-      serviceDivRef.current.style.height = '1px';
-      serviceDivRef.current.style.position = 'absolute';
-      serviceDivRef.current.style.visibility = 'hidden';
-      document.body.appendChild(serviceDivRef.current);
-    }
-    return serviceDivRef.current;
-  };
 
   // Render info window content function
   const renderInfoWindowContent = (
@@ -51,7 +56,7 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
     }
     
     try {
-      // Vérifier si le marqueur existe déjà
+      // Check if marker already exists
       const exists = markersRef.current.some(marker => 
         marker.getPosition()?.lat() === place.geometry?.location.lat() && 
         marker.getPosition()?.lng() === place.geometry?.location.lng()
@@ -102,9 +107,8 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
           return;
         }
         
-        // Utiliser le div de service créé précedemment
-        const serviceDiv = getServiceDiv();
-        const detailsService = new google.maps.places.PlacesService(serviceDiv);
+        // Use the registry's service to avoid duplication
+        const detailsService = serviceBoxRegistry.getService();
 
         detailsService.getDetails(
           { 
@@ -118,15 +122,15 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
                 ariaLabel: placeDetails.name,
               });
 
-              // Définir la fonction globale de sélection
+              // Define global selection function
               window.selectStore = (placeId: string) => {
                 console.log(`Sélection du magasin: ${placeId}`);
                 if (placeId === placeDetails.place_id) {
                   console.log("Boutique sélectionnée:", placeDetails.name);
                   onStoreSelect(placeDetails);
-                  // Fermer la fenêtre d'info après sélection
+                  // Close info window after selection
                   infoWindow.close();
-                  // Notification de succès
+                  // Success notification
                   toast({
                     title: "Boutique sélectionnée",
                     description: `Vous avez sélectionné: ${placeDetails.name}`,
@@ -154,12 +158,10 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
     markersRef.current = [];
   };
   
-  // Nettoyer le service div à la fin
   const cleanupServiceDiv = () => {
-    if (serviceDivRef.current && serviceDivRef.current.parentNode) {
-      serviceDivRef.current.parentNode.removeChild(serviceDivRef.current);
-      serviceDivRef.current = null;
-    }
+    // We don't remove the global service div, as it may be used by other components
+    // Instead we just make sure our references are cleared
+    activeInfoWindow.current = null;
   };
 
   return { 

@@ -15,6 +15,13 @@ import './StoreSearch.css';
 import { useToast } from "@/components/ui/use-toast";
 import { getGoogleMapsApiKey } from '@/services/googleApiService';
 
+// Global script loading flag
+let googleMapsLoadingPromise: Promise<void> | null = null;
+
+const SUGGESTION_TERMS = [
+  "CBD", "Chanvre", "Cannabis légal", "Herboristerie", "Bien-être"
+];
+
 interface StoreSearchProps {
   onStoreSelect: (store: {
     name: string;
@@ -32,10 +39,6 @@ interface StoreSearchProps {
   }) => void;
   isRegistration?: boolean;
 }
-
-const SUGGESTION_TERMS = [
-  "CBD", "Chanvre", "Cannabis légal", "Herboristerie", "Bien-être"
-];
 
 const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -263,46 +266,67 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const loadGoogleMapsAPI = async () => {
     if (window.google?.maps?.places) {
-      console.log("Google Maps API already loaded");
+      console.log("Google Maps Places API already loaded");
       return Promise.resolve();
     }
     
-    try {
-      const apiKey = await getGoogleMapsApiKey();
-      
-      if (!apiKey) {
-        console.error("No Google Maps API key available");
-        return Promise.reject(new Error("No API key available"));
-      }
-      
-      return new Promise<void>((resolve, reject) => {
-        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-        if (existingScript) {
-          console.log("Google Maps script already exists, removing it");
-          existingScript.remove();
+    if (googleMapsLoadingPromise) {
+      console.log("Using existing Google Maps loading promise");
+      return googleMapsLoadingPromise;
+    }
+    
+    googleMapsLoadingPromise = (async () => {
+      try {
+        const apiKey = await getGoogleMapsApiKey();
+        
+        if (!apiKey) {
+          console.error("No Google Maps API key available");
+          return Promise.reject(new Error("No API key available"));
         }
         
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsCallback`;
-        script.async = true;
-        script.defer = true;
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          console.log("Google Maps script already exists, waiting for it to load");
+          
+          const checkInterval = setInterval(() => {
+            if (window.google?.maps?.places) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 500);
+          
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            reject(new Error("Timeout waiting for Google Maps API"));
+          }, 10000);
+        }
         
-        window.initGoogleMapsCallback = () => {
-          console.log("Google Maps API loaded successfully via callback");
-          resolve();
-        };
-        
-        script.onerror = (err) => {
-          console.error("Failed to load Google Maps API:", err);
-          reject(new Error("Failed to load Google Maps API"));
-        };
-        
-        document.head.appendChild(script);
-      });
-    } catch (error) {
-      console.error("Error in loadGoogleMapsAPI:", error);
-      return Promise.reject(error);
-    }
+        console.log("Creating new Google Maps script");
+        return new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&callback=initGoogleMapsCallback`;
+          script.async = true;
+          script.defer = true;
+          
+          window.initGoogleMapsCallback = () => {
+            console.log("Google Maps API loaded successfully via callback");
+            resolve();
+          };
+          
+          script.onerror = (err) => {
+            console.error("Failed to load Google Maps API:", err);
+            reject(new Error("Failed to load Google Maps API"));
+          };
+          
+          document.head.appendChild(script);
+        });
+      } catch (error) {
+        console.error("Error in loadGoogleMapsAPI:", error);
+        return Promise.reject(error);
+      }
+    })();
+    
+    return googleMapsLoadingPromise;
   };
 
   const handleManualSearch = async (values: {
