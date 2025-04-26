@@ -79,7 +79,7 @@ export const loadGoogleMapsAPI = async (libraries: string[] = ['places', 'marker
         
         // Create script element with proper loading attribute
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries.join(',')}&callback=${callbackName}&loading=async`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries.join(',')}&callback=${callbackName}&loading=async&v=weekly`;
         script.async = true;
         script.defer = true;
         

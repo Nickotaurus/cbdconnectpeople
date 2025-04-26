@@ -29,6 +29,7 @@ declare namespace google {
       lng: number;
     }
 
+    // Legacy Marker (deprecated)
     class Marker {
       constructor(options: MarkerOptions);
       setMap(map: Map | null): void;
@@ -45,9 +46,47 @@ declare namespace google {
       animation?: Animation;
     }
 
+    // New Advanced Marker API
+    namespace marker {
+      class AdvancedMarkerElement {
+        constructor(options: AdvancedMarkerElementOptions);
+        position: LatLng | null;
+        map: Map | null;
+        title: string | null;
+        content: Node | null;
+        zIndex: number;
+        addListener(event: string, handler: Function): void;
+      }
+
+      interface AdvancedMarkerElementOptions {
+        position: LatLng | LatLngLiteral;
+        map?: Map | null;
+        title?: string;
+        content?: Node;
+        zIndex?: number;
+      }
+
+      class PinElement {
+        constructor(options?: PinElementOptions);
+        element: HTMLElement;
+        background: string;
+        borderColor: string;
+        glyphColor: string;
+        scale: number;
+      }
+
+      interface PinElementOptions {
+        background?: string;
+        borderColor?: string;
+        glyphColor?: string;
+        glyph?: string | Node;
+        scale?: number;
+      }
+    }
+
     class InfoWindow {
       constructor(options?: InfoWindowOptions);
-      open(map?: Map, anchor?: Marker): void;
+      open(map?: Map, anchor?: Marker | marker.AdvancedMarkerElement): void;
       close(): void;
       setContent(content: string | Node): void;
       getContent(): string | Node;

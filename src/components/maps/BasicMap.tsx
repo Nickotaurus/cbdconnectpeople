@@ -4,6 +4,7 @@ import { useGoogleMapsScript } from '@/hooks/maps/useGoogleMapsScript';
 import { useToast } from "@/components/ui/use-toast";
 import { Store } from '@/types/store';
 import MapFallback from '../map/MapFallback';
+import { createStoreMarker, createUserLocationMarker } from '@/utils/mapUtils';
 
 interface BasicMapProps {
   center?: { lat: number; lng: number };
@@ -24,7 +25,8 @@ const BasicMap = ({
 }: BasicMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const { apiKeyLoaded } = useGoogleMapsScript();
   const { toast } = useToast();
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ const BasicMap = ({
     }
 
     try {
+      // Initialize the map
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
         center,
         zoom,
@@ -48,22 +51,13 @@ const BasicMap = ({
       
       // If we have user location, add a marker
       if (userLocation) {
-        new google.maps.Marker({
-          position: { lat: userLocation.latitude, lng: userLocation.longitude },
-          map: mapInstanceRef.current,
-          title: "Votre position",
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: "#4F46E5",
-            fillOpacity: 1,
-            strokeColor: "#312E81", 
-            strokeWeight: 2,
-            scale: 8
-          }
-        });
+        userMarkerRef.current = createUserLocationMarker(
+          mapInstanceRef.current, 
+          { lat: userLocation.latitude, lng: userLocation.longitude }
+        );
       }
       
-      console.log("Map initialized successfully");
+      console.log("Map initialized successfully with Advanced Markers API");
     } catch (error) {
       console.error("Error initializing map:", error);
       setMapLoadError("Impossible d'initialiser la carte Google Maps");
@@ -75,9 +69,17 @@ const BasicMap = ({
     }
 
     return () => {
-      // Clean up markers and map instance
-      markersRef.current.forEach(marker => marker.setMap(null));
+      // Clean up markers
+      markersRef.current.forEach(marker => {
+        marker.map = null;
+      });
       markersRef.current = [];
+      
+      // Clean up user marker
+      if (userMarkerRef.current) {
+        userMarkerRef.current.map = null;
+      }
+      
       mapInstanceRef.current = null;
     };
   }, [apiKeyLoaded, center, zoom, toast, userLocation]);
@@ -86,20 +88,26 @@ const BasicMap = ({
   useEffect(() => {
     if (!mapInstanceRef.current || !stores.length) return;
     
-    // Clear previous markers
-    markersRef.current.forEach(marker => marker.setMap(null));
+    // Clean up previous markers
+    markersRef.current.forEach(marker => {
+      marker.map = null;
+    });
     markersRef.current = [];
     
     // Add new markers for each store
     stores.forEach(store => {
-      const marker = new google.maps.Marker({
-        position: { lat: store.latitude, lng: store.longitude },
-        map: mapInstanceRef.current!,
-        title: store.name,
-        animation: store.id === selectedStoreId ? 
-          google.maps.Animation.BOUNCE : 
-          undefined
-      });
+      // Check if it's a CBD store based on name or type
+      const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
+                        (store.type || '').toLowerCase().includes('cbd');
+      
+      // Create the marker
+      const marker = createStoreMarker(
+        mapInstanceRef.current!,
+        { lat: store.latitude, lng: store.longitude },
+        store.name,
+        store.id === selectedStoreId,
+        isCBDStore
+      );
       
       // Add click handler if onSelectStore is provided
       if (onSelectStore) {
@@ -118,6 +126,33 @@ const BasicMap = ({
         mapInstanceRef.current.setCenter({
           lat: selectedStore.latitude,
           lng: selectedStore.longitude
+        });
+        
+        // Update the marker appearance
+        markersRef.current.forEach((marker, index) => {
+          const store = stores[index];
+          if (store.id === selectedStoreId) {
+            // Highlight the selected store marker
+            const isCBDStore = (store.name || '').toLowerCase().includes('cbd') || 
+                              (store.type || '').toLowerCase().includes('cbd');
+            
+            // Replace with a new marker that has the selected appearance
+            marker.map = null;
+            markersRef.current[index] = createStoreMarker(
+              mapInstanceRef.current!,
+              { lat: store.latitude, lng: store.longitude },
+              store.name,
+              true,
+              isCBDStore
+            );
+            
+            // Add the click handler again
+            if (onSelectStore) {
+              markersRef.current[index].addListener('click', () => {
+                onSelectStore(store);
+              });
+            }
+          }
         });
       }
     }

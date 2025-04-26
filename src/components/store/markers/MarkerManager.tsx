@@ -33,7 +33,7 @@ const serviceBoxRegistry = {
 };
 
 const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManagerProps) => {
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const activeInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasResults, setHasResults] = useState(false);
@@ -58,8 +58,8 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
     try {
       // Check if marker already exists
       const exists = markersRef.current.some(marker => 
-        marker.getPosition()?.lat() === place.geometry?.location.lat() && 
-        marker.getPosition()?.lng() === place.geometry?.location.lng()
+        marker.position?.lat() === place.geometry?.location.lat() && 
+        marker.position?.lng() === place.geometry?.location.lng()
       );
       
       if (exists) {
@@ -71,32 +71,27 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
       
       // Check if the place name contains CBD-related terms to customize marker
       const lowerName = (place.name || '').toLowerCase();
-      const isCbdStore = lowerName.includes('cbd') || 
+      const isCBDStore = lowerName.includes('cbd') || 
                         lowerName.includes('chanvre') || 
                         lowerName.includes('cannabis');
       
-      // Use a custom marker for CBD stores
-      const markerOptions: google.maps.MarkerOptions = {
+      // Create a custom pin element for the marker
+      const pinElement = new google.maps.marker.PinElement({
+        background: isCBDStore ? '#4F46E5' : '#F59E0B',
+        borderColor: isCBDStore ? '#312E81' : '#D97706',
+        glyphColor: '#FFFFFF',
+        scale: 1
+      });
+      
+      // Create the advanced marker
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: place.geometry.location,
         map,
         title: place.name,
-        animation: google.maps.Animation.DROP
-      };
-      
-      // Add a custom icon for CBD stores to make them stand out
-      if (isCbdStore) {
-        markerOptions.icon = {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: '#4F46E5',
-          fillOpacity: 1,
-          strokeColor: '#312E81',
-          strokeWeight: 2,
-          scale: 8
-        };
-      }
-      
-      const marker = new google.maps.Marker(markerOptions);
+        content: pinElement.element
+      });
 
+      // Add click listener to show info window
       marker.addListener('click', () => {
         if (activeInfoWindow.current) {
           activeInfoWindow.current.close();
@@ -138,7 +133,7 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
                 }
               };
 
-              infoWindow.open(map, marker);
+              infoWindow.open(map, marker as unknown as google.maps.Marker);
               activeInfoWindow.current = infoWindow;
             } else {
               console.error("Error fetching place details:", detailStatus);
@@ -154,7 +149,9 @@ const MarkerManager = ({ map, userLocation, onStoreSelect, toast }: MarkerManage
   };
 
   const clearMarkers = () => {
-    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current.forEach(marker => {
+      marker.map = null;
+    });
     markersRef.current = [];
   };
   
