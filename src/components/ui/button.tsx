@@ -10,7 +10,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90", // Couleur par défaut conservée
+        default: "bg-blue-600 text-white hover:bg-blue-700", // Couleur bleue explicite pour les boutons
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:

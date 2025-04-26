@@ -11,7 +11,7 @@ export const initializeGoogleMap = (
     mapTypeControl: false,
     fullscreenControl: false,
     streetViewControl: false,
-    mapId: 'cbd_store_map' // Add mapId here where it's properly used
+    mapId: 'cbd_store_map'
   });
 };
 

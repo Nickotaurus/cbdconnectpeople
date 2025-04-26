@@ -38,7 +38,7 @@ const GoogleMapInitializer = ({
         mapTypeControl: false,
         fullscreenControl: false,
         streetViewControl: false,
-        // Instead of using mapId directly in options, we'll set it after creating the map
+        mapId: 'cbd_store_map'
       };
       
       mapInstance.current = new window.google.maps.Map(mapContainerRef.current, mapOptions);
@@ -95,8 +95,7 @@ const GoogleMapInitializer = ({
           );
           
           if (onSelectStore) {
-            // Fix: Changed addEventListener to addListener
-            marker.addListener('gmp-click', () => {
+            marker.addListener('click', () => {
               onSelectStore(store);
             });
           }
@@ -153,8 +152,7 @@ const GoogleMapInitializer = ({
             
             // Re-add click handler
             if (onSelectStore) {
-              // Fix: Changed addEventListener to addListener
-              markers.current[index].addListener('gmp-click', () => {
+              markers.current[index].addListener('click', () => {
                 onSelectStore(store);
               });
             }
@@ -166,7 +164,7 @@ const GoogleMapInitializer = ({
 
   if (mapError) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-background/90">
+      <div className="absolute inset-0 flex items-center justify-center bg-background/95 rounded-lg border border-muted">
         <div className="text-center p-6 rounded-lg max-w-md">
           <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">

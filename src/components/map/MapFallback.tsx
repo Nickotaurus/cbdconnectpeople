@@ -29,7 +29,7 @@ const MapFallback = ({
                         document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
+    <div className="absolute inset-0 flex items-center justify-center bg-background/95 rounded-lg border border-muted">
       <div className="text-center max-w-lg mx-auto px-4">
         {isMapError ? (
           <div className="space-y-4 animate-fade-in">
@@ -67,7 +67,7 @@ const MapFallback = ({
         ) : (
           <>
             <div className="animate-bounce mb-4">
-              <MapPin className="h-10 w-10 text-primary mx-auto" />
+              <MapPin className="h-10 w-10 text-blue-600 mx-auto" />
             </div>
             <h2 className="text-xl font-semibold mb-2">Carte interactive</h2>
             <p className="text-muted-foreground mb-4">Chargement de Google Maps en cours...</p>
@@ -88,7 +88,7 @@ const MapFallback = ({
               variant={store.id === selectedStoreId ? "default" : "outline"}
               className={`justify-start transition-all duration-300 ${
                 store.id === selectedStoreId 
-                  ? 'border-primary shadow-md scale-105' 
+                  ? 'border-blue-600 shadow-md scale-105' 
                   : 'hover:bg-secondary/80'
               }`}
               style={{ 
@@ -99,7 +99,7 @@ const MapFallback = ({
               onClick={() => onStoreClick(store)}
             >
               <MapPin className={`h-4 w-4 mr-2 transition-all duration-300 ${
-                store.id === selectedStoreId ? 'text-primary' : ''
+                store.id === selectedStoreId ? 'text-blue-400' : ''
               }`} />
               <span className="truncate">{store.name}</span>
             </Button>
@@ -110,7 +110,7 @@ const MapFallback = ({
           <div className="mt-6 animate-fade-in">
             <p className="text-xs mb-2">Votre position :</p>
             <div className="bg-background/50 backdrop-blur-sm p-2 rounded-md flex items-center justify-center text-xs">
-              <Navigation className="h-3.5 w-3.5 mr-1.5 text-primary" />
+              <Navigation className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
               <span>
                 {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
               </span>

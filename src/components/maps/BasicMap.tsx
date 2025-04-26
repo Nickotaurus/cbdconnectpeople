@@ -4,7 +4,7 @@ import { useGoogleMapsScript } from '@/hooks/maps/useGoogleMapsScript';
 import { useToast } from "@/components/ui/use-toast";
 import { Store } from '@/types/store';
 import MapFallback from '../map/MapFallback';
-import { createStoreMarker, createUserLocationMarker } from '@/utils/mapUtils';
+import { createStoreMarker, createUserLocationMarker, initializeGoogleMap } from '@/utils/mapUtils';
 
 interface BasicMapProps {
   center?: { lat: number; lng: number };
@@ -63,16 +63,8 @@ const BasicMap = ({
     }
 
     try {
-      // Initialize the map with standard options first
-      const mapOptions = {
-        center,
-        zoom,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        streetViewControl: false,
-      };
-      
-      mapInstanceRef.current = new google.maps.Map(mapRef.current, mapOptions);
+      // Initialize the map with standard options
+      mapInstanceRef.current = initializeGoogleMap(mapRef.current, center);
       
       // If we have user location, add a marker
       if (userLocation) {
@@ -135,8 +127,7 @@ const BasicMap = ({
       
       // Add click handler if onSelectStore is provided
       if (onSelectStore) {
-        // Fix: Changed addEventListener to addListener
-        marker.addListener('gmp-click', () => {
+        marker.addListener('click', () => {
           onSelectStore(store);
         });
       }
@@ -172,8 +163,7 @@ const BasicMap = ({
             
             // Add the click handler again
             if (onSelectStore) {
-              // Fix: Changed addEventListener to addListener
-              markersRef.current[index].addListener('gmp-click', () => {
+              markersRef.current[index].addListener('click', () => {
                 onSelectStore(store);
               });
             }
