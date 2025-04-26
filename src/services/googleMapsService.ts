@@ -77,9 +77,9 @@ export const loadGoogleMapsAPI = async (libraries: string[] = ['places', 'marker
           resolve();
         };
         
-        // Create script element with proper async attribute
+        // Create script element with proper loading attribute
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries.join(',')}&callback=${callbackName}`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=${libraries.join(',')}&callback=${callbackName}&loading=async`;
         script.async = true;
         script.defer = true;
         
