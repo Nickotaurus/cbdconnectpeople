@@ -1,5 +1,5 @@
 
-import { getGoogleMapsApiKey } from './googleApiService';
+import { getPlacesService } from './googleMapsService';
 import { BusinessDetails } from '@/types/store-types';
 
 export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDetails | null> => {
@@ -9,15 +9,12 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
       return null;
     }
     
-    // Create a temporary div for the PlacesService
-    const serviceDiv = document.createElement('div');
-    serviceDiv.style.width = '1px';
-    serviceDiv.style.height = '1px';
-    serviceDiv.style.position = 'absolute';
-    serviceDiv.style.visibility = 'hidden';
-    document.body.appendChild(serviceDiv);
-    
-    const service = new google.maps.places.PlacesService(serviceDiv);
+    // Use our centralized service instead of creating a new one
+    const service = getPlacesService();
+    if (!service) {
+      console.error("Could not create Places service");
+      return null;
+    }
     
     return new Promise((resolve, reject) => {
       service.getDetails({
@@ -28,8 +25,6 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
           'user_ratings_total', 'photos'
         ]
       }, (place, status) => {
-        document.body.removeChild(serviceDiv);
-        
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
           // Process photos to get URLs
           const photos = place.photos ? 

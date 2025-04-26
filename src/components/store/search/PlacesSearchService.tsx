@@ -1,24 +1,12 @@
-
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { createPlacesServiceDiv } from '@/services/googleMapsService';
 
 // Global service registry (same pattern as in MarkerManager)
 const serviceRegistry = {
-  mainDiv: null as HTMLDivElement | null,
-  getDiv: (): HTMLDivElement => {
-    if (!serviceRegistry.mainDiv) {
-      serviceRegistry.mainDiv = document.createElement('div');
-      serviceRegistry.mainDiv.id = 'places-service-global-div';
-      serviceRegistry.mainDiv.style.width = '1px';
-      serviceRegistry.mainDiv.style.height = '1px';
-      serviceRegistry.mainDiv.style.position = 'absolute';
-      serviceRegistry.mainDiv.style.visibility = 'hidden';
-      document.body.appendChild(serviceRegistry.mainDiv);
-    }
-    return serviceRegistry.mainDiv;
-  },
+  getDiv: createPlacesServiceDiv,
   getService: (): google.maps.places.PlacesService => {
-    const div = serviceRegistry.getDiv();
+    const div = createPlacesServiceDiv();
     return new google.maps.places.PlacesService(div);
   }
 };

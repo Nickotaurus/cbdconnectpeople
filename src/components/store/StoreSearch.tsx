@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
@@ -6,7 +7,7 @@ import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
 import { useStoreSearch } from '@/hooks/store/useStoreSearch';
 import { useStoreSelection } from '@/hooks/store/useStoreSelection';
 import { usePlacesService } from '@/hooks/store/usePlacesService';
-import { loadGoogleMapsAPI } from '@/components/store/search/GoogleMapsLoader';
+import { loadGoogleMapsAPI } from '@/services/googleMapsService';
 import StoreMarkers from './StoreMarkers';
 import ManualAddressForm from './search/ManualAddressForm';
 import SearchResults from './search/SearchResults';
@@ -64,7 +65,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
     try {
       if (!window.google?.maps?.places) {
-        await loadGoogleMapsAPI();
+        await loadGoogleMapsAPI(['places']);
       }
 
       const serviceDiv = document.createElement('div');
