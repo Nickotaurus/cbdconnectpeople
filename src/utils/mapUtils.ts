@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 export const initializeGoogleMap = (
@@ -9,7 +10,8 @@ export const initializeGoogleMap = (
     zoom: 13,
     mapTypeControl: false,
     fullscreenControl: false,
-    streetViewControl: false
+    streetViewControl: false,
+    mapId: 'cbd_store_map' // Add mapId here where it's properly used
   });
 };
 

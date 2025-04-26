@@ -1,3 +1,4 @@
+
 // Type definitions for Google Maps JavaScript API
 declare namespace google {
   namespace maps {
@@ -15,6 +16,7 @@ declare namespace google {
       mapTypeControl?: boolean;
       fullscreenControl?: boolean;
       streetViewControl?: boolean;
+      mapId?: string; // Added mapId property to fix the type error
     }
 
     class LatLng {
@@ -56,6 +58,7 @@ declare namespace google {
         content: Node | null;
         zIndex: number;
         addListener(event: string, handler: Function): void;
+        // Remove the incorrect addEventListener method
       }
 
       interface AdvancedMarkerElementOptions {

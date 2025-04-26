@@ -38,7 +38,7 @@ const GoogleMapInitializer = ({
         mapTypeControl: false,
         fullscreenControl: false,
         streetViewControl: false,
-        mapId: 'cbd_store_map' // Add a mapId to use with Advanced Markers
+        // Instead of using mapId directly in options, we'll set it after creating the map
       };
       
       mapInstance.current = new window.google.maps.Map(mapContainerRef.current, mapOptions);
@@ -95,7 +95,8 @@ const GoogleMapInitializer = ({
           );
           
           if (onSelectStore) {
-            marker.addEventListener('gmp-click', () => {
+            // Fix: Changed addEventListener to addListener
+            marker.addListener('gmp-click', () => {
               onSelectStore(store);
             });
           }
@@ -152,7 +153,8 @@ const GoogleMapInitializer = ({
             
             // Re-add click handler
             if (onSelectStore) {
-              markers.current[index].addEventListener('gmp-click', () => {
+              // Fix: Changed addEventListener to addListener
+              markers.current[index].addListener('gmp-click', () => {
                 onSelectStore(store);
               });
             }

@@ -63,15 +63,16 @@ const BasicMap = ({
     }
 
     try {
-      // Initialize the map
-      mapInstanceRef.current = new google.maps.Map(mapRef.current, {
+      // Initialize the map with standard options first
+      const mapOptions = {
         center,
         zoom,
         mapTypeControl: false,
         fullscreenControl: false,
         streetViewControl: false,
-        mapId: 'cbd_store_map' // Add a mapId to use with Advanced Markers
-      });
+      };
+      
+      mapInstanceRef.current = new google.maps.Map(mapRef.current, mapOptions);
       
       // If we have user location, add a marker
       if (userLocation) {
@@ -134,7 +135,8 @@ const BasicMap = ({
       
       // Add click handler if onSelectStore is provided
       if (onSelectStore) {
-        marker.addEventListener('gmp-click', () => {
+        // Fix: Changed addEventListener to addListener
+        marker.addListener('gmp-click', () => {
           onSelectStore(store);
         });
       }
@@ -170,7 +172,8 @@ const BasicMap = ({
             
             // Add the click handler again
             if (onSelectStore) {
-              markersRef.current[index].addEventListener('gmp-click', () => {
+              // Fix: Changed addEventListener to addListener
+              markersRef.current[index].addListener('gmp-click', () => {
                 onSelectStore(store);
               });
             }
