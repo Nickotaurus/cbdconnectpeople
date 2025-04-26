@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input";
 interface StoreMarkersProps {
   map: google.maps.Map | null;
   userLocation: google.maps.LatLngLiteral | null;
-  onStoreSelect: (store: google.maps.places.PlaceResult) => void;
+  onStoreSelect: (placeId: string) => void; // Updated to accept placeId
 }
 
 const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) => {
@@ -45,10 +46,19 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
       try {
         console.log("Initializing marker manager with map and user location:", userLocation);
         
+        // Create an adapter that transforms placeResult to placeId for onStoreSelect
+        const handleStoreSelect = (placeResult: google.maps.places.PlaceResult) => {
+          if (placeResult.place_id) {
+            onStoreSelect(placeResult.place_id);
+          } else {
+            console.error("Place has no place_id:", placeResult);
+          }
+        };
+        
         const manager = MarkerManager({ 
           map, 
           userLocation, 
-          onStoreSelect, 
+          onStoreSelect: handleStoreSelect,
           toast 
         });
         

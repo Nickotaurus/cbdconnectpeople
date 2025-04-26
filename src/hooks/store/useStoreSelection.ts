@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 
-export const useStoreSelection = (onStoreSelect: (store: {
+interface StoreData {
   name: string;
   address: string;
   city: string;
@@ -16,11 +16,13 @@ export const useStoreSelection = (onStoreSelect: (store: {
   website?: string;
   rating?: number;
   totalReviews?: number;
-}) => void) => {
+}
+
+export const useStoreSelection = (onStoreSelect: (store: StoreData) => void) => {
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);
   const { toast } = useToast();
 
-  const handleStoreSelect = async (placeDetails: google.maps.places.PlaceResult, isRegistration = false) => {
+  const handleStoreSelect = async (placeDetails: google.maps.places.PlaceResult, isRegistration = false): Promise<StoreData | null> => {
     if (!placeDetails.formatted_address || !placeDetails.geometry?.location) {
       toast({
         title: "Données incomplètes",
@@ -39,11 +41,29 @@ export const useStoreSelection = (onStoreSelect: (store: {
 
       if (isRegistration && placeDetails.place_id) {
         setIsLoadingBusinessProfile(true);
-        const businessDetails = await findBusinessByPlaceId(placeDetails.place_id);
-        setIsLoadingBusinessProfile(false);
-        
-        if (businessDetails) {
-          return businessDetails;
+        try {
+          const businessDetails = await findBusinessByPlaceId(placeDetails.place_id);
+          setIsLoadingBusinessProfile(false);
+          
+          if (businessDetails && typeof businessDetails === 'object' && 'name' in businessDetails) {
+            return {
+              name: businessDetails.name,
+              address: businessDetails.address,
+              city: city,
+              postalCode: postalCode,
+              latitude: businessDetails.latitude,
+              longitude: businessDetails.longitude,
+              placeId: businessDetails.placeId,
+              photos: businessDetails.photos,
+              phone: businessDetails.phone,
+              website: businessDetails.website,
+              rating: businessDetails.rating,
+              totalReviews: businessDetails.totalReviews
+            };
+          }
+        } catch (error) {
+          console.error("Error retrieving business details:", error);
+          setIsLoadingBusinessProfile(false);
         }
       }
 

@@ -7,6 +7,7 @@ import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
 import { useStoreSearch } from '@/hooks/store/useStoreSearch';
 import { useStoreSelection } from '@/hooks/store/useStoreSelection';
 import { usePlacesService } from '@/hooks/store/usePlacesService';
+import { loadGoogleMapsAPI } from '@/components/store/search/GoogleMapsLoader';
 import StoreMarkers from './StoreMarkers';
 import ManualAddressForm from './search/ManualAddressForm';
 import SearchResults from './search/SearchResults';
@@ -33,22 +34,26 @@ interface StoreSearchProps {
   isRegistration?: boolean;
 }
 
+type BusinessProfile = {
+  name: string;
+  address: string;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  totalReviews?: number;
+  photos?: string[];
+  placeId: string;
+  latitude: number;
+  longitude: number;
+  city: string;
+  postalCode: string;
+};
+
 const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
   const [manualSearchResults, setManualSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
-  const [foundBusinessProfile, setFoundBusinessProfile] = useState<{
-    name: string;
-    address: string;
-    phone?: string;
-    website?: string;
-    rating?: number;
-    totalReviews?: number;
-    photos?: string[];
-    placeId: string;
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  const [foundBusinessProfile, setFoundBusinessProfile] = useState<BusinessProfile | null>(null);
 
   const { map, isLoading, userLocation } = useGoogleMap();
   const { isApiLoaded } = useGooglePlacesApi();
@@ -60,9 +65,13 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
     getPlaceDetails(placeId, async (place) => {
       const result = await handleStoreSelect(place, isRegistration);
       if (result) {
-        if ('photos' in result) {
-          setFoundBusinessProfile(result);
-        } else {
+        if ('photos' in result && result.name && result.address && result.placeId && 
+            result.latitude !== undefined && result.longitude !== undefined && 
+            result.city !== undefined && result.postalCode !== undefined) {
+          setFoundBusinessProfile(result as BusinessProfile);
+        } else if (result.name && result.address && result.city && result.postalCode && 
+                  result.latitude !== undefined && result.longitude !== undefined && 
+                  result.placeId) {
           onStoreSelect(result);
           setIsOpen(false);
         }
@@ -95,8 +104,8 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         
         if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
           setManualSearchResults(results);
-          if (results.length === 1) {
-            handlePlaceSelect(results[0].place_id!);
+          if (results.length === 1 && results[0].place_id) {
+            handlePlaceSelect(results[0].place_id);
           }
         } else {
           setNoResults(true);
@@ -110,7 +119,20 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const handleAcceptBusinessProfile = () => {
     if (foundBusinessProfile) {
-      onStoreSelect(foundBusinessProfile);
+      onStoreSelect({
+        name: foundBusinessProfile.name,
+        address: foundBusinessProfile.address,
+        city: foundBusinessProfile.city,
+        postalCode: foundBusinessProfile.postalCode,
+        latitude: foundBusinessProfile.latitude,
+        longitude: foundBusinessProfile.longitude,
+        placeId: foundBusinessProfile.placeId,
+        photos: foundBusinessProfile.photos,
+        phone: foundBusinessProfile.phone,
+        website: foundBusinessProfile.website,
+        rating: foundBusinessProfile.rating,
+        totalReviews: foundBusinessProfile.totalReviews
+      });
       setIsOpen(false);
       setFoundBusinessProfile(null);
     }
@@ -118,7 +140,15 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
 
   const handleRejectBusinessProfile = () => {
     if (foundBusinessProfile) {
-      const { photos, phone, website, rating, totalReviews, ...basicInfo } = foundBusinessProfile;
+      const basicInfo = {
+        name: foundBusinessProfile.name,
+        address: foundBusinessProfile.address,
+        city: foundBusinessProfile.city,
+        postalCode: foundBusinessProfile.postalCode,
+        latitude: foundBusinessProfile.latitude,
+        longitude: foundBusinessProfile.longitude,
+        placeId: foundBusinessProfile.placeId
+      };
       onStoreSelect(basicInfo);
       setIsOpen(false);
       setFoundBusinessProfile(null);

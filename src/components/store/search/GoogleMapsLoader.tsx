@@ -18,7 +18,7 @@ export const loadGoogleMapsAPI = async () => {
       const apiKey = await getGoogleMapsApiKey();
       
       if (!apiKey) {
-        return Promise.reject(new Error("No API key available"));
+        throw new Error("No API key available");
       }
       
       const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
@@ -55,9 +55,21 @@ export const loadGoogleMapsAPI = async () => {
         document.head.appendChild(script);
       });
     } catch (error) {
-      return Promise.reject(error);
+      throw error;
     }
   })();
   
   return googleMapsLoadingPromise;
 };
+
+const GoogleMapsLoader = () => {
+  useEffect(() => {
+    loadGoogleMapsAPI().catch(error => {
+      console.error("Error loading Google Maps API:", error);
+    });
+  }, []);
+
+  return null;
+};
+
+export default GoogleMapsLoader;
