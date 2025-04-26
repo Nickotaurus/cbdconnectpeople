@@ -8,13 +8,24 @@ export const useGoogleMapsScript = () => {
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
   const loaderRef = useRef<Loader | null>(null);
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadGoogleMapsApi = async () => {
       try {
+        // Vérifier si le script existe déjà
+        if (window.google?.maps) {
+          console.log("API Google Maps déjà chargée");
+          setApiKeyLoaded(true);
+          return;
+        }
+
+        console.log("Tentative de récupération de la clé API Google Maps");
         const apiKey = await getGoogleMapsApiKey();
+        
         if (!apiKey) {
-          console.error("No API key returned from getGoogleMapsApiKey");
+          console.error("Aucune clé API retournée par getGoogleMapsApiKey");
+          setError("Clé API Google Maps non disponible");
           toast({
             title: "Erreur",
             description: "Clé API Google Maps non disponible",
@@ -23,20 +34,22 @@ export const useGoogleMapsScript = () => {
           return;
         }
 
-        // Create a new loader instance
+        // Créer une nouvelle instance du loader
+        console.log("Création du loader Google Maps avec la clé API");
         loaderRef.current = new Loader({
           apiKey,
           version: 'weekly',
           libraries: ['places']
         });
 
-        // Load the library
+        // Charger la bibliothèque
         await loaderRef.current.load();
         
-        console.log("Google Maps API loaded successfully");
+        console.log("API Google Maps chargée avec succès");
         setApiKeyLoaded(true);
       } catch (error) {
-        console.error("Error loading Google Maps API:", error);
+        console.error("Erreur lors du chargement de l'API Google Maps:", error);
+        setError("Erreur lors du chargement de l'API Google Maps");
         toast({
           title: "Erreur",
           description: "Impossible de charger l'API Google Maps",
@@ -48,10 +61,9 @@ export const useGoogleMapsScript = () => {
     loadGoogleMapsApi();
 
     return () => {
-      // Clean up if needed
       loaderRef.current = null;
     };
   }, [toast]);
 
-  return { apiKeyLoaded };
+  return { apiKeyLoaded, error };
 };
