@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
+import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
+import { loadGoogleMapsAPI, isGoogleMapsLoaded } from '@/services/googleMapsService';
 
 interface ManualStoreSearchProps {
   onStoreSelect: (store: {
@@ -39,6 +41,8 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const { toast } = useToast();
+  const { isApiLoaded } = useGooglePlacesApi();
+  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
   
   const form = useForm<SearchFormValues>({
     defaultValues: {
@@ -46,6 +50,24 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       city: ""
     }
   });
+
+  useEffect(() => {
+    if (isApiLoaded && !placesService) {
+      // Créer un élément div pour le service Places
+      const placesDiv = document.createElement('div');
+      placesDiv.style.display = 'none';
+      document.body.appendChild(placesDiv);
+      
+      // Initialiser le service Places
+      const service = new google.maps.places.PlacesService(placesDiv);
+      setPlacesService(service);
+      
+      return () => {
+        // Nettoyer l'élément div lors du démontage du composant
+        document.body.removeChild(placesDiv);
+      };
+    }
+  }, [isApiLoaded]);
 
   const handleSearch = async (values: SearchFormValues) => {
     if (!values.storeName.trim()) {
@@ -56,77 +78,155 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       return;
     }
 
+    if (!isApiLoaded || !placesService) {
+      toast({
+        title: "API non disponible",
+        description: "L'API Google Maps n'est pas encore chargée. Veuillez réessayer dans quelques instants.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
+    setBusinessDetails(null);
 
     try {
-      // Simuler une recherche et retourner des résultats
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Construire la requête de recherche en incluant le nom et la ville
+      const searchQuery = `${values.storeName} ${values.city}`;
+      
+      // Définir les coordonnées par défaut basées sur la ville (pour aider à localiser la recherche)
+      let location;
+      switch (values.city.toLowerCase()) {
+        case 'paris':
+          location = new google.maps.LatLng(48.8566, 2.3522);
+          break;
+        case 'marseille':
+          location = new google.maps.LatLng(43.2965, 5.3698);
+          break;
+        case 'lyon':
+          location = new google.maps.LatLng(45.7640, 4.8357);
+          break;
+        default:
+          // France par défaut
+          location = new google.maps.LatLng(46.603354, 1.888334);
+      }
 
-      // Créer une boutique factice basée sur la recherche avec la ville fournie
-      const mockStore = {
-        name: values.storeName,
-        address: "123 Rue du Commerce",
-        city: values.city || "Paris", // Utiliser la ville saisie par l'utilisateur
-        postalCode: values.city === "Paris" ? "75001" : 
-                    values.city === "Marseille" ? "13001" : 
-                    values.city === "Lyon" ? "69001" : "00000",
-        latitude: values.city === "Paris" ? 48.8566 : 
-                  values.city === "Marseille" ? 43.2965 : 
-                  values.city === "Lyon" ? 45.7640 : 48.8566,
-        longitude: values.city === "Paris" ? 2.3522 : 
-                   values.city === "Marseille" ? 5.3698 : 
-                   values.city === "Lyon" ? 4.8357 : 2.3522,
-        placeId: "mock-place-id-" + Date.now(),
+      const request = {
+        query: searchQuery,
+        location: location,
+        radius: 50000, // 50km
+        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number']
       };
 
-      // Simuler la récupération d'une fiche Google Business
-      if (Math.random() > 0.3) {
-        const mockBusinessDetails = {
-          name: values.storeName,
-          address: `123 Rue du Commerce, ${mockStore.postalCode} ${values.city || "Paris"}`,
-          phone: "+33 1 23 45 67 89",
-          website: "https://www." + values.storeName.toLowerCase().replace(/\s+/g, '') + ".fr",
-          rating: 4.5,
-          totalReviews: 42,
-          photos: [
-            "https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000",
-            "https://images.unsplash.com/photo-1590114416359-9e3e6c7be118?q=80&w=1000",
-            "https://images.unsplash.com/photo-1628365056741-ea2b89eb6cd3?q=80&w=1000"
-          ]
-        };
-        setBusinessDetails(mockBusinessDetails);
-      } else {
-        setBusinessDetails(null);
-      }
+      placesService.textSearch(request, (results, status) => {
+        setIsLoading(false);
+        
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          console.log("Résultats de recherche Google Places:", results);
+          
+          // Prendre le premier résultat pour les détails
+          const place = results[0];
+          
+          // Récupérer les photos si disponibles
+          const photos = place.photos 
+            ? place.photos.slice(0, 5).map(photo => photo.getUrl({maxWidth: 500, maxHeight: 500}))
+            : [];
+          
+          // Créer l'objet de détails métier
+          const placeDetails = {
+            name: place.name || '',
+            address: place.formatted_address || '',
+            phone: place.formatted_phone_number || '',
+            website: place.website || '',
+            rating: place.rating || 0,
+            totalReviews: place.user_ratings_total || 0,
+            photos: photos
+          };
+          
+          setBusinessDetails(placeDetails);
+          
+          // Si aucun détail n'est trouvé, on peut faire une recherche de détails supplémentaire
+          if (!place.formatted_phone_number || !place.website) {
+            placesService.getDetails({
+              placeId: place.place_id,
+              fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number']
+            }, (placeDetail, detailStatus) => {
+              if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetail) {
+                // Mettre à jour les détails avec les informations complètes
+                const updatedPhotos = placeDetail.photos 
+                  ? placeDetail.photos.slice(0, 5).map(photo => photo.getUrl({maxWidth: 500, maxHeight: 500}))
+                  : photos;
+                
+                const updatedDetails = {
+                  name: placeDetail.name || place.name || '',
+                  address: placeDetail.formatted_address || place.formatted_address || '',
+                  phone: placeDetail.formatted_phone_number || '',
+                  website: placeDetail.website || '',
+                  rating: placeDetail.rating || place.rating || 0,
+                  totalReviews: placeDetail.user_ratings_total || place.user_ratings_total || 0,
+                  photos: updatedPhotos
+                };
+                
+                setBusinessDetails(updatedDetails);
+              }
+            });
+          }
+        } else {
+          console.log("Pas de résultats ou erreur:", status);
+          toast({
+            title: "Aucun résultat trouvé",
+            description: "Aucun établissement n'a été trouvé avec ces critères. Essayez d'élargir votre recherche ou de saisir manuellement les informations.",
+            variant: "default",
+          });
+        }
+      });
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
+      setIsLoading(false);
       toast({
         title: "Erreur",
         description: "Une erreur s'est produite lors de la recherche",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSelectBusiness = () => {
     if (!businessDetails) return;
 
+    // Extraire le code postal de l'adresse
+    const postalCodeMatch = businessDetails.address.match(/\b\d{5}\b/);
+    const postalCode = postalCodeMatch ? postalCodeMatch[0] : 
+                       form.getValues().city === "Paris" ? "75001" : 
+                       form.getValues().city === "Marseille" ? "13001" : 
+                       form.getValues().city === "Lyon" ? "69001" : "00000";
+    
+    // Extraire la ville de l'adresse ou utiliser celle fournie par l'utilisateur
+    let city = form.getValues().city;
+    if (!city) {
+      const addressParts = businessDetails.address.split(',');
+      // Si l'adresse a plus d'une partie, la ville est généralement dans la deuxième partie
+      if (addressParts.length > 1) {
+        // Nettoyer et extraire la ville
+        const cityPart = addressParts[1].trim();
+        // La ville est souvent après le code postal
+        const cityMatch = cityPart.match(/\d{5}\s+(.+)/);
+        if (cityMatch && cityMatch[1]) {
+          city = cityMatch[1].trim();
+        } else {
+          city = cityPart.replace(/\d{5}/g, '').trim();
+        }
+      }
+    }
+
+    // Créer l'objet pour la sélection de la boutique
     const storeData = {
       name: businessDetails.name,
       address: businessDetails.address.split(',')[0],
-      city: form.getValues().city || "Paris", // Utiliser la ville saisie
-      postalCode: businessDetails.address.match(/\d{5}/) ? businessDetails.address.match(/\d{5}/)[0] : 
-                  form.getValues().city === "Paris" ? "75001" : 
-                  form.getValues().city === "Marseille" ? "13001" : 
-                  form.getValues().city === "Lyon" ? "69001" : "00000",
-      latitude: form.getValues().city === "Paris" ? 48.8566 : 
-                form.getValues().city === "Marseille" ? 43.2965 : 
-                form.getValues().city === "Lyon" ? 45.7640 : 48.8566,
-      longitude: form.getValues().city === "Paris" ? 2.3522 : 
-                 form.getValues().city === "Marseille" ? 5.3698 : 
-                 form.getValues().city === "Lyon" ? 4.8357 : 2.3522,
+      city: city || "Paris",
+      postalCode: postalCode,
+      latitude: 0, // Ces valeurs seront mises à jour dans la prochaine étape
+      longitude: 0,
       placeId: "google-business-" + Date.now(),
       photos: businessDetails.photos,
       phone: businessDetails.phone,
@@ -135,8 +235,33 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       totalReviews: businessDetails.totalReviews
     };
 
-    onStoreSelect(storeData);
-    setBusinessDetails(null);
+    // Utiliser l'API Geocoding pour obtenir des coordonnées précises
+    if (window.google && window.google.maps && window.google.maps.Geocoder) {
+      const geocoder = new google.maps.Geocoder();
+      const address = `${storeData.address}, ${storeData.postalCode} ${storeData.city}, France`;
+      
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+          const location = results[0].geometry.location;
+          storeData.latitude = location.lat();
+          storeData.longitude = location.lng();
+        }
+        
+        onStoreSelect(storeData);
+        setBusinessDetails(null);
+      });
+    } else {
+      // Fallback si l'API Geocoder n'est pas disponible
+      storeData.latitude = form.getValues().city === "Paris" ? 48.8566 : 
+                           form.getValues().city === "Marseille" ? 43.2965 : 
+                           form.getValues().city === "Lyon" ? 45.7640 : 48.8566;
+      storeData.longitude = form.getValues().city === "Paris" ? 2.3522 : 
+                            form.getValues().city === "Marseille" ? 5.3698 : 
+                            form.getValues().city === "Lyon" ? 4.8357 : 2.3522;
+      
+      onStoreSelect(storeData);
+      setBusinessDetails(null);
+    }
   };
 
   const handleManualEntry = () => {
@@ -199,12 +324,17 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || !isApiLoaded}
             >
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                   Recherche en cours...
+                </>
+              ) : !isApiLoaded ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Chargement de l'API...
                 </>
               ) : (
                 <>
@@ -233,8 +363,8 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
         ) : !businessDetails && (
           <div className="mt-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Entrez le nom de votre boutique et recherchez pour voir si une fiche Google Business existe.
-              Sinon, vous pourrez saisir manuellement les informations.
+              Entrez le nom de votre boutique et la ville pour rechercher votre établissement.
+              Si aucun résultat n'est trouvé, vous pourrez saisir manuellement les informations.
             </p>
             <Button
               variant="outline"
