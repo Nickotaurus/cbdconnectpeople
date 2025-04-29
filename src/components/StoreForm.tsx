@@ -179,14 +179,20 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
 
     try {
       // Convertir les avis Google en avis de la boutique
-      const reviewsData = selectedReviews.map((review, index) => ({
-        id: `review-${index}`,
-        author: review.author_name || "Client",
-        date: new Date(review.time * 1000).toISOString().split('T')[0],
-        rating: review.rating,
-        text: review.text,
-        category: "experience"
-      }));
+      const reviewsData = selectedReviews.map((review, index) => {
+        // Determiner une catégorie valide pour chaque avis
+        const validCategories = ["experience", "flowers", "oils", "originality"] as const;
+        const categoryIndex = index % validCategories.length;
+        
+        return {
+          id: `review-${index}`,
+          author: review.author_name || "Client",
+          date: new Date(review.time * 1000).toISOString().split('T')[0],
+          rating: review.rating || 4,
+          text: review.text || "Bonne expérience",
+          category: validCategories[categoryIndex]
+        };
+      });
 
       // Convertir les horaires Google en horaires de la boutique
       const openingHoursData = formData.openingHours.length > 0 
