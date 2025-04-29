@@ -29,15 +29,16 @@ const StoreSearchBar = ({
             onChange={(e) => onSearchQueryChange(e.target.value)}
             className="flex-1"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && searchQuery.trim()) {
                 onSearch();
               }
             }}
             disabled={isSearching}
+            required={false}
           />
           <Button 
             onClick={onSearch} 
-            disabled={isSearching}
+            disabled={isSearching || !searchQuery.trim()}
             variant="default"
           >
             {isSearching ? (

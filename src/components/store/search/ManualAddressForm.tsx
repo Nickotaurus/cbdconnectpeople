@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowLeft, Search } from 'lucide-react';
 
+// Schéma de validation allégé
 const formSchema = z.object({
-  address: z.string().min(3, "L'adresse est requise et doit comporter au moins 3 caractères"),
-  city: z.string().min(2, "La ville est requise"),
-  postalCode: z.string().min(5, "Le code postal est requis")
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional()
 });
 
 interface ManualAddressFormProps {
@@ -30,6 +31,17 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
     }
   });
 
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    // Valider que l'utilisateur a au moins entré une adresse ou une ville
+    if (!values.address && !values.city) {
+      form.setError("address", { 
+        message: "Veuillez renseigner au moins l'adresse ou la ville" 
+      });
+      return;
+    }
+    onSubmit(values);
+  };
+
   return (
     <div className="space-y-4 p-2">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2">
@@ -38,7 +50,7 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
       </Button>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="address"

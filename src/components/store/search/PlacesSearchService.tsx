@@ -41,13 +41,19 @@ const PlacesSearchService = ({
     return serviceRef.current;
   };
 
-  // On supprime le code de la recherche automatique qui causait des problèmes
+  // Fonction de recherche automatique - ne fait plus rien
   const searchStores = async () => {
-    // Ne fait plus rien automatiquement
     console.log("Recherche automatique désactivée");
+    return;
   };
 
   const textSearch = async (query: string) => {
+    // Si la requête est vide, ne rien faire
+    if (!query.trim()) {
+      console.log("Requête de recherche vide, opération annulée");
+      return;
+    }
+    
     const service = getService();
     if (!service) {
       console.error("Places service not initialized for text search");

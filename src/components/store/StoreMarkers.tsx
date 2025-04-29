@@ -4,9 +4,7 @@ import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
 import { useStores } from '@/hooks/useStores';
 import { useToast } from "@/components/ui/use-toast";
-import { AlertCircle, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import StoreSearchBar from './search/StoreSearchBar';
 
 interface StoreMarkersProps {
   map: google.maps.Map | null;
@@ -102,8 +100,8 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
         });
         setSearchService(placesService);
 
-        // Ne plus lancer la recherche automatique
-        // On ne fait plus: placesService.searchStores();
+        // Pas de recherche automatique lors de l'initialisation
+        console.log("Aucune recherche automatique n'est lancée");
 
       } catch (error) {
         console.error('Error loading markers:', error);
@@ -146,12 +144,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
     }
     
     if (!searchQuery.trim()) {
-      toast({
-        title: "Champ vide",
-        description: "Veuillez saisir un terme de recherche",
-        variant: "default"
-      });
-      return;
+      return; // Ne rien faire si la recherche est vide - éviter le message d'erreur
     }
     
     // Nettoyer les marqueurs existants avant une nouvelle recherche
@@ -177,43 +170,15 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
     : "Rechercher une boutique CBD...";
 
   return (
-    <div className="absolute left-0 right-0 top-0 p-4 z-20">
-      <div className="bg-white rounded-md shadow-md p-3">
-        <div className="flex gap-2 mb-2">
-          <Input
-            placeholder={placeholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-            disabled={isSearching}
-          />
-          <Button 
-            onClick={handleSearch} 
-            disabled={isSearching}
-            variant="default"
-          >
-            {isSearching ? (
-              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-            ) : (
-              <Search className="h-4 w-4 mr-2" />
-            )}
-            Rechercher
-          </Button>
-        </div>
-        
-        {noResults && (
-          <div className="p-2 bg-amber-50 text-amber-800 rounded-md flex items-center text-sm">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Aucun résultat trouvé. Essayez des termes différents ou ajoutez votre boutique manuellement.</span>
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <StoreSearchBar 
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onSearch={handleSearch}
+        isSearching={isSearching}
+        noResults={noResults}
+      />
+    </>
   );
 };
 
