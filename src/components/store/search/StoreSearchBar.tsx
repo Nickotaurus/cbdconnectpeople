@@ -29,17 +29,25 @@ const StoreSearchBar = ({
             onChange={(e) => onSearchQueryChange(e.target.value)}
             className="flex-1"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && searchQuery.trim()) {
-                onSearch();
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  onSearch();
+                }
               }
             }}
             disabled={isSearching}
-            required={false}
           />
           <Button 
-            onClick={onSearch} 
+            onClick={(e) => {
+              e.preventDefault();
+              if (searchQuery.trim()) {
+                onSearch();
+              }
+            }} 
             disabled={isSearching || !searchQuery.trim()}
             variant="default"
+            type="button"
           >
             {isSearching ? (
               <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />

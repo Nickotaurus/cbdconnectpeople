@@ -66,25 +66,6 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
         // Clear existing markers
         manager.clearMarkers();
         
-        // Add Supabase stores to the map
-        if (supabaseStores.length > 0) {
-          const serviceDiv = getServiceDiv();
-          const service = new google.maps.places.PlacesService(serviceDiv);
-          
-          for (const store of supabaseStores) {
-            const placeResult: google.maps.places.PlaceResult = {
-              name: store.name,
-              formatted_address: `${store.address}, ${store.city}`,
-              geometry: {
-                location: new google.maps.LatLng(store.latitude, store.longitude)
-              },
-              place_id: store.id
-            };
-            
-            manager.addMarker(placeResult, service);
-          }
-        }
-        
         const placesService = PlacesSearchService({
           map,
           userLocation,
@@ -100,7 +81,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
         });
         setSearchService(placesService);
 
-        // Pas de recherche automatique lors de l'initialisation
+        // Pas de recherche automatique 
         console.log("Aucune recherche automatique n'est lancée");
 
       } catch (error) {
@@ -144,7 +125,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
     }
     
     if (!searchQuery.trim()) {
-      return; // Ne rien faire si la recherche est vide - éviter le message d'erreur
+      return; // Ne rien faire si la recherche est vide
     }
     
     // Nettoyer les marqueurs existants avant une nouvelle recherche
@@ -154,7 +135,6 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
     try {
       console.log("Début de la recherche pour:", searchQuery);
       await searchService.textSearch(searchQuery);
-      console.log("Recherche terminée");
     } catch (error) {
       console.error('Error searching for stores:', error);
       toast({
@@ -164,10 +144,6 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
       });
     }
   };
-
-  const placeholder = isRegistration 
-    ? "Rechercher votre boutique..."
-    : "Rechercher une boutique CBD...";
 
   return (
     <>
@@ -181,11 +157,5 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
     </>
   );
 };
-
-declare global {
-  interface Window {
-    selectStore?: (placeId: string) => void;
-  }
-}
 
 export default StoreMarkers;

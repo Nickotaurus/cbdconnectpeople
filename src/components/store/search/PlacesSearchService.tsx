@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { createPlacesServiceDiv } from '@/services/googleMapsService';
 
-// Global service registry (same pattern as in MarkerManager)
+// Service registry simplifié
 const serviceRegistry = {
   getDiv: createPlacesServiceDiv,
   getService: (): google.maps.places.PlacesService => {
@@ -41,12 +41,7 @@ const PlacesSearchService = ({
     return serviceRef.current;
   };
 
-  // Fonction de recherche automatique - ne fait plus rien
-  const searchStores = async () => {
-    console.log("Recherche automatique désactivée");
-    return;
-  };
-
+  // Fonction de recherche textuelle simplifiée
   const textSearch = async (query: string) => {
     // Si la requête est vide, ne rien faire
     if (!query.trim()) {
@@ -78,81 +73,80 @@ const PlacesSearchService = ({
       
       console.log(`Executing text search for: "${query}"`, request);
       
-      await new Promise<void>((resolve) => {
-        service.textSearch(request, (results, status) => {
-          console.log("Text search status:", status, results?.length || 0);
+      service.textSearch(request, (results, status) => {
+        console.log("Text search status:", status, results?.length || 0);
+        
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`, results);
+          setHasResults(true);
           
-          if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-            console.log(`Trouvé ${results.length} établissements pour la recherche "${query}"`, results);
-            setHasResults(true);
+          results.forEach(place => {
+            onAddMarker(place, service);
+          });
+          
+          toast({
+            title: "Recherche terminée",
+            description: `${results.length} établissements trouvés`,
+            variant: "default"
+          });
+          setIsSearching(false);
+        } else {
+          console.warn(`Statut de recherche textuelle: ${status}`, results);
+          setHasResults(false);
+          
+          // Effectuer une recherche à proximité comme fallback
+          const nearbyRequest = {
+            location: userLocation,
+            radius: 50000,
+            keyword: query
+          };
+          
+          console.log("Trying fallback nearbySearch", nearbyRequest);
+          
+          service.nearbySearch(nearbyRequest, (nearbyResults, nearbyStatus) => {
+            console.log("Nearby search status:", nearbyStatus, nearbyResults?.length || 0);
+            setIsSearching(false);
             
-            results.forEach(place => {
-              onAddMarker(place, service);
-            });
-            
-            toast({
-              title: "Recherche terminée",
-              description: `${results.length} établissements trouvés`,
-              variant: "default"
-            });
-          } else {
-            console.warn(`Statut de recherche textuelle: ${status}`, results);
-            setHasResults(false);
-            
-            const nearbyRequest = {
-              location: userLocation,
-              radius: 50000,
-              keyword: query
-            };
-            
-            console.log("Trying fallback nearbySearch", nearbyRequest);
-            
-            service.nearbySearch(nearbyRequest, (nearbyResults, nearbyStatus) => {
-              console.log("Nearby search status:", nearbyStatus, nearbyResults?.length || 0);
+            if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && nearbyResults && nearbyResults.length > 0) {
+              console.log(`Recherche à proximité a trouvé ${nearbyResults.length} résultats`);
+              setHasResults(true);
               
-              if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && nearbyResults && nearbyResults.length > 0) {
-                console.log(`Recherche à proximité a trouvé ${nearbyResults.length} résultats`);
-                setHasResults(true);
-                
-                nearbyResults.forEach(place => {
-                  onAddMarker(place, service);
-                });
-                
-                toast({
-                  title: "Recherche terminée",
-                  description: `${nearbyResults.length} établissements trouvés à proximité`,
-                  variant: "default"
-                });
-              } else {
-                console.warn(`Recherche à proximité a échoué: ${nearbyStatus}`);
-                setHasResults(false);
-                
-                toast({
-                  title: "Aucun résultat",
-                  description: "Aucun établissement trouvé pour cette recherche. Essayez d'autres termes ou ajoutez manuellement votre boutique.",
-                  variant: "default"
-                });
-              }
-              resolve();
-            });
-          }
-        });
+              nearbyResults.forEach(place => {
+                onAddMarker(place, service);
+              });
+              
+              toast({
+                title: "Recherche terminée",
+                description: `${nearbyResults.length} établissements trouvés à proximité`,
+                variant: "default"
+              });
+            } else {
+              console.warn(`Recherche à proximité a échoué: ${nearbyStatus}`);
+              setHasResults(false);
+              
+              toast({
+                title: "Aucun résultat",
+                description: "Aucun établissement trouvé pour cette recherche. Essayez d'autres termes ou ajoutez manuellement votre boutique.",
+                variant: "default"
+              });
+            }
+          });
+        }
       });
     } catch (error) {
       console.error(`Erreur lors de la recherche textuelle:`, error);
       setHasResults(false);
+      setIsSearching(false);
       
       toast({
         title: "Erreur de recherche",
         description: "Une erreur est survenue lors de la recherche. Veuillez réessayer.",
         variant: "destructive"
       });
-    } finally {
-      setIsSearching(false);
     }
   };
 
-  return { searchStores, textSearch };
+  return { textSearch };
 };
 
 export default PlacesSearchService;
