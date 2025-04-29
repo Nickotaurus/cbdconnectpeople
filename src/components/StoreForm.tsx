@@ -6,8 +6,14 @@ import { Store } from '@/types/store';
 import DescriptionField from './store-form/DescriptionField';
 import FormAccordion from './store-form/FormAccordion';
 import FormActions from './store-form/FormActions';
-import StoreSearch from './store/StoreSearch';
 import StoreImageUpload from './store/StoreImageUpload';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import ManualStoreSearch from './store/ManualStoreSearch';
+import ManualAddressForm from './store/ManualAddressForm';
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
@@ -21,21 +27,21 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     address: '',
     city: '',
     postalCode: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: 48.8566, // Paris par défaut
+    longitude: 2.3522, // Paris par défaut
     phone: '',
     website: '',
     description: '',
     placeId: '',
     logoUrl: '',
     photoUrl: '',
-    // Additional fields for incentives and lottery prizes
+    // Champs supplémentaires pour les incitations et prix de loterie
     originalIncentive: '',
     incentiveDescription: '',
     lotteryPrizeName: '',
     lotteryPrizeDescription: '',
     lotteryPrizeValue: '',
-    // Google Business Profile data
+    // Données de profil Google Business
     googlePhotos: [] as string[],
     rating: 0,
     reviewCount: 0
@@ -45,6 +51,8 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     logo: false,
     photo: false
   });
+
+  const [step, setStep] = useState<'search' | 'address' | 'details'>('search');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -102,10 +110,34 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       return newData;
     });
 
+    if (store.address === 'À compléter') {
+      // Si c'est une saisie manuelle, passer à l'étape de l'adresse
+      setStep('address');
+    } else {
+      // Si on a déjà l'adresse, passer directement à l'étape des détails
+      setStep('details');
+    }
+
     toast({
-      title: "Boutique sélectionnée",
+      title: "Établissement sélectionné",
       description: "Les informations ont été automatiquement remplies",
     });
+  };
+
+  const handleAddressSubmit = (addressData: {
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      address: addressData.address,
+      city: addressData.city,
+      postalCode: addressData.postalCode
+    }));
+    
+    setStep('details');
   };
 
   const handleImageUpload = (type: 'logo' | 'photo', url: string) => {
@@ -124,15 +156,6 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.placeId) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner votre boutique via Google Maps",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!formData.logoUrl || !formData.photoUrl) {
       toast({
         title: "Erreur",
@@ -146,7 +169,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       const storeData: Omit<Store, 'id'> = {
         ...formData,
         imageUrl: formData.photoUrl,
-        // Update property names to match Store type
+        // Mise à jour des noms de propriétés pour correspondre au type Store
         logo_url: formData.logoUrl,
         photo_url: formData.photoUrl,
         rating: formData.rating || 0,
@@ -190,50 +213,123 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <StoreSearch onStoreSelect={handleStoreSelect} isRegistration={true} />
-
-      {formData.googlePhotos.length > 0 && (
-        <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 mb-4">
-          <h3 className="text-sm font-medium mb-2">Photos Google disponibles :</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {formData.googlePhotos.slice(0, 6).map((photo, index) => (
-              <div 
-                key={index} 
-                className="relative aspect-video bg-muted rounded-md overflow-hidden cursor-pointer group"
-                onClick={() => handleImageUpload(index === 0 ? 'photo' : 'logo', photo)}
-              >
-                <img src={photo} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <p className="text-white text-xs font-medium">Utiliser</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="space-y-6 max-w-2xl mx-auto">
+      {step === 'search' && (
+        <ManualStoreSearch 
+          onStoreSelect={handleStoreSelect} 
+          isRegistration={true} 
+        />
       )}
 
-      <div className="grid gap-4">
-        <StoreImageUpload 
-          type="logo" 
-          label="Ajouter le logo de la boutique" 
-          onImageUpload={handleImageUpload}
-          previewUrl={autoImages.logo ? formData.logoUrl : undefined}
-        />
-        <StoreImageUpload 
-          type="photo" 
-          label="Ajouter une photo de la boutique" 
-          onImageUpload={handleImageUpload}
-          previewUrl={autoImages.photo ? formData.photoUrl : undefined}
-        />
-      </div>
-      
-      <DescriptionField description={formData.description} handleChange={handleChange} />
-      
-      <FormAccordion formData={formData} handleChange={handleChange} storeType={storeType} />
-      
-      <FormActions storeType={storeType} />
-    </form>
+      {step === 'address' && (
+        <Card className="p-4">
+          <h3 className="text-lg font-medium mb-4">Veuillez saisir votre adresse</h3>
+          <ManualAddressForm
+            initialData={{
+              address: formData.address !== 'À compléter' ? formData.address : '',
+              city: formData.city,
+              postalCode: formData.postalCode
+            }}
+            onSubmit={handleAddressSubmit}
+          />
+        </Card>
+      )}
+
+      {step === 'details' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="p-4">
+            <h3 className="text-lg font-medium mb-4">Informations de base</h3>
+            <div className="grid gap-4">
+              <div>
+                <Label htmlFor="name">Nom de la boutique*</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={formData.name} 
+                  onChange={handleChange} 
+                  required 
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="phone">Téléphone</Label>
+                  <Input 
+                    id="phone" 
+                    name="phone" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="website">Site web</Label>
+                  <Input 
+                    id="website" 
+                    name="website" 
+                    type="url"
+                    value={formData.website} 
+                    onChange={handleChange} 
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label>Adresse complète</Label>
+                <div className="bg-muted p-2 rounded text-sm mt-1">
+                  {formData.address}, {formData.postalCode} {formData.city}, France
+                </div>
+              </div>
+            </div>
+          </Card>
+          
+          {formData.googlePhotos.length > 0 && (
+            <Alert className="bg-primary/5 border-primary/10">
+              <AlertTitle className="flex items-center gap-1">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                Photos Google disponibles
+              </AlertTitle>
+              <AlertDescription>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {formData.googlePhotos.slice(0, 6).map((photo, index) => (
+                    <div 
+                      key={index} 
+                      className="relative aspect-video bg-muted rounded-md overflow-hidden cursor-pointer group"
+                      onClick={() => handleImageUpload(index === 0 ? 'photo' : 'logo', photo)}
+                    >
+                      <img src={photo} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <p className="text-white text-xs font-medium">Utiliser</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid gap-4">
+            <StoreImageUpload 
+              type="logo" 
+              label="Ajouter le logo de la boutique" 
+              onImageUpload={handleImageUpload}
+              previewUrl={autoImages.logo ? formData.logoUrl : undefined}
+            />
+            <StoreImageUpload 
+              type="photo" 
+              label="Ajouter une photo de la boutique" 
+              onImageUpload={handleImageUpload}
+              previewUrl={autoImages.photo ? formData.photoUrl : undefined}
+            />
+          </div>
+          
+          <DescriptionField description={formData.description} handleChange={handleChange} />
+          
+          <FormAccordion formData={formData} handleChange={handleChange} storeType={storeType} />
+          
+          <FormActions storeType={storeType} />
+        </form>
+      )}
+    </div>
   );
 };
 

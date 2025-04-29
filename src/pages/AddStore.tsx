@@ -26,7 +26,7 @@ const AddStore = () => {
       duration: 5000,
     });
 
-    // If coming from registration and requires subscription (ecommerce or both)
+    // Si provient de l'inscription et nécessite un abonnement (ecommerce ou les deux)
     if (fromRegistration && requiresSubscription) {
       setTimeout(() => {
         navigate('/partners/subscription', { 
@@ -37,7 +37,7 @@ const AddStore = () => {
         });
       }, 1500);
     } else {
-      // Navigate to store dashboard
+      // Navigation vers le tableau de bord de la boutique
       setTimeout(() => {
         navigate(`/store/${store.id}/admin`);
       }, 1500);
@@ -63,7 +63,6 @@ const AddStore = () => {
           {fromRegistration && requiresSubscription 
             ? "Enregistrez d'abord votre boutique physique. Vous pourrez ensuite configurer votre e-commerce."
             : "Utilisez ce formulaire pour ajouter une nouvelle boutique CBD à notre base de données."}
-          Assurez-vous que toutes les informations sont correctes et précises.
         </p>
       </div>
       
