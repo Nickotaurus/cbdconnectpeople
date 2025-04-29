@@ -252,6 +252,33 @@ declare namespace google {
         vicinity?: string;
         photos?: PlacePhoto[];
         types?: string[];
+        reviews?: PlaceReview[]; // Ajout des reviews
+        opening_hours?: {
+          open_now?: boolean;
+          periods?: PlaceOpeningHoursPeriod[];
+          weekday_text?: string[];
+        };
+      }
+
+      interface PlaceReview {
+        author_name: string;
+        author_url?: string;
+        language: string;
+        profile_photo_url?: string;
+        rating: number;
+        relative_time_description: string;
+        text: string;
+        time: number;
+      }
+
+      interface PlaceOpeningHoursPeriod {
+        open: PlaceHoursTime;
+        close?: PlaceHoursTime;
+      }
+
+      interface PlaceHoursTime {
+        day: number;
+        time: string;
       }
 
       interface PlacePhoto {

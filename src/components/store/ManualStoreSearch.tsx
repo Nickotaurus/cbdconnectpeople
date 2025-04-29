@@ -9,6 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useForm } from "react-hook-form";
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PartyPopper } from "lucide-react";
+import { ReviewData } from '@/types/store-types';
 
 interface ManualStoreSearchProps {
   onStoreSelect: (store: {
@@ -24,6 +27,8 @@ interface ManualStoreSearchProps {
     website?: string;
     rating?: number;
     totalReviews?: number;
+    reviews?: ReviewData[];
+    openingHours?: string[];
   }) => void;
   isRegistration?: boolean;
 }
@@ -39,6 +44,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { toast } = useToast();
   const { isApiLoaded } = useGooglePlacesApi();
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
@@ -114,7 +120,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
         query: searchQuery,
         location: location,
         radius: 50000, // 50km
-        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number']
+        fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number', 'reviews', 'opening_hours']
       };
 
       placesService.textSearch(request, (results, status) => {
@@ -128,7 +134,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
           
           // Récupérer les photos si disponibles
           const photos = place.photos 
-            ? place.photos.slice(0, 5).map(photo => photo.getUrl({maxWidth: 500, maxHeight: 500}))
+            ? place.photos.slice(0, 10).map(photo => photo.getUrl({maxWidth: 800, maxHeight: 600}))
             : [];
           
           // Créer l'objet de détails métier
@@ -139,22 +145,41 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
             website: place.website || '',
             rating: place.rating || 0,
             totalReviews: place.user_ratings_total || 0,
-            photos: photos
+            photos: photos,
+            reviews: [],
+            openingHours: place.opening_hours?.weekday_text || []
           };
           
           setBusinessDetails(placeDetails);
           
-          // Si aucun détail n'est trouvé, on peut faire une recherche de détails supplémentaire
-          if (!place.formatted_phone_number || !place.website) {
+          // Si le place_id est disponible, récupérer tous les détails complets
+          if (place.place_id) {
             placesService.getDetails({
               placeId: place.place_id,
-              fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number']
+              fields: ['name', 'formatted_address', 'place_id', 'geometry', 'photos', 'rating', 'user_ratings_total', 'website', 'formatted_phone_number', 'reviews', 'opening_hours']
             }, (placeDetail, detailStatus) => {
               if (detailStatus === google.maps.places.PlacesServiceStatus.OK && placeDetail) {
-                // Mettre à jour les détails avec les informations complètes
+                console.log("Détails complets du lieu:", placeDetail);
+                
+                // Mettre à jour les photos si disponibles
                 const updatedPhotos = placeDetail.photos 
-                  ? placeDetail.photos.slice(0, 5).map(photo => photo.getUrl({maxWidth: 500, maxHeight: 500}))
+                  ? placeDetail.photos.slice(0, 10).map(photo => photo.getUrl({maxWidth: 800, maxHeight: 600}))
                   : photos;
+                
+                // Extraire les avis si disponibles
+                const reviews = placeDetail.reviews 
+                  ? placeDetail.reviews.map(review => ({
+                      author_name: review.author_name,
+                      rating: review.rating,
+                      text: review.text,
+                      time: review.time,
+                      relative_time_description: review.relative_time_description,
+                      profile_photo_url: review.profile_photo_url
+                    })) 
+                  : [];
+                
+                // Extraire les horaires d'ouverture si disponibles
+                const openingHours = placeDetail.opening_hours?.weekday_text || [];
                 
                 const updatedDetails = {
                   name: placeDetail.name || place.name || '',
@@ -163,7 +188,9 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
                   website: placeDetail.website || '',
                   rating: placeDetail.rating || place.rating || 0,
                   totalReviews: placeDetail.user_ratings_total || place.user_ratings_total || 0,
-                  photos: updatedPhotos
+                  photos: updatedPhotos,
+                  reviews: reviews,
+                  openingHours: openingHours
                 };
                 
                 setBusinessDetails(updatedDetails);
@@ -231,7 +258,9 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       phone: businessDetails.phone,
       website: businessDetails.website,
       rating: businessDetails.rating,
-      totalReviews: businessDetails.totalReviews
+      totalReviews: businessDetails.totalReviews,
+      reviews: businessDetails.reviews,
+      openingHours: businessDetails.openingHours
     };
 
     // Utiliser l'API Geocoding pour obtenir des coordonnées précises
@@ -248,6 +277,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
         
         onStoreSelect(storeData);
         setBusinessDetails(null);
+        setShowWelcome(true);
       });
     } else {
       // Fallback si l'API Geocoder n'est pas disponible
@@ -260,6 +290,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       
       onStoreSelect(storeData);
       setBusinessDetails(null);
+      setShowWelcome(true);
     }
   };
 
@@ -284,6 +315,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
 
     onStoreSelect(storeData);
     setBusinessDetails(null);
+    setShowWelcome(true);
   };
 
   return (
@@ -292,88 +324,108 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
         <CardTitle>Trouvez votre établissement</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ville</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Paris" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="storeName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom de votre établissement</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ma Boutique CBD" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
+        {showWelcome ? (
+          <Alert className="bg-green-50 border-green-200 mb-6">
+            <PartyPopper className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-700">Bravo et bienvenue dans le réseau !</AlertTitle>
+            <AlertDescription className="text-green-600">
+              En rejoignant la plateforme, vous faites un pas concret vers plus de visibilité, 
+              de connexions utiles et d'entraide entre pros du CBD. Ensemble, on va plus loin.
+            </AlertDescription>
             <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading || !isApiLoaded}
+              variant="outline" 
+              className="mt-4" 
+              onClick={() => setShowWelcome(false)}
             >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                  Recherche en cours...
-                </>
-              ) : !isApiLoaded ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                  Chargement de l'API...
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4 mr-2" />
-                  Rechercher
-                </>
-              )}
+              Continuer
             </Button>
-          </form>
-        </Form>
+          </Alert>
+        ) : (
+          <>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ville</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Paris" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="storeName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom de votre établissement</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ma Boutique CBD" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoading || !isApiLoaded}
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                      Recherche en cours...
+                    </>
+                  ) : !isApiLoaded ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                      Chargement de l'API...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Rechercher
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
 
-        {businessDetails && (
-          <GoogleBusinessIntegration
-            businessDetails={businessDetails}
-            isLoading={false}
-            onAccept={handleSelectBusiness}
-            onReject={handleManualEntry}
-          />
-        )}
+            {businessDetails && (
+              <GoogleBusinessIntegration
+                businessDetails={businessDetails}
+                isLoading={false}
+                onAccept={handleSelectBusiness}
+                onReject={handleManualEntry}
+              />
+            )}
 
-        {isLoading ? (
-          <div className="text-center py-4">
-            <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Recherche en cours...</p>
-          </div>
-        ) : !businessDetails && (
-          <div className="mt-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Entrez le nom de votre boutique et la ville pour rechercher votre établissement.
-              Si aucun résultat n'est trouvé, vous pourrez saisir manuellement les informations.
-            </p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleManualEntry}
-              disabled={!form.getValues().storeName.trim()}
-            >
-              Saisir manuellement mes informations
-            </Button>
-          </div>
+            {isLoading ? (
+              <div className="text-center py-4">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Recherche en cours...</p>
+              </div>
+            ) : !businessDetails && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Entrez le nom de votre boutique et la ville pour rechercher votre établissement.
+                  Si aucun résultat n'est trouvé, vous pourrez saisir manuellement les informations.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleManualEntry}
+                  disabled={!form.getValues().storeName.trim()}
+                >
+                  Saisir manuellement mes informations
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

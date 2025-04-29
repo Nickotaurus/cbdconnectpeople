@@ -18,6 +18,8 @@ import StoreHeader from '@/components/store-detail/StoreHeader';
 import StoreInfo from '@/components/store-detail/StoreInfo';
 import StoreActions from '@/components/store-detail/StoreActions';
 import StoreInfoTab from '@/components/store-detail/StoreInfoTab';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PartyPopper } from "lucide-react";
 
 const StoreDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +28,7 @@ const StoreDetail = () => {
   const [activeTab, setActiveTab] = useState("info");
   const { user, updateUserPreferences } = useAuth();
   const clientUser = user as ClientUser;
+  const [showWelcome, setShowWelcome] = useState(false);
   
   // Check if store is in user's favorites
   const [isFavorite, setIsFavorite] = useState(false);
@@ -48,6 +51,13 @@ const StoreDetail = () => {
     
     // Scroll to top when component loads
     window.scrollTo(0, 0);
+    
+    // Show welcome message for newly added stores
+    const isNewlyAdded = sessionStorage.getItem('newlyAddedStore') === id;
+    if (isNewlyAdded) {
+      setShowWelcome(true);
+      sessionStorage.removeItem('newlyAddedStore');
+    }
   }, [id, navigate, store, user, clientUser?.favorites]);
   
   if (!store) {
@@ -114,6 +124,24 @@ const StoreDetail = () => {
       {/* Store info */}
       <div className="container mx-auto px-4 -mt-20 relative z-10">
         <div className="bg-background rounded-lg shadow-lg p-6 animate-fade-up">
+          {showWelcome && (
+            <Alert className="bg-green-50 border-green-200 mb-6">
+              <PartyPopper className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-700">Bravo et bienvenue dans le réseau !</AlertTitle>
+              <AlertDescription className="text-green-600">
+                En rejoignant la plateforme, vous faites un pas concret vers plus de visibilité, 
+                de connexions utiles et d'entraide entre pros du CBD. Ensemble, on va plus loin.
+              </AlertDescription>
+              <Button 
+                variant="outline" 
+                className="mt-4" 
+                onClick={() => setShowWelcome(false)}
+              >
+                J'ai compris
+              </Button>
+            </Alert>
+          )}
+          
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <StoreInfo store={store} />
             <StoreActions 
@@ -164,11 +192,11 @@ const StoreDetail = () => {
               <div className="max-w-md mx-auto">
                 <h3 className="text-lg font-semibold mb-4 text-center">Coupon de réduction exclusif</h3>
                 <CouponCard 
-                  code={store.coupon.code} 
-                  discount={store.coupon.discount} 
-                  validUntil={store.coupon.validUntil}
+                  code={store.coupon?.code || "WELCOME10"} 
+                  discount={store.coupon?.discount || "10%"} 
+                  validUntil={store.coupon?.validUntil || "2023-12-31"}
                   storeName={store.name}
-                  isAffiliate={store.coupon.isAffiliate}
+                  isAffiliate={store.coupon?.isAffiliate || false}
                 />
                 <p className="text-sm text-muted-foreground mt-4 text-center">
                   Présentez ce coupon en boutique ou utilisez le code lors de vos achats en ligne pour profiter de la réduction.

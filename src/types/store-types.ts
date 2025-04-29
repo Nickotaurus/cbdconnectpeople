@@ -12,6 +12,17 @@ export interface StoreData {
   website?: string;
   rating?: number;
   totalReviews?: number;
+  reviews?: ReviewData[];
+  openingHours?: string[];
+}
+
+export interface ReviewData {
+  author_name: string;
+  rating: number;
+  text: string;
+  time: number;
+  relative_time_description?: string;
+  profile_photo_url?: string;
 }
 
 export interface BusinessDetails {
@@ -25,4 +36,6 @@ export interface BusinessDetails {
   website?: string;
   rating?: number;
   totalReviews?: number;
+  reviews?: ReviewData[];
+  openingHours?: string[];
 }

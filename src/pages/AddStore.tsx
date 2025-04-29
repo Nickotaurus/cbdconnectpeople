@@ -26,6 +26,9 @@ const AddStore = () => {
       duration: 5000,
     });
 
+    // Enregistrer l'ID de la nouvelle boutique dans sessionStorage
+    sessionStorage.setItem('newlyAddedStore', store.id);
+
     // Si provient de l'inscription et nécessite un abonnement (ecommerce ou les deux)
     if (fromRegistration && requiresSubscription) {
       setTimeout(() => {

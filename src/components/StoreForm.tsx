@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
@@ -44,7 +44,9 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     // Données de profil Google Business
     googlePhotos: [] as string[],
     rating: 0,
-    reviewCount: 0
+    reviewCount: 0,
+    reviews: [] as any[],
+    openingHours: [] as string[]
   });
   
   const [autoImages, setAutoImages] = useState({
@@ -53,6 +55,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   });
 
   const [step, setStep] = useState<'search' | 'address' | 'details'>('search');
+  const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -75,6 +78,8 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     website?: string;
     rating?: number;
     totalReviews?: number;
+    reviews?: any[];
+    openingHours?: string[];
   }) => {
     // Mise à jour du formulaire avec les données récupérées
     setFormData(prev => {
@@ -91,7 +96,9 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
         website: store.website || prev.website,
         rating: store.rating || 0,
         reviewCount: store.totalReviews || 0,
-        googlePhotos: store.photos || []
+        googlePhotos: store.photos || [],
+        reviews: store.reviews || [],
+        openingHours: store.openingHours || []
       };
       
       // Si nous avons des photos Google et pas encore de logo/photo, les utiliser automatiquement
@@ -109,6 +116,11 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       
       return newData;
     });
+
+    // Si nous avons des avis, ajoutons-les au formulaire
+    if (store.reviews && store.reviews.length > 0) {
+      setSelectedReviews(store.reviews);
+    }
 
     if (store.address === 'À compléter') {
       // Si c'est une saisie manuelle, passer à l'étape de l'adresse
@@ -166,6 +178,35 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     }
 
     try {
+      // Convertir les avis Google en avis de la boutique
+      const reviewsData = selectedReviews.map((review, index) => ({
+        id: `review-${index}`,
+        author: review.author_name || "Client",
+        date: new Date(review.time * 1000).toISOString().split('T')[0],
+        rating: review.rating,
+        text: review.text,
+        category: "experience"
+      }));
+
+      // Convertir les horaires Google en horaires de la boutique
+      const openingHoursData = formData.openingHours.length > 0 
+        ? formData.openingHours.map(day => {
+            const parts = day.split(': ');
+            return {
+              day: parts[0],
+              hours: parts[1] || "10:00 - 19:00"
+            };
+          })
+        : [
+            { day: "Lundi", hours: "11:00 - 19:00" },
+            { day: "Mardi", hours: "11:00 - 19:00" },
+            { day: "Mercredi", hours: "11:00 - 19:00" },
+            { day: "Jeudi", hours: "11:00 - 19:00" },
+            { day: "Vendredi", hours: "11:00 - 19:00" },
+            { day: "Samedi", hours: "10:00 - 19:00" },
+            { day: "Dimanche", hours: "Fermé" },
+          ];
+
       const storeData: Omit<Store, 'id'> = {
         ...formData,
         imageUrl: formData.photoUrl,
@@ -174,21 +215,19 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
         photo_url: formData.photoUrl,
         rating: formData.rating || 0,
         reviewCount: formData.reviewCount || 0,
-        openingHours: [
-          { day: "Lundi", hours: "11:00 - 19:00" },
-          { day: "Mardi", hours: "11:00 - 19:00" },
-          { day: "Mercredi", hours: "11:00 - 19:00" },
-          { day: "Jeudi", hours: "11:00 - 19:00" },
-          { day: "Vendredi", hours: "11:00 - 19:00" },
-          { day: "Samedi", hours: "10:00 - 19:00" },
-          { day: "Dimanche", hours: "Fermé" },
-        ],
-        reviews: [],
+        openingHours: openingHoursData,
+        reviews: reviewsData,
         products: [
           { category: "Fleurs", origin: "France", quality: "Bio" },
           { category: "Huiles", origin: "France", quality: "Premium" },
         ],
         isEcommerce: storeType === 'ecommerce' || storeType === 'both',
+        coupon: {
+          code: `WELCOME${Math.floor(Math.random() * 1000)}`,
+          discount: "10%",
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          isAffiliate: false
+        }
       };
 
       const newStore = addStore(storeData);
@@ -279,6 +318,17 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
                   {formData.address}, {formData.postalCode} {formData.city}, France
                 </div>
               </div>
+
+              {formData.openingHours.length > 0 && (
+                <div>
+                  <Label>Horaires d'ouverture</Label>
+                  <div className="bg-muted p-2 rounded text-sm mt-1">
+                    {formData.openingHours.map((day, index) => (
+                      <div key={index}>{day}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
           
@@ -321,6 +371,36 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
               previewUrl={autoImages.photo ? formData.photoUrl : undefined}
             />
           </div>
+          
+          {formData.reviews && formData.reviews.length > 0 && (
+            <Card className="p-4">
+              <h3 className="text-lg font-medium mb-4">Avis clients</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Nous avons trouvé {formData.reviews.length} avis pour votre établissement. 
+                Ces avis seront importés dans votre fiche.
+              </p>
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {formData.reviews.map((review, index) => (
+                  <div key={index} className="bg-muted p-3 rounded-md">
+                    <div className="flex justify-between">
+                      <span className="font-medium">{review.author_name}</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span 
+                            key={i} 
+                            className={i < review.rating ? "text-yellow-500" : "text-gray-300"}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm line-clamp-2 mt-1">{review.text}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
           
           <DescriptionField description={formData.description} handleChange={handleChange} />
           
