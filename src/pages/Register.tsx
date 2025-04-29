@@ -1,8 +1,9 @@
 
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { UserRole } from '@/types/auth';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
 import RegisterForm from '@/components/register/RegisterForm';
 
 const Register = () => {

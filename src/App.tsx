@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,8 @@ import { AuthProvider } from "./contexts/auth";
 import Navbar from "./components/Navbar";
 import Chatbot from "./components/Chatbot";
 import Index from "./pages/Index"; 
+import Register from "./pages/Register";
+import Login from "./pages/Login";
 
 // Lazy load pages for better performance
 const MapView = lazy(() => import("./pages/MapView"));
@@ -18,8 +21,6 @@ const Ranking = lazy(() => import("./pages/Ranking"));
 const StoreAdmin = lazy(() => import("./pages/StoreAdmin"));
 const AddStore = lazy(() => import("./pages/AddStore"));
 const ImportStores = lazy(() => import("./pages/ImportStores"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
 const Partners = lazy(() => import("./pages/Partners"));
 const PartnersSubscriptionPage = lazy(() => import("./pages/PartnersSubscriptionPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
