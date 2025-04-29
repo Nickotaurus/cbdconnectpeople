@@ -22,10 +22,13 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
   
   // Initialiser les marqueurs et services
   useEffect(() => {
-    if (!map || !userLocation) {
-      console.log("Map ou position utilisateur non disponible");
+    if (!map) {
+      console.log("Map non disponible");
       return;
     }
+
+    // Utiliser une position par défaut si l'utilisateur a refusé la géolocalisation
+    const position = userLocation || { lat: 48.8566, lng: 2.3522 };
 
     try {
       console.log("Initialisation du gestionnaire de marqueurs");
@@ -38,7 +41,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
       
       const manager = MarkerManager({ 
         map, 
-        userLocation, 
+        userLocation: position, 
         onStoreSelect: handleStoreSelect,
         toast 
       });
@@ -47,7 +50,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
       
       const placesService = PlacesSearchService({
         map,
-        userLocation,
+        userLocation: position,
         onAddMarker: manager.addMarker,
         setIsSearching: (value) => {
           manager.setIsSearching(value);
@@ -70,6 +73,19 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
   const handleSearch = async () => {
     if (!searchService || !markerManager) {
       console.log("Services non initialisés");
+      
+      toast({
+        title: "Erreur",
+        description: "La carte n'est pas encore initialisée. Veuillez patienter.",
+      });
+      return;
+    }
+    
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Champ vide",
+        description: "Veuillez saisir un terme de recherche",
+      });
       return;
     }
     
@@ -83,6 +99,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false
       onSearchQueryChange={setSearchQuery}
       onSearch={handleSearch}
       isSearching={isSearching}
+      noResults={noResults}
     />
   );
 };

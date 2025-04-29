@@ -28,17 +28,25 @@ const PlacesSearchService = ({
   setHasResults
 }: PlacesSearchServiceProps) => {
   
-  // Fonction de recherche textuelle simplifiée sans blocages
+  // Fonction de recherche textuelle robuste qui fonctionne même sans géolocalisation
   const textSearch = async (query: string) => {    
+    if (!query) {
+      console.log("Aucun terme de recherche fourni");
+      return;
+    }
+    
     setIsSearching(true);
     
     try {
       const service = serviceRegistry.getService();
       console.log("Service créé pour la recherche:", service);
       
+      // Toujours utiliser une position par défaut si nécessaire
+      const searchLocation = userLocation || { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
+      
       const request = {
-        query: query || "magasin",
-        location: userLocation,
+        query: query,
+        location: searchLocation,
         radius: 50000,
       };
       
@@ -52,27 +60,34 @@ const PlacesSearchService = ({
           setHasResults(true);
           
           results.forEach(place => {
-            onAddMarker(place, service);
+            if (place) {
+              onAddMarker(place, service);
+            }
           });
         } else {
           setHasResults(false);
+          console.log("Aucun résultat trouvé avec textSearch, essai avec nearbySearch");
           
           // Essayer une recherche à proximité comme fallback
           const nearbyRequest = {
-            location: userLocation,
+            location: searchLocation,
             radius: 50000,
-            keyword: query || "magasin"
+            keyword: query
           };
           
           service.nearbySearch(nearbyRequest, (nearbyResults, nearbyStatus) => {
-            if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && nearbyResults && nearbyResults.length > 0) {
+            if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && 
+                nearbyResults && nearbyResults.length > 0) {
               setHasResults(true);
               
               nearbyResults.forEach(place => {
-                onAddMarker(place, service);
+                if (place) {
+                  onAddMarker(place, service);
+                }
               });
             } else {
               setHasResults(false);
+              console.log("Aucun résultat trouvé avec nearbySearch non plus");
             }
           });
         }

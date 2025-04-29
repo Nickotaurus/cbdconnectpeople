@@ -15,13 +15,13 @@ export const useUserLocation = () => {
       let errorMessage = "Accès à votre position refusé";
       switch(error.code) {
         case 1: // PERMISSION_DENIED
-          errorMessage = "Vous avez bloqué l'accès à la géolocalisation. Veuillez l'autoriser dans les paramètres de votre navigateur.";
+          errorMessage = "Vous avez bloqué l'accès à la géolocalisation. Utilisation de la position par défaut (Paris).";
           break;
         case 2: // POSITION_UNAVAILABLE
-          errorMessage = "Position indisponible actuellement";
+          errorMessage = "Position indisponible actuellement. Utilisation de la position par défaut.";
           break;
         case 3: // TIMEOUT
-          errorMessage = "Délai d'attente dépassé";
+          errorMessage = "Délai d'attente pour la géolocalisation dépassé. Utilisation de la position par défaut.";
           break;
       }
       
@@ -29,15 +29,18 @@ export const useUserLocation = () => {
       setUserLocation(defaultLocation);
       
       toast({
-        title: "Accès à la position impossible",
+        title: "Utilisation d'une position par défaut",
         description: errorMessage,
-        variant: "destructive",
+        variant: "default",
         duration: 5000
       });
     };
 
     try {
       if (navigator.geolocation) {
+        // Set default location immediately to avoid delays
+        setUserLocation(defaultLocation);
+        
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
@@ -67,9 +70,9 @@ export const useUserLocation = () => {
       setLocationError("Une erreur inattendue est survenue lors de l'accès à votre position.");
       
       toast({
-        title: "Erreur de géolocalisation",
+        title: "Position par défaut utilisée",
         description: "Impossible de récupérer votre position. Utilisation d'une position par défaut.",
-        variant: "destructive",
+        variant: "default",
       });
     }
   }, [toast]);
