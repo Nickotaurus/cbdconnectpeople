@@ -5,34 +5,64 @@ export const initializeGoogleMap = (
   mapElement: HTMLElement,
   location: google.maps.LatLngLiteral
 ): google.maps.Map => {
-  return new google.maps.Map(mapElement, {
-    center: location,
-    zoom: 13,
-    mapTypeControl: false,
-    fullscreenControl: false,
-    streetViewControl: false,
-    mapId: 'cbd_store_map'
-  });
+  try {
+    return new google.maps.Map(mapElement, {
+      center: location,
+      zoom: 13,
+      mapTypeControl: false,
+      fullscreenControl: false,
+      streetViewControl: false,
+      mapId: 'cbd_store_map'
+    });
+  } catch (error) {
+    console.error("Error initializing Google Map:", error);
+    throw error; // Re-throw to let caller handle it
+  }
 };
 
 export const createUserLocationMarker = (
   map: google.maps.Map,
   position: google.maps.LatLngLiteral
-): google.maps.marker.AdvancedMarkerElement => {
-  const pinElement = new google.maps.marker.PinElement({
-    background: '#4F46E5',
-    borderColor: '#312E81',
-    glyphColor: '#FFFFFF',
-    scale: 1.1
-  });
-
-  return new google.maps.marker.AdvancedMarkerElement({
-    position,
-    map,
-    title: "Votre position",
-    content: pinElement.element,
-    zIndex: 100
-  });
+): any => {
+  try {
+    // Check if Advanced Marker API is available
+    if (window.google?.maps?.marker?.PinElement) {
+      const pinElement = new google.maps.marker.PinElement({
+        background: '#4F46E5',
+        borderColor: '#312E81',
+        glyphColor: '#FFFFFF',
+        scale: 1.1
+      });
+  
+      return new google.maps.marker.AdvancedMarkerElement({
+        position,
+        map,
+        title: "Votre position",
+        content: pinElement.element,
+        zIndex: 100
+      });
+    } else {
+      // Fallback to traditional marker if Advanced Marker API is not available
+      return new google.maps.Marker({
+        position,
+        map,
+        title: "Votre position",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: '#4F46E5',
+          fillOpacity: 1,
+          strokeColor: '#312E81',
+          strokeWeight: 2,
+          scale: 8
+        },
+        zIndex: 100
+      });
+    }
+  } catch (error) {
+    console.error("Error creating user location marker:", error);
+    // Return null instead of throwing, so we can continue execution
+    return null;
+  }
 };
 
 export const createStoreMarker = (
@@ -41,22 +71,47 @@ export const createStoreMarker = (
   title: string,
   isSelected: boolean = false,
   isCBDStore: boolean = false
-): google.maps.marker.AdvancedMarkerElement => {
-  // Utiliser la couleur sage-500 pour les marqueurs
-  const pinElement = new google.maps.marker.PinElement({
-    background: isCBDStore ? '#4F46E5' : (isSelected ? '#78ADA2' : '#F59E0B'),
-    borderColor: isCBDStore ? '#312E81' : (isSelected ? '#5A8279' : '#D97706'),
-    glyphColor: '#FFFFFF',
-    scale: isSelected ? 1.2 : 1
-  });
-
-  return new google.maps.marker.AdvancedMarkerElement({
-    position,
-    map,
-    title: title,
-    content: pinElement.element,
-    zIndex: isSelected ? 99 : 1
-  });
+): any => {
+  try {
+    // Check if Advanced Marker API is available
+    if (window.google?.maps?.marker?.PinElement) {
+      // Utiliser la couleur sage-500 pour les marqueurs
+      const pinElement = new google.maps.marker.PinElement({
+        background: isCBDStore ? '#4F46E5' : (isSelected ? '#78ADA2' : '#F59E0B'),
+        borderColor: isCBDStore ? '#312E81' : (isSelected ? '#5A8279' : '#D97706'),
+        glyphColor: '#FFFFFF',
+        scale: isSelected ? 1.2 : 1
+      });
+    
+      return new google.maps.marker.AdvancedMarkerElement({
+        position,
+        map,
+        title: title,
+        content: pinElement.element,
+        zIndex: isSelected ? 99 : 1
+      });
+    } else {
+      // Fallback to traditional marker if Advanced Marker API is not available
+      return new google.maps.Marker({
+        position,
+        map,
+        title: title,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: isCBDStore ? '#4F46E5' : (isSelected ? '#78ADA2' : '#F59E0B'),
+          fillOpacity: 1,
+          strokeColor: isCBDStore ? '#312E81' : (isSelected ? '#5A8279' : '#D97706'),
+          strokeWeight: 2,
+          scale: isSelected ? 8 : 6
+        },
+        zIndex: isSelected ? 99 : 1
+      });
+    }
+  } catch (error) {
+    console.error("Error creating store marker:", error);
+    // Return null instead of throwing, so we can continue execution
+    return null;
+  }
 };
 
 export const getCurrentLocation = (): Promise<google.maps.LatLngLiteral> => {

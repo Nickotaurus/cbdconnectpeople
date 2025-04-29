@@ -25,8 +25,8 @@ const BasicMap = ({
 }: BasicMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markersRef = useRef<any[]>([]); // Changed to any[] to avoid issues with the Google Maps API types
+  const userMarkerRef = useRef<any | null>(null);
   const { apiKeyLoaded, error: apiError } = useGoogleMapsScript();
   const { toast } = useToast();
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -64,14 +64,28 @@ const BasicMap = ({
 
     try {
       // Initialize the map with standard options
-      mapInstanceRef.current = initializeGoogleMap(mapRef.current, center);
+      const mapOptions = {
+        center: center,
+        zoom: zoom,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false,
+        mapId: 'cbd_store_map'
+      };
+      
+      mapInstanceRef.current = new google.maps.Map(mapRef.current, mapOptions);
       
       // If we have user location, add a marker
       if (userLocation) {
-        userMarkerRef.current = createUserLocationMarker(
-          mapInstanceRef.current, 
-          { lat: userLocation.latitude, lng: userLocation.longitude }
-        );
+        try {
+          // Use a try-catch block specifically for marker creation
+          userMarkerRef.current = createUserLocationMarker(
+            mapInstanceRef.current, 
+            { lat: userLocation.latitude, lng: userLocation.longitude }
+          );
+        } catch (markerError) {
+          console.error("Error creating user marker:", markerError);
+        }
       }
       
       console.log("Map initialized successfully with Advanced Markers API");
@@ -87,10 +101,14 @@ const BasicMap = ({
 
     return () => {
       // Clean up markers
-      markersRef.current.forEach(marker => {
-        marker.map = null;
-      });
-      markersRef.current = [];
+      if (markersRef.current) {
+        markersRef.current.forEach(marker => {
+          if (marker && marker.map) {
+            marker.map = null;
+          }
+        });
+        markersRef.current = [];
+      }
       
       // Clean up user marker
       if (userMarkerRef.current) {
@@ -103,36 +121,44 @@ const BasicMap = ({
 
   // Add store markers when map is ready and stores are available
   useEffect(() => {
-    if (!mapInstanceRef.current || !stores.length) return;
+    if (!mapInstanceRef.current || !stores.length || isRefererError) return;
     
     // Clean up previous markers
-    markersRef.current.forEach(marker => {
-      marker.map = null;
-    });
-    markersRef.current = [];
+    if (markersRef.current) {
+      markersRef.current.forEach(marker => {
+        if (marker && marker.map) {
+          marker.map = null;
+        }
+      });
+      markersRef.current = [];
+    }
     
-    // Add new markers for each store
+    // Add new markers for each store using a try-catch for each one
     stores.forEach(store => {
-      // Check if it's a CBD store based on name
-      const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
-      
-      // Create the marker
-      const marker = createStoreMarker(
-        mapInstanceRef.current!,
-        { lat: store.latitude, lng: store.longitude },
-        store.name,
-        store.id === selectedStoreId,
-        isCBDStore
-      );
-      
-      // Add click handler if onSelectStore is provided
-      if (onSelectStore) {
-        marker.addListener('click', () => {
-          onSelectStore(store);
-        });
+      try {
+        // Check if it's a CBD store based on name
+        const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
+        
+        // Create the marker
+        const marker = createStoreMarker(
+          mapInstanceRef.current!,
+          { lat: store.latitude, lng: store.longitude },
+          store.name,
+          store.id === selectedStoreId,
+          isCBDStore
+        );
+        
+        // Add click handler if onSelectStore is provided
+        if (onSelectStore) {
+          marker.addListener('click', () => {
+            onSelectStore(store);
+          });
+        }
+        
+        markersRef.current.push(marker);
+      } catch (markerError) {
+        console.error("Error creating store marker:", markerError);
       }
-      
-      markersRef.current.push(marker);
     });
     
     // If there's a selected store, center the map on it
@@ -145,33 +171,44 @@ const BasicMap = ({
         });
         
         // Update the marker appearance
-        markersRef.current.forEach((marker, index) => {
-          const store = stores[index];
-          if (store.id === selectedStoreId) {
-            // Highlight the selected store marker
-            const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
+        if (markersRef.current) {
+          markersRef.current.forEach((marker, index) => {
+            if (!marker || index >= stores.length) return;
             
-            // Replace with a new marker that has the selected appearance
-            marker.map = null;
-            markersRef.current[index] = createStoreMarker(
-              mapInstanceRef.current!,
-              { lat: store.latitude, lng: store.longitude },
-              store.name,
-              true,
-              isCBDStore
-            );
-            
-            // Add the click handler again
-            if (onSelectStore) {
-              markersRef.current[index].addListener('click', () => {
-                onSelectStore(store);
-              });
+            const store = stores[index];
+            if (store.id === selectedStoreId) {
+              try {
+                // Highlight the selected store marker
+                const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
+                
+                // Replace with a new marker that has the selected appearance
+                if (marker.map) {
+                  marker.map = null;
+                }
+                
+                markersRef.current[index] = createStoreMarker(
+                  mapInstanceRef.current!,
+                  { lat: store.latitude, lng: store.longitude },
+                  store.name,
+                  true,
+                  isCBDStore
+                );
+                
+                // Add the click handler again
+                if (onSelectStore) {
+                  markersRef.current[index].addListener('click', () => {
+                    onSelectStore(store);
+                  });
+                }
+              } catch (highlightError) {
+                console.error("Error highlighting store marker:", highlightError);
+              }
             }
-          }
-        });
+          });
+        }
       }
     }
-  }, [stores, selectedStoreId, onSelectStore]);
+  }, [stores, selectedStoreId, onSelectStore, isRefererError]);
 
   // Try to get user's current location
   useEffect(() => {
@@ -194,7 +231,7 @@ const BasicMap = ({
   }, []);
 
   // Show fallback UI when map is not ready
-  if (!apiKeyLoaded || mapLoadError || apiError) {
+  if (!apiKeyLoaded || mapLoadError || apiError || isRefererError) {
     const errorMessage = mapLoadError || apiError || "Erreur de chargement de la carte";
     
     return (

@@ -2,7 +2,6 @@
 import { MapPin, Navigation, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface MapFallbackProps {
   stores: Store[];
@@ -27,9 +26,10 @@ const MapFallback = ({
   domain = window.location.origin,
   showAlternativeUI = false
 }: MapFallbackProps) => {
+  // Check if there's a map error (from props or by detecting error in DOM)
   const isMapError = mapLoadError || isRefererError || 
-                      (typeof window !== 'undefined' && 
-                        document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
+                     (typeof window !== 'undefined' && 
+                      document.querySelector('.gm-err-message')?.textContent?.includes('RefererNotAllowed'));
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-background/95 rounded-lg border border-muted">

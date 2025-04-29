@@ -22,7 +22,7 @@ const GoogleMapInitializer = ({
   const { toast } = useToast();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
-  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const markers = useRef<any[]>([]);
   const [mapError, setMapError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<string | null>(null);
   const [isRefererError, setIsRefererError] = useState<boolean>(false);
@@ -32,6 +32,10 @@ const GoogleMapInitializer = ({
     
     try {
       // Create the map
+      if (!window.google || !window.google.maps || !window.google.maps.Map) {
+        throw new Error("Google Maps API not loaded");
+      }
+      
       const mapOptions = {
         center: { lat: userLocation.latitude, lng: userLocation.longitude },
         zoom: 13,
@@ -75,33 +79,42 @@ const GoogleMapInitializer = ({
       
       // Run an initial check
       if (!checkForMapErrors()) {
-        // Add user location marker using the new AdvancedMarkerElement
-        createUserLocationMarker(
-          mapInstance.current,
-          { lat: userLocation.latitude, lng: userLocation.longitude }
-        );
-        
-        // Add store markers using the AdvancedMarkerElement
-        stores.forEach(store => {
-          // Check if it's a CBD store based on name
-          const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
-          
-          const marker = createStoreMarker(
-            mapInstance.current!,
-            { lat: store.latitude, lng: store.longitude },
-            store.name,
-            store.id === selectedStoreId,
-            isCBDStore
+        try {
+          // Add user location marker
+          const userMarker = createUserLocationMarker(
+            mapInstance.current,
+            { lat: userLocation.latitude, lng: userLocation.longitude }
           );
+          if (userMarker) markers.current.push(userMarker);
           
-          if (onSelectStore) {
-            marker.addListener('click', () => {
-              onSelectStore(store);
-            });
-          }
-          
-          markers.current.push(marker);
-        });
+          // Add store markers
+          stores.forEach(store => {
+            try {
+              // Check if it's a CBD store based on name
+              const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
+              
+              const marker = createStoreMarker(
+                mapInstance.current!,
+                { lat: store.latitude, lng: store.longitude },
+                store.name,
+                store.id === selectedStoreId,
+                isCBDStore
+              );
+              
+              if (marker && onSelectStore) {
+                marker.addListener('click', () => {
+                  onSelectStore(store);
+                });
+              }
+              
+              if (marker) markers.current.push(marker);
+            } catch (markerError) {
+              console.error("Error creating store marker:", markerError);
+            }
+          });
+        } catch (markerError) {
+          console.error("Error creating markers:", markerError);
+        }
         
         // Run a secondary check after a short delay
         setTimeout(checkForMapErrors, 500);
@@ -115,7 +128,9 @@ const GoogleMapInitializer = ({
     return () => {
       // Cleanup markers
       markers.current.forEach(marker => {
-        marker.map = null;
+        if (marker && marker.map) {
+          marker.map = null;
+        }
       });
       markers.current = [];
     };
@@ -125,41 +140,57 @@ const GoogleMapInitializer = ({
   useEffect(() => {
     if (!mapInstance.current || mapError) return;
     
-    markers.current.forEach((marker, index) => {
-      if (index < stores.length) {
+    try {
+      markers.current.forEach((marker, index) => {
+        if (!marker || index >= stores.length) return;
+        
         const store = stores[index];
         const isSelected = store.id === selectedStoreId;
-        // Check if it's a CBD store based on name
-        const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
         
-        // Can't update AdvancedMarkerElement directly, so we replace it
-        if (isSelected) {
-          // Get the position
-          const position = marker.position;
-          if (position) {
-            // Replace with a new marker that has the selected appearance
-            marker.map = null;
-            markers.current[index] = createStoreMarker(
-              mapInstance.current!,
-              { lat: position.lat(), lng: position.lng() },
-              store.name,
-              true,
-              isCBDStore
-            );
-            
-            // Center map on selected marker
-            mapInstance.current.panTo(position);
-            
-            // Re-add click handler
-            if (onSelectStore) {
-              markers.current[index].addListener('click', () => {
-                onSelectStore(store);
-              });
+        // Simple check to determine if this is a store marker (not a user location marker)
+        if (store && marker.getTitle && marker.getTitle() === store.name) {
+          try {
+            // Can't update AdvancedMarkerElement directly, so we replace it
+            if (isSelected && marker.position) {
+              // Get the position
+              const position = marker.getPosition ? 
+                { lat: marker.getPosition().lat(), lng: marker.getPosition().lng() } : 
+                { lat: store.latitude, lng: store.longitude };
+                
+              // Replace with a new marker that has the selected appearance
+              if (marker.map) {
+                marker.map = null;
+              }
+              
+              // Check if it's a CBD store based on name
+              const isCBDStore = (store.name || '').toLowerCase().includes('cbd');
+              
+              markers.current[index] = createStoreMarker(
+                mapInstance.current!,
+                position,
+                store.name,
+                true,
+                isCBDStore
+              );
+              
+              // Center map on selected marker
+              mapInstance.current.panTo(position);
+              
+              // Re-add click handler
+              if (onSelectStore && markers.current[index]) {
+                markers.current[index].addListener('click', () => {
+                  onSelectStore(store);
+                });
+              }
             }
+          } catch (highlightError) {
+            console.error("Error highlighting marker:", highlightError);
           }
         }
-      }
-    });
+      });
+    } catch (error) {
+      console.error("Error updating markers:", error);
+    }
   }, [selectedStoreId, stores, mapError, onSelectStore]);
 
   if (mapError) {
