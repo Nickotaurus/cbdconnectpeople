@@ -2,22 +2,20 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, AlertCircle } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface StoreSearchBarProps {
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
   onSearch: () => void;
   isSearching: boolean;
-  noResults: boolean;
 }
 
 const StoreSearchBar = ({
   searchQuery,
   onSearchQueryChange,
   onSearch,
-  isSearching,
-  noResults
+  isSearching
 }: StoreSearchBarProps) => {
   return (
     <div className="absolute left-0 right-0 top-0 p-4 z-20">
@@ -31,21 +29,16 @@ const StoreSearchBar = ({
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                if (searchQuery.trim()) {
-                  onSearch();
-                }
+                onSearch();
               }
             }}
-            disabled={isSearching}
           />
           <Button 
             onClick={(e) => {
               e.preventDefault();
-              if (searchQuery.trim()) {
-                onSearch();
-              }
+              onSearch();
             }} 
-            disabled={isSearching || !searchQuery.trim()}
+            disabled={isSearching}
             variant="default"
             type="button"
           >
@@ -57,13 +50,6 @@ const StoreSearchBar = ({
             Rechercher
           </Button>
         </div>
-        
-        {noResults && (
-          <div className="p-2 bg-amber-50 text-amber-800 rounded-md flex items-center text-sm">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Aucun résultat trouvé. Essayez des termes différents ou ajoutez votre boutique manuellement.</span>
-          </div>
-        )}
       </div>
     </div>
   );

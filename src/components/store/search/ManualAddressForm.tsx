@@ -1,38 +1,30 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { ArrowLeft, Search } from 'lucide-react';
 
-// Schéma de validation sans restrictions
-const formSchema = z.object({
-  address: z.string().optional(),
-  city: z.string().optional(),
-  postalCode: z.string().optional()
-});
+// Schéma simplifié sans aucune validation
+const defaultValues = {
+  address: '',
+  city: '',
+  postalCode: ''
+};
 
 interface ManualAddressFormProps {
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: typeof defaultValues) => void;
   onBack: () => void;
   isSearching: boolean;
 }
 
 const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      address: '',
-      city: '',
-      postalCode: ''
-    }
+  const form = useForm({
+    defaultValues
   });
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Version simplifiée - sans validation stricte
+  const handleSubmit = (values: typeof defaultValues) => {
     onSubmit(values);
   };
 
@@ -44,10 +36,7 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
       </Button>
       
       <Form {...form}>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit(handleSubmit)(e);
-        }} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="address"
@@ -57,7 +46,6 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
                 <FormControl>
                   <Input placeholder="123 Rue de la Boutique" {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -72,7 +60,6 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
                   <FormControl>
                     <Input placeholder="Paris" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -86,7 +73,6 @@ const ManualAddressForm = ({ onSubmit, onBack, isSearching }: ManualAddressFormP
                   <FormControl>
                     <Input placeholder="75001" {...field} />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
