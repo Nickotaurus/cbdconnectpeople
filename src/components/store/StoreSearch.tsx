@@ -138,7 +138,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         className="w-full"
       >
         <MapPin className="w-4 h-4 mr-2" />
-        Rechercher ma boutique CBD
+        Rechercher ma boutique
       </Button>
 
       <DialogWrapper
@@ -155,10 +155,10 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
         apiKeyLoaded={isApiLoaded}
         onManualAdd={() => setShowManualForm(true)}
         showManualForm={showManualForm}
-        title={isRegistration ? "Recherchez votre boutique" : "Recherche de boutique CBD"}
+        title={isRegistration ? "Recherchez votre boutique" : "Recherche de boutique"}
         description={isRegistration 
           ? "Recherchez votre boutique pour récupérer automatiquement les informations de Google Business."
-          : "Recherchez votre boutique CBD sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement."
+          : "Recherchez votre boutique sur la carte. Si votre boutique n'apparaît pas, vous pourrez l'ajouter manuellement."
         }
       >
         {foundBusinessProfile && (
@@ -193,6 +193,7 @@ const StoreSearch = ({ onStoreSelect, isRegistration = false }: StoreSearchProps
                       map={map}
                       userLocation={userLocation}
                       onStoreSelect={handlePlaceSelect}
+                      isRegistration={isRegistration}
                     />
                   </>
                 )

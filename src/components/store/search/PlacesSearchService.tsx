@@ -1,3 +1,4 @@
+
 import { useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { createPlacesServiceDiv } from '@/services/googleMapsService';
@@ -40,134 +41,10 @@ const PlacesSearchService = ({
     return serviceRef.current;
   };
 
+  // On supprime le code de la recherche automatique qui causait des problèmes
   const searchStores = async () => {
-    const service = getService();
-    if (!service) {
-      console.error("Places service not initialized");
-      toast({
-        title: "Erreur d'initialisation",
-        description: "Le service de recherche n'est pas disponible",
-        variant: "destructive"
-      });
-      setIsSearching(false);
-      return;
-    }
-
-    const searchTerms = [
-      { keyword: 'bien-être chanvre', radius: 50000 },
-      { keyword: 'herboristerie bien-être', radius: 50000 },
-      { keyword: 'boutique naturelle', radius: 50000 },
-      { keyword: 'magasin chanvre', radius: 30000 },
-      { keyword: 'produits naturels', radius: 30000 },
-      { keyword: 'herboristerie', radius: 30000 }
-    ];
-
-    setIsSearching(true);
-    let totalFound = 0;
-    const processedPlaceIds = new Set<string>();
-    
-    try {
-      for (const term of searchTerms) {
-        const request = {
-          location: userLocation,
-          radius: term.radius,
-          keyword: term.keyword,
-          type: 'store'
-        };
-        
-        console.log(`Recherche de: ${term.keyword} dans un rayon de ${term.radius}m`);
-        
-        try {
-          await new Promise<void>((resolve) => {
-            if (!service) {
-              console.error("Service not available during search execution");
-              resolve();
-              return;
-            }
-
-            service.nearbySearch(request, (results, status) => {
-              if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                console.log(`Trouvé ${results.length} établissements pour "${term.keyword}"`);
-                
-                const newResults = results.filter(place => {
-                  if (!place.place_id || processedPlaceIds.has(place.place_id)) {
-                    return false;
-                  }
-                  
-                  const name = place.name?.toLowerCase() || '';
-                  const vicinity = place.vicinity?.toLowerCase() || '';
-                  const isRelevant = 
-                    name.includes('bien-être') || 
-                    name.includes('naturel') || 
-                    name.includes('chanvre') || 
-                    name.includes('herboristerie') ||
-                    vicinity.includes('naturel') ||
-                    vicinity.includes('bien-être');
-                  
-                  if (isRelevant) {
-                    processedPlaceIds.add(place.place_id);
-                    return true;
-                  }
-                  
-                  if (term.keyword === 'herboristerie' || term.keyword === 'produits naturels') {
-                    processedPlaceIds.add(place.place_id);
-                    return true;
-                  }
-                  
-                  return false;
-                });
-                
-                if (newResults.length > 0) {
-                  setHasResults(true);
-                  totalFound += newResults.length;
-                  
-                  newResults.forEach(place => {
-                    if (service) {
-                      onAddMarker(place, service);
-                    }
-                  });
-                }
-              } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                console.log(`Aucun résultat trouvé pour "${term.keyword}"`);
-              } else {
-                console.warn(`Erreur de recherche pour "${term.keyword}": ${status}`);
-              }
-              resolve();
-            });
-          });
-          
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-        } catch (error) {
-          console.error(`Erreur lors de la recherche pour ${term.keyword}:`, error);
-        }
-      }
-      
-      if (totalFound === 0) {
-        setHasResults(false);
-        toast({
-          title: "Aucun établissement trouvé",
-          description: "Vous pouvez ajouter votre boutique manuellement",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Résultats de recherche",
-          description: `${totalFound} établissements trouvés dans votre région`,
-          variant: "default"
-        });
-      }
-    } catch (error) {
-      console.error('Erreur globale lors de la recherche:', error);
-      toast({
-        title: "Erreur de recherche",
-        description: "Une erreur est survenue lors de la recherche d'établissements",
-        variant: "destructive"
-      });
-      setHasResults(false);
-    } finally {
-      setIsSearching(false);
-    }
+    // Ne fait plus rien automatiquement
+    console.log("Recherche automatique désactivée");
   };
 
   const textSearch = async (query: string) => {

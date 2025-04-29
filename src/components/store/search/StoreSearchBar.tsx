@@ -24,7 +24,7 @@ const StoreSearchBar = ({
       <div className="bg-white rounded-md shadow-md p-3">
         <div className="flex gap-2 mb-2">
           <Input
-            placeholder="Rechercher une boutique CBD..."
+            placeholder="Rechercher votre boutique..."
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
             className="flex-1"
@@ -52,7 +52,7 @@ const StoreSearchBar = ({
         {noResults && (
           <div className="p-2 bg-amber-50 text-amber-800 rounded-md flex items-center text-sm">
             <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Aucune boutique CBD trouvée. Utilisez des termes différents ou ajoutez votre boutique manuellement.</span>
+            <span>Aucun résultat trouvé. Essayez des termes différents ou ajoutez votre boutique manuellement.</span>
           </div>
         )}
       </div>

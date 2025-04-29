@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import MarkerManager from './markers/MarkerManager';
 import PlacesSearchService from './search/PlacesSearchService';
@@ -11,9 +12,10 @@ interface StoreMarkersProps {
   map: google.maps.Map | null;
   userLocation: google.maps.LatLngLiteral | null;
   onStoreSelect: (placeId: string) => void; 
+  isRegistration?: boolean;
 }
 
-const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) => {
+const StoreMarkers = ({ map, userLocation, onStoreSelect, isRegistration = false }: StoreMarkersProps) => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -100,6 +102,9 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         });
         setSearchService(placesService);
 
+        // Ne plus lancer la recherche automatique
+        // On ne fait plus: placesService.searchStores();
+
       } catch (error) {
         console.error('Error loading markers:', error);
         toast({
@@ -167,12 +172,16 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
     }
   };
 
+  const placeholder = isRegistration 
+    ? "Rechercher votre boutique..."
+    : "Rechercher une boutique CBD...";
+
   return (
     <div className="absolute left-0 right-0 top-0 p-4 z-20">
       <div className="bg-white rounded-md shadow-md p-3">
         <div className="flex gap-2 mb-2">
           <Input
-            placeholder="Rechercher une boutique CBD..."
+            placeholder={placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
@@ -200,7 +209,7 @@ const StoreMarkers = ({ map, userLocation, onStoreSelect }: StoreMarkersProps) =
         {noResults && (
           <div className="p-2 bg-amber-50 text-amber-800 rounded-md flex items-center text-sm">
             <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Aucune boutique CBD trouvée. Utilisez des termes différents ou ajoutez votre boutique manuellement.</span>
+            <span>Aucun résultat trouvé. Essayez des termes différents ou ajoutez votre boutique manuellement.</span>
           </div>
         )}
       </div>
