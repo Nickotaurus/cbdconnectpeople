@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
 import { Store } from '@/types/store';
-import DescriptionField from './store-form/DescriptionField';
-import FormAccordion from './store-form/FormAccordion';
 import FormActions from './store-form/FormActions';
 import StoreImageUpload from './store/StoreImageUpload';
 import { Card } from '@/components/ui/card';
@@ -35,12 +33,6 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     placeId: '',
     logoUrl: '',
     photoUrl: '',
-    // Champs supplémentaires pour les incitations et prix de loterie
-    originalIncentive: '',
-    incentiveDescription: '',
-    lotteryPrizeName: '',
-    lotteryPrizeDescription: '',
-    lotteryPrizeValue: '',
     // Données de profil Google Business
     googlePhotos: [] as string[],
     rating: 0,
@@ -243,6 +235,15 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
         description: `La boutique "${newStore.name}" a été ajoutée avec succès.`,
       });
 
+      // Afficher le message de bienvenue
+      setTimeout(() => {
+        toast({
+          title: "Bravo et bienvenue dans le réseau !",
+          description: "En rejoignant la plateforme, vous faites un pas concret vers plus de visibilité, de connexions utiles et d'entraide entre pros du CBD. Ensemble, on va plus loin.",
+          duration: 8000,
+        });
+      }, 1500);
+
       if (onSuccess) {
         onSuccess(newStore);
       }
@@ -407,10 +408,6 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
               </div>
             </Card>
           )}
-          
-          <DescriptionField description={formData.description} handleChange={handleChange} />
-          
-          <FormAccordion formData={formData} handleChange={handleChange} storeType={storeType} />
           
           <FormActions storeType={storeType} />
         </form>
