@@ -147,6 +147,96 @@ declare namespace google {
       DROP
     }
 
+    // Ajout de la définition du Geocoder
+    class Geocoder {
+      constructor();
+      geocode(
+        request: GeocoderRequest,
+        callback: (
+          results: GeocoderResult[] | null,
+          status: GeocoderStatus
+        ) => void
+      ): void;
+    }
+
+    interface GeocoderRequest {
+      address?: string;
+      location?: LatLng | LatLngLiteral;
+      bounds?: LatLngBounds;
+      componentRestrictions?: GeocoderComponentRestrictions;
+      region?: string;
+    }
+
+    interface GeocoderComponentRestrictions {
+      route?: string;
+      locality?: string;
+      administrativeArea?: string;
+      postalCode?: string;
+      country?: string;
+    }
+
+    interface GeocoderResult {
+      address_components: GeocoderAddressComponent[];
+      formatted_address: string;
+      geometry: GeocoderGeometry;
+      place_id: string;
+      types: string[];
+      partial_match?: boolean;
+      postcode_localities?: string[];
+    }
+
+    interface GeocoderAddressComponent {
+      long_name: string;
+      short_name: string;
+      types: string[];
+    }
+
+    interface GeocoderGeometry {
+      location: LatLng;
+      location_type: GeocoderLocationType;
+      viewport: LatLngBounds;
+      bounds?: LatLngBounds;
+    }
+
+    enum GeocoderLocationType {
+      APPROXIMATE,
+      GEOMETRIC_CENTER,
+      RANGE_INTERPOLATED,
+      ROOFTOP
+    }
+
+    enum GeocoderStatus {
+      OK,
+      ZERO_RESULTS,
+      OVER_QUERY_LIMIT,
+      REQUEST_DENIED,
+      INVALID_REQUEST,
+      UNKNOWN_ERROR
+    }
+
+    class LatLngBounds {
+      constructor(sw?: LatLng | LatLngLiteral, ne?: LatLng | LatLngLiteral);
+      contains(latLng: LatLng | LatLngLiteral): boolean;
+      equals(other: LatLngBounds | LatLngBoundsLiteral): boolean;
+      extend(point: LatLng | LatLngLiteral): LatLngBounds;
+      getCenter(): LatLng;
+      getNorthEast(): LatLng;
+      getSouthWest(): LatLng;
+      intersects(other: LatLngBounds | LatLngBoundsLiteral): boolean;
+      isEmpty(): boolean;
+      toJSON(): LatLngBoundsLiteral;
+      toSpan(): LatLng;
+      toString(): string;
+      union(other: LatLngBounds | LatLngBoundsLiteral): LatLngBounds;
+    }
+
+    interface LatLngBoundsLiteral {
+      east: number;
+      north: number;
+      south: number;
+      west: number;
+    }
+
     namespace places {
       interface PlaceResult {
         place_id?: string;
@@ -244,5 +334,5 @@ declare namespace google {
 interface Window {
   google: typeof google;
   selectStore?: (placeId: string) => void;
-  initGoogleMapsCallback?: () => void;  // Make sure to use optional (?) here
+  initGoogleMapsCallback?: () => void;
 }

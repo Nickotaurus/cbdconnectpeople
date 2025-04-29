@@ -9,7 +9,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useForm } from "react-hook-form";
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
-import { loadGoogleMapsAPI, isGoogleMapsLoaded } from '@/services/googleMapsService';
 
 interface ManualStoreSearchProps {
   onStoreSelect: (store: {
@@ -236,7 +235,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
     };
 
     // Utiliser l'API Geocoding pour obtenir des coordonnées précises
-    if (window.google && window.google.maps && window.google.maps.Geocoder) {
+    if (window.google && window.google.maps) {
       const geocoder = new google.maps.Geocoder();
       const address = `${storeData.address}, ${storeData.postalCode} ${storeData.city}, France`;
       
