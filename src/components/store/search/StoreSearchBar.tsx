@@ -9,13 +9,15 @@ interface StoreSearchBarProps {
   onSearchQueryChange: (query: string) => void;
   onSearch: () => void;
   isSearching: boolean;
+  noResults?: boolean; // Added the missing property
 }
 
 const StoreSearchBar = ({
   searchQuery,
   onSearchQueryChange,
   onSearch,
-  isSearching
+  isSearching,
+  noResults = false // Added with default value
 }: StoreSearchBarProps) => {
   return (
     <div className="absolute left-0 right-0 top-0 p-4 z-20">
@@ -50,6 +52,9 @@ const StoreSearchBar = ({
             Rechercher
           </Button>
         </div>
+        {noResults && (
+          <p className="text-sm text-red-500 mt-2">Aucun résultat trouvé. Essayez d'autres termes.</p>
+        )}
       </div>
     </div>
   );
