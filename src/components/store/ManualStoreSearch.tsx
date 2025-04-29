@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 
 interface ManualStoreSearchProps {
@@ -25,17 +27,28 @@ interface ManualStoreSearchProps {
   isRegistration?: boolean;
 }
 
+type SearchFormValues = {
+  storeName: string;
+  city: string;
+}
+
 const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
   onStoreSelect,
   isRegistration = false,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const { toast } = useToast();
+  
+  const form = useForm<SearchFormValues>({
+    defaultValues: {
+      storeName: "",
+      city: ""
+    }
+  });
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+  const handleSearch = async (values: SearchFormValues) => {
+    if (!values.storeName.trim()) {
       toast({
         title: "Champ vide",
         description: "Veuillez saisir le nom de votre établissement",
@@ -49,24 +62,30 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
       // Simuler une recherche et retourner des résultats
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Créer une boutique factice basée sur la recherche
+      // Créer une boutique factice basée sur la recherche avec la ville fournie
       const mockStore = {
-        name: searchTerm,
+        name: values.storeName,
         address: "123 Rue du Commerce",
-        city: "Paris",
-        postalCode: "75001",
-        latitude: 48.8566,
-        longitude: 2.3522,
+        city: values.city || "Paris", // Utiliser la ville saisie par l'utilisateur
+        postalCode: values.city === "Paris" ? "75001" : 
+                    values.city === "Marseille" ? "13001" : 
+                    values.city === "Lyon" ? "69001" : "00000",
+        latitude: values.city === "Paris" ? 48.8566 : 
+                  values.city === "Marseille" ? 43.2965 : 
+                  values.city === "Lyon" ? 45.7640 : 48.8566,
+        longitude: values.city === "Paris" ? 2.3522 : 
+                   values.city === "Marseille" ? 5.3698 : 
+                   values.city === "Lyon" ? 4.8357 : 2.3522,
         placeId: "mock-place-id-" + Date.now(),
       };
 
       // Simuler la récupération d'une fiche Google Business
       if (Math.random() > 0.3) {
         const mockBusinessDetails = {
-          name: searchTerm,
-          address: "123 Rue du Commerce, 75001 Paris",
+          name: values.storeName,
+          address: `123 Rue du Commerce, ${mockStore.postalCode} ${values.city || "Paris"}`,
           phone: "+33 1 23 45 67 89",
-          website: "https://www." + searchTerm.toLowerCase().replace(/\s+/g, '') + ".fr",
+          website: "https://www." + values.storeName.toLowerCase().replace(/\s+/g, '') + ".fr",
           rating: 4.5,
           totalReviews: 42,
           photos: [
@@ -97,10 +116,17 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
     const storeData = {
       name: businessDetails.name,
       address: businessDetails.address.split(',')[0],
-      city: "Paris", // Simplification
-      postalCode: "75001", // Simplification
-      latitude: 48.8566, // Valeur par défaut pour Paris
-      longitude: 2.3522, // Valeur par défaut pour Paris
+      city: form.getValues().city || "Paris", // Utiliser la ville saisie
+      postalCode: businessDetails.address.match(/\d{5}/) ? businessDetails.address.match(/\d{5}/)[0] : 
+                  form.getValues().city === "Paris" ? "75001" : 
+                  form.getValues().city === "Marseille" ? "13001" : 
+                  form.getValues().city === "Lyon" ? "69001" : "00000",
+      latitude: form.getValues().city === "Paris" ? 48.8566 : 
+                form.getValues().city === "Marseille" ? 43.2965 : 
+                form.getValues().city === "Lyon" ? 45.7640 : 48.8566,
+      longitude: form.getValues().city === "Paris" ? 2.3522 : 
+                 form.getValues().city === "Marseille" ? 5.3698 : 
+                 form.getValues().city === "Lyon" ? 4.8357 : 2.3522,
       placeId: "google-business-" + Date.now(),
       photos: businessDetails.photos,
       phone: businessDetails.phone,
@@ -114,13 +140,21 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
   };
 
   const handleManualEntry = () => {
+    const cityValue = form.getValues().city || "Paris";
+    
     const storeData = {
-      name: searchTerm,
+      name: form.getValues().storeName,
       address: "À compléter",
-      city: "",
-      postalCode: "",
-      latitude: 48.8566, // Valeur par défaut pour Paris
-      longitude: 2.3522, // Valeur par défaut pour Paris
+      city: cityValue,
+      postalCode: cityValue === "Paris" ? "75001" : 
+                  cityValue === "Marseille" ? "13001" : 
+                  cityValue === "Lyon" ? "69001" : "",
+      latitude: cityValue === "Paris" ? 48.8566 : 
+                cityValue === "Marseille" ? 43.2965 : 
+                cityValue === "Lyon" ? 45.7640 : 48.8566,
+      longitude: cityValue === "Paris" ? 2.3522 : 
+                 cityValue === "Marseille" ? 5.3698 : 
+                 cityValue === "Lyon" ? 4.8357 : 2.3522,
       placeId: "manual-entry-" + Date.now(),
     };
 
@@ -134,28 +168,53 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
         <CardTitle>Trouvez votre établissement</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 mb-4">
-          <div className="relative flex-1">
-            <Input
-              type="text"
-              placeholder="Nom de votre établissement"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ville</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Paris" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-          </div>
-          <Button 
-            onClick={handleSearch} 
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Search className="h-4 w-4 mr-2" />
-            )}
-            Rechercher
-          </Button>
-        </div>
+            
+            <FormField
+              control={form.control}
+              name="storeName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom de votre établissement</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ma Boutique CBD" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  Recherche en cours...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Rechercher
+                </>
+              )}
+            </Button>
+          </form>
+        </Form>
 
         {businessDetails && (
           <GoogleBusinessIntegration
@@ -172,7 +231,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
             <p className="text-sm text-muted-foreground">Recherche en cours...</p>
           </div>
         ) : !businessDetails && (
-          <div>
+          <div className="mt-4">
             <p className="text-sm text-muted-foreground mb-4">
               Entrez le nom de votre boutique et recherchez pour voir si une fiche Google Business existe.
               Sinon, vous pourrez saisir manuellement les informations.
@@ -181,7 +240,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
               variant="outline"
               className="w-full"
               onClick={handleManualEntry}
-              disabled={!searchTerm.trim()}
+              disabled={!form.getValues().storeName.trim()}
             >
               Saisir manuellement mes informations
             </Button>
