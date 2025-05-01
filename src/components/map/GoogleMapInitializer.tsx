@@ -153,9 +153,18 @@ const GoogleMapInitializer = ({
             // Can't update AdvancedMarkerElement directly, so we replace it
             if (isSelected && marker.position) {
               // Get the position
-              const position = marker.getPosition ? 
-                { lat: marker.getPosition().lat(), lng: marker.getPosition().lng() } : 
-                { lat: store.latitude, lng: store.longitude };
+              let position: google.maps.LatLngLiteral;
+              
+              // Fix for the LatLng type error: ensure we create a proper LatLngLiteral
+              if (marker.getPosition) {
+                const pos = marker.getPosition();
+                position = { 
+                  lat: pos ? pos.lat() : store.latitude, 
+                  lng: pos ? pos.lng() : store.longitude 
+                };
+              } else {
+                position = { lat: store.latitude, lng: store.longitude };
+              }
                 
               // Replace with a new marker that has the selected appearance
               if (marker.map) {

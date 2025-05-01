@@ -1,4 +1,3 @@
-
 // Type definitions for Google Maps JavaScript API
 declare namespace google {
   namespace maps {
@@ -38,6 +37,7 @@ declare namespace google {
       getPosition(): LatLng | null;
       setAnimation(animation: Animation | null): void;
       addListener(event: string, handler: Function): void;
+      getTitle?(): string | null;
     }
 
     interface MarkerOptions {
@@ -46,6 +46,7 @@ declare namespace google {
       title?: string;
       icon?: string | Icon | Symbol;
       animation?: Animation;
+      // zIndex isn't in the basic MarkerOptions according to TypeScript definition
     }
 
     // New Advanced Marker API
@@ -56,9 +57,8 @@ declare namespace google {
         map: Map | null;
         title: string | null;
         content: Node | null;
-        zIndex: number;
+        zIndex: number; // This property exists in AdvancedMarkerElement
         addListener(event: string, handler: Function): void;
-        // Remove the incorrect addEventListener method
       }
 
       interface AdvancedMarkerElementOptions {
@@ -66,7 +66,7 @@ declare namespace google {
         map?: Map | null;
         title?: string;
         content?: Node;
-        zIndex?: number;
+        zIndex?: number; // Added zIndex property to the options interface
       }
 
       class PinElement {

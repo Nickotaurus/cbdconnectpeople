@@ -39,10 +39,12 @@ export const createUserLocationMarker = (
         map,
         title: "Votre position",
         content: pinElement.element,
+        // zIndex property is available on AdvancedMarkerElement
         zIndex: 100
       });
     } else {
       // Fallback to traditional marker if Advanced Marker API is not available
+      // Note: zIndex is removed as it's not in the MarkerOptions type
       return new google.maps.Marker({
         position,
         map,
@@ -54,8 +56,8 @@ export const createUserLocationMarker = (
           strokeColor: '#312E81',
           strokeWeight: 2,
           scale: 8
-        },
-        zIndex: 100
+        }
+        // zIndex removed here as it's not in the MarkerOptions type
       });
     }
   } catch (error) {
@@ -88,10 +90,12 @@ export const createStoreMarker = (
         map,
         title: title,
         content: pinElement.element,
+        // zIndex property is available on AdvancedMarkerElement
         zIndex: isSelected ? 99 : 1
       });
     } else {
       // Fallback to traditional marker if Advanced Marker API is not available
+      // Note: zIndex is removed as it's not in the MarkerOptions type
       return new google.maps.Marker({
         position,
         map,
@@ -103,8 +107,8 @@ export const createStoreMarker = (
           strokeColor: isCBDStore ? '#312E81' : (isSelected ? '#5A8279' : '#D97706'),
           strokeWeight: 2,
           scale: isSelected ? 8 : 6
-        },
-        zIndex: isSelected ? 99 : 1
+        }
+        // zIndex removed here as it's not in the MarkerOptions type
       });
     }
   } catch (error) {
