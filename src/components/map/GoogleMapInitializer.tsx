@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Store } from '@/types/store';
 import { AlertCircle } from 'lucide-react';
@@ -182,8 +181,9 @@ const GoogleMapInitializer = ({
                 isCBDStore
               );
               
-              // Center map on selected marker
-              mapInstance.current.panTo(position);
+              // Center map on selected marker - use proper LatLng object
+              const latLng = new google.maps.LatLng(position.lat, position.lng);
+              mapInstance.current.panTo(latLng);
               
               // Re-add click handler
               if (onSelectStore && markers.current[index]) {
