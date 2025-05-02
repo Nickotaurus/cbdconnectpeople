@@ -72,3 +72,14 @@ export const getStoreById = (id: string) => {
 export const getReviewsByCategory = (reviews: Store['reviews'], category: string) => {
   return reviews.filter(review => review.category === category);
 };
+
+// Nouvelle fonction pour vérifier les doublons par nom
+export const isStoreDuplicate = (name: string): boolean => {
+  // Convertir le nom en minuscules et supprimer les espaces pour la comparaison
+  const normalizedName = name.toLowerCase().replace(/\s+/g, '');
+  
+  return stores.some(store => {
+    const storeName = store.name.toLowerCase().replace(/\s+/g, '');
+    return storeName === normalizedName;
+  });
+};

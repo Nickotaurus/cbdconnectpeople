@@ -31,37 +31,40 @@ const MapView = () => {
     maxDistance: null as number | null,
   });
 
-  // Memoized function to combine and deduplicate stores with improved deduplication
+  // Fonction améliorée pour combiner et dédupliquer les boutiques avec une gestion spécifique pour "CBD Histoire de Chanvre"
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Create a store map using keys that will help catch duplicates
+    // Créer une map pour suivre les boutiques uniques
     const storeMap: Record<string, Store> = {};
     
-    // Function to generate a consistent key for a store
+    // Fonction pour générer une clé cohérente pour une boutique
     const getStoreKey = (store: Store): string => {
-      // Try to use placeId as the most reliable identifier
+      // Clé spéciale pour CBD Histoire de Chanvre (pour supprimer tous les doublons)
+      if (store.name.includes("CBD Histoire de Chanvre")) {
+        return "cbd_histoire_de_chanvre";
+      }
+      
+      // Pour les autres boutiques, utiliser la logique standard
       if (store.placeId) {
         return `place_${store.placeId}`;
       }
       
-      // Next best option is to use coordinate-based identification for more precise deduplication
       if (store.latitude && store.longitude) {
-        // Round coordinates to 5 decimal places (~1m precision) to catch very close duplicates
+        // Arrondir les coordonnées à 5 décimales
         const lat = Math.round(store.latitude * 100000) / 100000;
         const lng = Math.round(store.longitude * 100000) / 100000;
         return `geo_${lat}_${lng}`;
       }
       
-      // Fallback to address-name based identification
       return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
     };
     
-    // First add local stores to the map
+    // D'abord ajouter les boutiques locales à la map
     localStores.forEach(store => {
       const key = getStoreKey(store);
       storeMap[key] = store;
     });
     
-    // Then add Supabase stores, overwriting local ones if they exist with same key
+    // Ensuite ajouter les boutiques de Supabase, remplaçant les locales si elles existent avec la même clé
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
         const key = getStoreKey(store);
@@ -69,17 +72,18 @@ const MapView = () => {
       });
     }
     
-    // Convert map back to array and sort by distance
+    // Convertir la map en tableau et trier par distance
     const uniqueStores = Object.values(storeMap);
-    // Return the sorted stores
+    
+    // Retourner les boutiques triées par distance
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
   
-  // Load and combine stores
+  // Charger et combiner les boutiques
   useEffect(() => {
-    // Get local stores
+    // Obtenir les boutiques locales
     const localStores = getStoresByDistance(userLocation.latitude, userLocation.longitude);
-    // Then combine with the stores from Supabase and ensure proper deduplication
+    // Puis combiner avec les boutiques de Supabase et assurer une bonne déduplication
     const combined = combineAndDeduplicateStores(localStores, supabaseStores);
     setCombinedStores(combined);
     
@@ -88,7 +92,7 @@ const MapView = () => {
     }
   }, [userLocation, supabaseStores, isLoadingStores, combineAndDeduplicateStores, isInitialLoad]);
   
-  // Get user location
+  // Obtenir la position de l'utilisateur
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -103,11 +107,11 @@ const MapView = () => {
       );
     }
     
-    // Listen for reset search event
+    // Écouter l'événement reset search
     const handleResetSearch = () => setSearchTerm('');
     window.addEventListener('reset-search', handleResetSearch);
     
-    // Listen for reset filters event
+    // Écouter l'événement reset filters
     const handleResetFilters = () => {
       setSearchTerm('');
       setActiveFilters({

@@ -40,7 +40,7 @@ export const useStores = () => {
         photo_url: store.photo_url || '',
         rating: 0, // Valeur par défaut
         reviewCount: 0, // Valeur par défaut
-        placeId: store.placeId || store.google_place_id || '', // Ajouter la gestion des deux champs possibles
+        placeId: store.google_place_id || '', // Utiliser google_place_id directement
         reviews: [], // Données à implémenter ultérieurement
         products: [], // Données à implémenter ultérieurement
         // Ajout d'autres champs avec des valeurs par défaut si nécessaires
@@ -59,7 +59,9 @@ export const useStores = () => {
         ecommerceUrl: undefined
       }));
 
-      setStores(transformedStores);
+      // Supprimer spécifiquement les doublons de "CBD Histoire de Chanvre"
+      const uniqueStores = removeDuplicateStores(transformedStores);
+      setStores(uniqueStores);
     } catch (err) {
       console.error('Error fetching stores:', err);
       setError(err instanceof Error ? err : new Error('Une erreur est survenue lors du chargement des boutiques'));
@@ -72,6 +74,29 @@ export const useStores = () => {
       setIsLoading(false);
     }
   }, [toast]);
+
+  // Fonction pour supprimer les doublons, en ciblant particulièrement "CBD Histoire de Chanvre"
+  const removeDuplicateStores = (stores: Store[]): Store[] => {
+    const storeMap: Record<string, Store> = {};
+    
+    stores.forEach(store => {
+      // Créer une clé unique basée sur le nom et l'adresse
+      const key = `${store.name.toLowerCase().replace(/\s+/g, '')}_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.city.toLowerCase().replace(/\s+/g, '')}`;
+      
+      // Si c'est spécifiquement "CBD Histoire de Chanvre", ne garder qu'une seule instance
+      if (store.name.includes("CBD Histoire de Chanvre")) {
+        // Si nous n'avons pas encore cette boutique OU si cette instance a un placeId (privilégier celle avec un placeId)
+        if (!storeMap[key] || (store.placeId && !storeMap[key].placeId)) {
+          storeMap[key] = store;
+        }
+      } else {
+        // Pour les autres boutiques, appliquer la logique standard de déduplication
+        storeMap[key] = store;
+      }
+    });
+    
+    return Object.values(storeMap);
+  };
 
   useEffect(() => {
     fetchStores();
