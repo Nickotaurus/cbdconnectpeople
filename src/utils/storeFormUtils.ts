@@ -1,6 +1,8 @@
 
+
 import { FormData } from '@/types/store-form';
-import { Store, StoreData, StoreDBType } from '@/types/store-types';
+import { Store } from '@/types/store';
+import { StoreData, StoreDBType } from '@/types/store-types';
 
 // Default placeholder image when no image is available
 export const placeholderImageUrl = "https://via.placeholder.com/150x150?text=CBD+Store";
