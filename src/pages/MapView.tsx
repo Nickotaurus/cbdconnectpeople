@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -31,53 +30,63 @@ const MapView = () => {
     maxDistance: null as number | null,
   });
 
-  // Fonction améliorée pour combiner et dédupliquer les boutiques avec une gestion spécifique pour "CBD Histoire de Chanvre"
+  // Fonction améliorée pour combiner et dédupliquer les boutiques avec un traitement spécifique pour "CBD Histoire de Chanvre"
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Créer une map pour suivre les boutiques uniques
-    const storeMap: Record<string, Store> = {};
+    // Map pour les boutiques avec des clés uniques
+    const storeMap = new Map<string, Store>();
     
-    // Fonction pour générer une clé cohérente pour une boutique
-    const getStoreKey = (store: Store): string => {
-      // Clé spéciale pour CBD Histoire de Chanvre (pour supprimer tous les doublons)
-      if (store.name.includes("CBD Histoire de Chanvre")) {
-        return "cbd_histoire_de_chanvre";
-      }
-      
-      // Pour les autres boutiques, utiliser la logique standard
-      if (store.placeId) {
-        return `place_${store.placeId}`;
-      }
-      
-      if (store.latitude && store.longitude) {
-        // Arrondir les coordonnées à 5 décimales
-        const lat = Math.round(store.latitude * 100000) / 100000;
-        const lng = Math.round(store.longitude * 100000) / 100000;
-        return `geo_${lat}_${lng}`;
-      }
-      
-      return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
-    };
-    
-    // D'abord ajouter les boutiques locales à la map
+    // Ajouter les boutiques locales à la map
     localStores.forEach(store => {
-      const key = getStoreKey(store);
-      storeMap[key] = store;
+      // Clé spéciale pour CBD Histoire de Chanvre
+      if (store.name.includes("CBD Histoire de Chanvre")) {
+        storeMap.set("cbd_histoire_de_chanvre_special_key", store);
+      } else {
+        const key = getStoreKey(store);
+        storeMap.set(key, store);
+      }
     });
     
-    // Ensuite ajouter les boutiques de Supabase, remplaçant les locales si elles existent avec la même clé
+    // Ajouter les boutiques de Supabase, en remplaçant les locales si même clé
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
-        const key = getStoreKey(store);
-        storeMap[key] = store;
+        // Clé spéciale pour CBD Histoire de Chanvre
+        if (store.name.includes("CBD Histoire de Chanvre")) {
+          // Uniquement remplacer si on a un placeId (plus fiable)
+          if (store.placeId) {
+            storeMap.set("cbd_histoire_de_chanvre_special_key", store);
+          }
+        } else {
+          const key = getStoreKey(store);
+          storeMap.set(key, store);
+        }
       });
     }
     
     // Convertir la map en tableau et trier par distance
-    const uniqueStores = Object.values(storeMap);
+    const uniqueStores = Array.from(storeMap.values());
+    console.log(`Nombre final de boutiques après déduplication: ${uniqueStores.length}`);
     
     // Retourner les boutiques triées par distance
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
+  
+  // Fonction pour générer une clé unique par boutique
+  const getStoreKey = (store: Store): string => {
+    // Si on a un Google Place ID, c'est la clé la plus fiable
+    if (store.placeId) {
+      return `place_${store.placeId}`;
+    }
+    
+    // Sinon, on utilise les coordonnées géographiques (arrondies)
+    if (store.latitude && store.longitude) {
+      const lat = Math.round(store.latitude * 100000) / 100000;
+      const lng = Math.round(store.longitude * 100000) / 100000;
+      return `geo_${lat}_${lng}`;
+    }
+    
+    // En dernier recours: adresse + nom normalisés
+    return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.city.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
+  };
   
   // Charger et combiner les boutiques
   useEffect(() => {
