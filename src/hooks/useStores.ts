@@ -40,10 +40,9 @@ export const useStores = () => {
         photo_url: store.photo_url || '',
         rating: 0, // Valeur par défaut
         reviewCount: 0, // Valeur par défaut
-        placeId: store.google_place_id || '', // Utiliser google_place_id directement
+        placeId: store.google_place_id || '', // Correction pour s'assurer que placeId est bien défini
         reviews: [], // Données à implémenter ultérieurement
         products: [], // Données à implémenter ultérieurement
-        // Ajout d'autres champs avec des valeurs par défaut si nécessaires
         incentive: undefined,
         coupon: {
           code: '',
