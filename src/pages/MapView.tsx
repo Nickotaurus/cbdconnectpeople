@@ -33,7 +33,7 @@ const MapView = () => {
 
   // Memoized function to combine and deduplicate stores
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Create a map using placeId or address+name as unique identifier
+    // Create a Map object using placeId or address+name as unique identifier
     const storeMap = new Map<string, Store>();
     
     // First add local stores to the map

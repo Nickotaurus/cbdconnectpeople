@@ -19,7 +19,7 @@ export interface Store {
   photo_url?: string;
   rating: number;
   reviewCount: number;
-  placeId?: string;  // Added placeId field
+  placeId?: string;  // This field should match what we're accessing in our code
   incentive?: {
     title: string;
     description: string;
