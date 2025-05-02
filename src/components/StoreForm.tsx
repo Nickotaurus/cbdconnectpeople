@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
@@ -54,7 +55,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
 
   useEffect(() => {
-    // Vérifier si la boutique existe déjà lorsque l'adresse et les coordonnées sont définies
+    // Fixed breaking this dependency list into separate parts to avoid infinite recursion
     const checkForDuplicate = async () => {
       if (!formData.address || !formData.latitude || !formData.longitude) {
         return;

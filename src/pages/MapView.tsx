@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -32,7 +33,7 @@ const MapView = () => {
 
   // Fonction améliorée pour combiner et dédupliquer les boutiques avec un traitement spécifique pour "CBD Histoire de Chanvre"
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Map pour les boutiques avec des clés uniques
+    // Fixed: Using a standard JavaScript Map object instead of trying to instantiate a custom Map class
     const storeMap = new Map<string, Store>();
     
     // Ajouter les boutiques locales à la map
