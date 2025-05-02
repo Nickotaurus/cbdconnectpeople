@@ -142,7 +142,22 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
     setIsLoading(true);
     
     try {
-      const storeData = {
+      const storeData: {
+        name: string;
+        address: string;
+        city: string;
+        postal_code: string;
+        latitude: number;
+        longitude: number;
+        description: string;
+        phone: string;
+        website: string;
+        logo_url: string;
+        photo_url: string;
+        google_place_id: string;
+        is_ecommerce: boolean;
+        ecommerce_url: string;
+      } = {
         name: formData.name,
         address: formData.address,
         city: formData.city,
@@ -299,7 +314,6 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
   }, [isEdit, storeId, toast]);
 
   return (
-    
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">
         {isEdit ? 'Modifier ma boutique' : 'Ajouter une boutique'}

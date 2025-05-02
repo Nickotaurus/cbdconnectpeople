@@ -2,6 +2,7 @@
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Globe } from "lucide-react";
 
 interface EcommerceFieldProps {
@@ -17,6 +18,26 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceU
         <Globe className="h-5 w-5 text-primary" />
         <h3 className="font-medium">Information E-commerce</h3>
       </div>
+      
+      <div className="flex items-center space-x-2 mb-4">
+        <Switch
+          id="isEcommerce"
+          name="isEcommerce"
+          checked={isEcommerce}
+          onCheckedChange={(checked) => {
+            // Create a synthetic event to match the onChange handler's expectations
+            const syntheticEvent = {
+              target: {
+                name: 'isEcommerce',
+                value: checked
+              }
+            } as React.ChangeEvent<HTMLInputElement>;
+            onChange(syntheticEvent);
+          }}
+        />
+        <Label htmlFor="isEcommerce">Boutique avec e-commerce</Label>
+      </div>
+      
       <div className="space-y-2">
         <Label htmlFor="ecommerceUrl">URL de votre boutique en ligne</Label>
         <Input 
@@ -26,6 +47,7 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceU
           placeholder="https://www.votreboutiquecbd.fr" 
           value={ecommerceUrl} 
           onChange={onChange} 
+          disabled={!isEcommerce}
         />
         <p className="text-sm text-muted-foreground">
           Vous pourrez configurer plus de détails sur votre e-commerce après avoir souscrit à un abonnement.
