@@ -1,8 +1,8 @@
 
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
+import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck, Store } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -31,131 +31,141 @@ const StoreDashboard = () => {
   const partnerFavorites = storeUser?.partnerFavorites || [];
   
   // Vérifier si l'utilisateur est "histoiredechanvre29@gmail.com"
-  // et n'a pas encore de boutique associée
   const isHistoireDeChanvreUser = user?.email === "histoiredechanvre29@gmail.com";
 
-  useEffect(() => {
-    const fetchStoreId = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // Vérifier toutes les sources possibles du storeId
-        let foundStoreId = null;
-        
-        // 1. Vérifier d'abord le localStorage puis sessionStorage
-        foundStoreId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
-        
-        if (foundStoreId) {
-          console.log("StoreID trouvé dans le storage local:", foundStoreId);
-          // Vérifier que le storeId existe dans la base de données
-          const { data: storeData, error: storeCheckError } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('id', foundStoreId)
-            .single();
-            
-          if (!storeCheckError && storeData) {
-            setStoreId(foundStoreId);
-            // Stocker dans les deux stockages pour plus de fiabilité
-            localStorage.setItem('userStoreId', foundStoreId);
-            sessionStorage.setItem('userStoreId', foundStoreId);
-            setIsLoading(false);
-            return;
-          } else {
-            console.warn("StoreID trouvé dans le stockage local mais non valide:", storeCheckError);
-            // Effacer les valeurs invalides
-            localStorage.removeItem('userStoreId');
-            sessionStorage.removeItem('userStoreId');
-          }
-        }
-        
-        // 2. Si pas dans le storage local et qu'on a un utilisateur connecté, vérifier dans le profil
-        if (user && user.id) {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('store_id')
-            .eq('id', user.id)
-            .single();
-            
-          if (profileError) {
-            console.error("Erreur lors de la récupération du profil:", profileError);
-            throw new Error("Impossible de récupérer votre profil.");
-          }
-          
-          if (profileData && profileData.store_id) {
-            console.log("StoreID trouvé dans le profil:", profileData.store_id);
-            setStoreId(profileData.store_id);
-            localStorage.setItem('userStoreId', profileData.store_id);
-            sessionStorage.setItem('userStoreId', profileData.store_id);
-            setIsLoading(false);
-            return;
-          }
-          
-          // 3. Si pas de store_id dans le profil, rechercher les boutiques créées par l'utilisateur
-          const { data: storeData, error: storeError } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('user_id', user.id)
-            .order('registration_date', { ascending: false })
-            .limit(1);
-            
-          if (storeError) {
-            console.error("Erreur lors de la recherche de boutique:", storeError);
-            throw new Error("Impossible de rechercher vos boutiques.");
-          }
-          
-          if (storeData && storeData.length > 0) {
-            console.log("StoreID trouvé dans les boutiques de l'utilisateur:", storeData[0].id);
-            // Mettre à jour le profil avec l'ID de la boutique trouvée
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ store_id: storeData[0].id })
-              .eq('id', user.id);
-              
-            if (updateError) {
-              console.error("Erreur lors de la mise à jour du profil:", updateError);
-            }
-            
-            setStoreId(storeData[0].id);
-            localStorage.setItem('userStoreId', storeData[0].id);
-            sessionStorage.setItem('userStoreId', storeData[0].id);
-            setIsLoading(false);
-            return;
-          }
-          
-          // 4. Pour Histoire de Chanvre spécifiquement, offrir l'outil d'association
-          if (isHistoireDeChanvreUser) {
-            setShowAssociationTool(true);
-            setIsLoading(false);
-            return;
-          }
-        }
-
-        // Si aucune boutique trouvée
-        if (retryCount < maxRetries) {
-          console.log(`Aucune boutique trouvée, nouvelle tentative dans 1s (${retryCount + 1}/${maxRetries})`);
-          setRetryCount(prevCount => prevCount + 1);
-          setTimeout(() => fetchStoreId(), 1000); // Réessayer dans 1 seconde
-        } else {
-          setIsLoading(false); // Terminer le chargement même sans boutique
-          console.log("Nombre maximal de tentatives atteint, aucune boutique trouvée");
-        }
-      } catch (err) {
-        console.error("Erreur lors de la récupération de l'ID de la boutique:", err);
-        setError("Impossible de récupérer les informations de votre boutique.");
-        setIsLoading(false);
-        
-        toast({
-          title: "Erreur",
-          description: err instanceof Error ? err.message : "Une erreur est survenue lors du chargement de votre boutique.",
-          variant: "destructive",
-        });
-      }
-    };
-    
+  // Fonction pour recharger la page
+  const refreshDashboard = useCallback(() => {
+    setIsLoading(true);
+    setRetryCount(0);
     fetchStoreId();
-  }, [user, toast, retryCount, isHistoireDeChanvreUser]);
+  }, []);
+
+  const fetchStoreId = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Vérifier toutes les sources possibles du storeId
+      let foundStoreId = null;
+      
+      // 1. Vérifier d'abord le localStorage puis sessionStorage
+      foundStoreId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
+      
+      if (foundStoreId) {
+        console.log("StoreID trouvé dans le storage local:", foundStoreId);
+        // Vérifier que le storeId existe dans la base de données
+        const { data: storeData, error: storeCheckError } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('id', foundStoreId)
+          .single();
+          
+        if (!storeCheckError && storeData) {
+          setStoreId(foundStoreId);
+          // Stocker dans les deux stockages pour plus de fiabilité
+          localStorage.setItem('userStoreId', foundStoreId);
+          sessionStorage.setItem('userStoreId', foundStoreId);
+          setIsLoading(false);
+          setShowAssociationTool(false);
+          return;
+        } else {
+          console.warn("StoreID trouvé dans le stockage local mais non valide:", storeCheckError);
+          // Effacer les valeurs invalides
+          localStorage.removeItem('userStoreId');
+          sessionStorage.removeItem('userStoreId');
+        }
+      }
+      
+      // 2. Si pas dans le storage local et qu'on a un utilisateur connecté, vérifier dans le profil
+      if (user && user.id) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('store_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileError) {
+          console.error("Erreur lors de la récupération du profil:", profileError);
+          throw new Error("Impossible de récupérer votre profil.");
+        }
+        
+        if (profileData && profileData.store_id) {
+          console.log("StoreID trouvé dans le profil:", profileData.store_id);
+          setStoreId(profileData.store_id);
+          localStorage.setItem('userStoreId', profileData.store_id);
+          sessionStorage.setItem('userStoreId', profileData.store_id);
+          setIsLoading(false);
+          setShowAssociationTool(false);
+          return;
+        }
+        
+        // 3. Si pas de store_id dans le profil, rechercher les boutiques créées par l'utilisateur
+        const { data: storeData, error: storeError } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('registration_date', { ascending: false })
+          .limit(1);
+          
+        if (storeError) {
+          console.error("Erreur lors de la recherche de boutique:", storeError);
+          throw new Error("Impossible de rechercher vos boutiques.");
+        }
+        
+        if (storeData && storeData.length > 0) {
+          console.log("StoreID trouvé dans les boutiques de l'utilisateur:", storeData[0].id);
+          // Mettre à jour le profil avec l'ID de la boutique trouvée
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ store_id: storeData[0].id })
+            .eq('id', user.id);
+            
+          if (updateError) {
+            console.error("Erreur lors de la mise à jour du profil:", updateError);
+          }
+          
+          setStoreId(storeData[0].id);
+          localStorage.setItem('userStoreId', storeData[0].id);
+          sessionStorage.setItem('userStoreId', storeData[0].id);
+          setIsLoading(false);
+          setShowAssociationTool(false);
+          return;
+        }
+        
+        // 4. Pour Histoire de Chanvre spécifiquement, offrir l'outil d'association
+        if (isHistoireDeChanvreUser) {
+          setShowAssociationTool(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Si aucune boutique trouvée
+      if (retryCount < maxRetries) {
+        console.log(`Aucune boutique trouvée, nouvelle tentative dans 1s (${retryCount + 1}/${maxRetries})`);
+        setRetryCount(prevCount => prevCount + 1);
+        setTimeout(() => fetchStoreId(), 1000); // Réessayer dans 1 seconde
+      } else {
+        setIsLoading(false); // Terminer le chargement même sans boutique
+        console.log("Nombre maximal de tentatives atteint, aucune boutique trouvée");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la récupération de l'ID de la boutique:", err);
+      setError("Impossible de récupérer les informations de votre boutique.");
+      setIsLoading(false);
+      
+      toast({
+        title: "Erreur",
+        description: err instanceof Error ? err.message : "Une erreur est survenue lors du chargement de votre boutique.",
+        variant: "destructive",
+      });
+    }
+  }, [user, toast, retryCount, isHistoireDeChanvreUser, maxRetries]);
+
+  // Utilisation de useEffect pour déclencher la récupération du storeId
+  useEffect(() => {
+    fetchStoreId();
+  }, [fetchStoreId]);
   
   // Rendre un état de chargement sur mobile et desktop
   if (isLoading) {
@@ -211,7 +221,7 @@ const StoreDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <StoreAssociationTool />
+            <StoreAssociationTool onSuccess={refreshDashboard} />
           </CardContent>
         </Card>
       </div>
@@ -241,10 +251,7 @@ const StoreDashboard = () => {
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-md text-sm">
                 <p className="font-medium text-red-800 dark:text-red-300">Erreur de chargement</p>
                 <p className="text-muted-foreground mt-1">{error}</p>
-                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={() => {
-                  setRetryCount(0);
-                  setIsLoading(true);
-                }}>
+                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={refreshDashboard}>
                   Réessayer
                 </Button>
               </div>
@@ -252,9 +259,22 @@ const StoreDashboard = () => {
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-md text-sm">
                 <p className="font-medium text-yellow-800 dark:text-yellow-300">Votre fiche boutique n'est pas encore créée.</p>
                 <p className="text-muted-foreground mt-1">Complétez votre profil pour être visible sur notre plateforme.</p>
-                <Button className="mt-2 w-full md:w-auto" onClick={() => navigate('/add-store')}>
-                  Créer ma fiche boutique
-                </Button>
+                <div className="mt-2 space-y-2">
+                  <Button className="w-full" onClick={() => navigate('/add-store')}>
+                    <Store className="mr-2 h-4 w-4" />
+                    Créer ma fiche boutique
+                  </Button>
+                  {isHistoireDeChanvreUser && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => setShowAssociationTool(true)}
+                    >
+                      <Building className="mr-2 h-4 w-4" />
+                      Associer une boutique existante
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">

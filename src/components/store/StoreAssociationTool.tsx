@@ -1,21 +1,25 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { associateStoreWithUser } from '@/utils/storeUtils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 interface StoreAssociationToolProps {
   defaultEmail?: string;
   defaultStoreName?: string;
+  onSuccess?: () => void;
 }
 
 const StoreAssociationTool = ({ 
   defaultEmail = "histoiredechanvre29@gmail.com",
-  defaultStoreName = "CBD Histoire de Chanvre"
+  defaultStoreName = "CBD Histoire de Chanvre",
+  onSuccess
 }: StoreAssociationToolProps) => {
   const [email, setEmail] = useState(defaultEmail);
   const [storeName, setStoreName] = useState(defaultStoreName);
@@ -26,6 +30,49 @@ const StoreAssociationTool = ({
     storeId?: string;
   }>({});
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Vérifier si la boutique est déjà associée au démarrage
+  useEffect(() => {
+    const checkExistingAssociation = async () => {
+      if (!email) return;
+      
+      try {
+        // 1. Trouver l'ID utilisateur à partir de l'email
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id, store_id')
+          .eq('email', email)
+          .single();
+
+        if (userError) {
+          console.error('Erreur lors de la recherche du profil:', userError);
+          return;
+        }
+
+        if (userData?.store_id) {
+          // L'utilisateur a déjà une boutique associée
+          console.log("Boutique déjà associée:", userData.store_id);
+          localStorage.setItem('userStoreId', userData.store_id);
+          sessionStorage.setItem('userStoreId', userData.store_id);
+          
+          setResult({
+            success: true,
+            message: 'Boutique déjà associée à ce profil',
+            storeId: userData.store_id
+          });
+          
+          if (onSuccess) {
+            onSuccess();
+          }
+        }
+      } catch (err) {
+        console.error("Erreur lors de la vérification d'association:", err);
+      }
+    };
+    
+    checkExistingAssociation();
+  }, [email, onSuccess]);
 
   const handleAssociate = async () => {
     if (!email || !storeName) return;
@@ -37,11 +84,21 @@ const StoreAssociationTool = ({
       const response = await associateStoreWithUser(email, storeName);
       setResult(response);
       
-      // Si l'association a réussi, attendre 2 secondes avant de rediriger vers la gestion de la boutique
       if (response.success && response.storeId) {
+        // Afficher une notification de succès
+        toast({
+          title: "Association réussie",
+          description: "Votre boutique a été associée avec succès à votre profil",
+        });
+        
+        // Si l'association a réussi, recharger la page après 1.5 secondes
         setTimeout(() => {
-          navigate(`/store/${response.storeId}/admin`);
-        }, 2000);
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            navigate(`/store/${response.storeId}/admin`);
+          }
+        }, 1500);
       }
     } catch (error) {
       console.error("Erreur lors de l'association:", error);
@@ -58,6 +115,7 @@ const StoreAssociationTool = ({
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle>Association de boutique</CardTitle>
+        <CardDescription>Associez votre boutique existante à votre profil</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -67,7 +125,7 @@ const StoreAssociationTool = ({
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
             placeholder="email@exemple.com"
-            disabled={processing}
+            disabled={processing || result.success}
           />
         </div>
         <div className="space-y-2">
@@ -77,7 +135,7 @@ const StoreAssociationTool = ({
             value={storeName} 
             onChange={(e) => setStoreName(e.target.value)} 
             placeholder="Nom de la boutique"
-            disabled={processing}
+            disabled={processing || result.success}
           />
         </div>
 
@@ -114,6 +172,8 @@ const StoreAssociationTool = ({
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Association en cours...
             </>
+          ) : result.success ? (
+            "Boutique associée"
           ) : (
             "Associer la boutique au profil"
           )}

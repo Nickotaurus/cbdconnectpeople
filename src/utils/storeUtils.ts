@@ -1,4 +1,3 @@
-
 import { Store } from '@/types/store';
 import { storesData } from '@/data/storesData';
 import { calculateDistance } from './geoUtils';
@@ -97,7 +96,7 @@ export const associateStoreWithUser = async (
     // 1. Trouver l'ID utilisateur à partir de l'email
     const { data: userData, error: userError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, store_id')
       .eq('email', email)
       .single();
 
@@ -110,6 +109,23 @@ export const associateStoreWithUser = async (
     if (!userId) {
       return { success: false, message: 'ID utilisateur non trouvé' };
     }
+    
+    // Vérifier si l'utilisateur a déjà une boutique associée
+    if (userData.store_id) {
+      console.log('Boutique déjà associée:', userData.store_id);
+      
+      // Stocker l'ID de boutique dans localStorage et sessionStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userStoreId', userData.store_id);
+        sessionStorage.setItem('userStoreId', userData.store_id);
+      }
+      
+      return { 
+        success: true, 
+        message: 'Ce profil est déjà associé à une boutique',
+        storeId: userData.store_id
+      };
+    }
 
     // 2. Rechercher la boutique par nom dans la base de données Supabase
     const { data: storeData, error: storeDbError } = await supabase
@@ -117,9 +133,24 @@ export const associateStoreWithUser = async (
       .select('*')
       .ilike('name', `%${storeName}%`);
 
+    if (storeDbError) {
+      console.error('Erreur lors de la recherche de la boutique:', storeDbError);
+      return { success: false, message: 'Erreur lors de la recherche de la boutique' };
+    }
+
     // 3. Si la boutique existe dans Supabase, l'associer au profil utilisateur
     if (storeData && storeData.length > 0) {
       const store = storeData[0];
+      
+      console.log('Boutique trouvée dans Supabase:', store.id);
+      
+      // Vérifier si la boutique est déjà réclamée par quelqu'un d'autre
+      if (store.claimed_by && store.claimed_by !== userId) {
+        return { 
+          success: false, 
+          message: 'Cette boutique a déjà été réclamée par un autre utilisateur' 
+        };
+      }
       
       // Mise à jour du champ user_id de la boutique
       const { error: updateError } = await supabase
@@ -162,6 +193,8 @@ export const associateStoreWithUser = async (
     );
 
     if (localStore) {
+      console.log('Boutique trouvée dans les données locales:', localStore.name);
+      
       // Si trouvée dans les données locales, l'ajouter à Supabase puis l'associer
       const { data: newStore, error: insertError } = await supabase
         .from('stores')
