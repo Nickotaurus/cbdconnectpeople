@@ -1,5 +1,4 @@
 
-
 import { FormData } from '@/types/store-form';
 import { Store } from '@/types/store';
 import { StoreData, StoreDBType } from '@/types/store-types';
@@ -24,6 +23,7 @@ export const createStoreDataFromForm = (formData: FormData): {
   ecommerce_url: string;
   is_premium?: boolean;
   premium_until?: string;
+  has_google_profile?: boolean;
 } => {
   return {
     name: formData.name,
@@ -40,6 +40,7 @@ export const createStoreDataFromForm = (formData: FormData): {
     google_place_id: formData.placeId,
     is_ecommerce: formData.isEcommerce,
     ecommerce_url: formData.ecommerceUrl,
+    has_google_profile: formData.hasGoogleBusinessProfile
   };
 };
 
@@ -67,7 +68,8 @@ export const convertToStore = (data: StoreDBType): Store => {
     isEcommerce: data.is_ecommerce || false,
     ecommerceUrl: data.ecommerce_url || '',
     isPremium: data.is_premium || false,
-    premiumUntil: data.premium_until || undefined
+    premiumUntil: data.premium_until || undefined,
+    hasGoogleBusinessProfile: data.has_google_profile || false
   };
 };
 
@@ -87,7 +89,9 @@ export const createFormDataFromStoreDB = (storeData: StoreDBType): FormData => {
     photoUrl: storeData.photo_url || '',
     placeId: storeData.google_place_id || '',
     isEcommerce: storeData.is_ecommerce || false,
-    ecommerceUrl: storeData.ecommerce_url || ''
+    ecommerceUrl: storeData.ecommerce_url || '',
+    hasGoogleBusinessProfile: storeData.has_google_profile || false,
+    openingHours: storeData.opening_hours || []
   };
 };
 
@@ -105,5 +109,6 @@ export const initialFormData: FormData = {
   photoUrl: '',
   placeId: '',
   isEcommerce: false,
-  ecommerceUrl: ''
+  ecommerceUrl: '',
+  hasGoogleBusinessProfile: false
 };

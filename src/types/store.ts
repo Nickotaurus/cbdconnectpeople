@@ -19,7 +19,7 @@ export interface Store {
   photo_url?: string;
   rating: number;
   reviewCount: number;
-  placeId?: string;  // This field should match what we're accessing in our code
+  placeId?: string;
   incentive?: {
     title: string;
     description: string;
@@ -43,6 +43,7 @@ export interface Store {
   premiumUntil?: string;
   isEcommerce?: boolean;
   ecommerceUrl?: string;
+  hasGoogleBusinessProfile?: boolean;
   reviews: {
     id: string;
     author: string;

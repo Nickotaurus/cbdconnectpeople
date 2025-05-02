@@ -18,6 +18,8 @@ export interface FormData {
   placeId: string;
   isEcommerce: boolean;
   ecommerceUrl: string;
+  hasGoogleBusinessProfile?: boolean;
+  openingHours?: string[];
 }
 
 export interface UseStoreFormProps {

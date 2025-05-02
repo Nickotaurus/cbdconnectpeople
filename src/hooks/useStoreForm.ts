@@ -16,8 +16,6 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
   const [isLoading, setIsLoading] = useState(false);
   const [isAddressValid, setIsAddressValid] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [isGoogleBusiness, setIsGoogleBusiness] = useState(false);
-  const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
 
   // Check for duplicate stores
   useStoreDuplicateCheck(formData);
@@ -35,6 +33,16 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
+    // Handle checkbox for isEcommerce
+    if (name === 'isEcommerce') {
+      const target = e.target as HTMLInputElement;
+      setFormData(prev => ({
+        ...prev,
+        [name]: target.checked
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -42,6 +50,14 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
   }, []);
 
   const handleStoreSelect = (store: StoreData) => {
+    // Check if this is coming from Google Business
+    const hasGoogleInfo = Boolean(
+      store.photos && store.photos.length > 0 || 
+      store.rating || 
+      store.totalReviews || 
+      store.openingHours
+    );
+    
     setFormData({
       ...formData,
       name: store.name || '',
@@ -50,17 +66,15 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
       postalCode: store.postalCode || '',
       latitude: store.latitude || null,
       longitude: store.longitude || null,
-      description: store.description || '',
-      phone: store.phone || '',
-      website: store.website || '',
-      logoUrl: store.logo_url || '',
-      photoUrl: store.photo_url || '',
+      description: store.description || formData.description,
+      phone: store.phone || formData.phone,
+      website: store.website || formData.website,
+      logoUrl: store.logo_url || formData.logoUrl,
+      photoUrl: store.photo_url || (store.photos && store.photos.length > 0 ? store.photos[0] : formData.photoUrl),
       placeId: store.placeId || '',
+      hasGoogleBusinessProfile: hasGoogleInfo,
+      openingHours: store.openingHours
     });
-    
-    if (store.photos && store.photos.length > 0) {
-      setIsGoogleBusiness(true);
-    }
     
     setIsAddressValid(true);
     setActiveTab('details');
@@ -107,9 +121,20 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
         if (error) throw error;
         
         if (data && data.length > 0) {
+          // Customize success message based on store type
+          let successMsg = "Votre boutique a été ajoutée avec succès.";
+          
+          if (formData.isEcommerce && formData.hasGoogleBusinessProfile) {
+            successMsg = "Votre boutique physique et votre site e-commerce ont été ajoutés avec succès. Les informations Google ont été importées.";
+          } else if (formData.isEcommerce) {
+            successMsg = "Votre boutique physique et votre site e-commerce ont été ajoutés avec succès.";
+          } else if (formData.hasGoogleBusinessProfile) {
+            successMsg = "Votre boutique a été ajoutée avec succès. Les informations Google ont été importées.";
+          }
+          
           toast({
             title: "Boutique ajoutée",
-            description: "Votre boutique a été ajoutée avec succès.",
+            description: successMsg,
           });
           
           // Convert to Store type for onSuccess callback

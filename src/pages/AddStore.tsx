@@ -78,9 +78,20 @@ const AddStore = () => {
   const handleStoreAdded = async (store: Store) => {
     setIsTransitioning(true);
     
+    // Construire un message de confirmation personnalisé en fonction du type de boutique
+    let confirmationMessage = "Votre boutique a été référencée dans l'annuaire.";
+    
+    if (store.isEcommerce && store.hasGoogleBusinessProfile) {
+      confirmationMessage = "Votre boutique physique et votre site e-commerce ont été référencés avec succès. Les informations de votre fiche Google Business ont été importées.";
+    } else if (store.isEcommerce) {
+      confirmationMessage = "Votre boutique physique et votre site e-commerce ont été référencés avec succès.";
+    } else if (store.hasGoogleBusinessProfile) {
+      confirmationMessage = "Votre boutique a été référencée avec succès. Les informations de votre fiche Google Business ont été importées.";
+    }
+    
     toast({
       title: "Boutique ajoutée avec succès",
-      description: "Votre boutique a été référencée dans l'annuaire. Vous pouvez maintenant accéder à votre espace boutique.",
+      description: confirmationMessage,
       duration: 5000,
     });
 

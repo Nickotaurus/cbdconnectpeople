@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, AlertCircle, Globe, Star, Clock, Phone, MapPin } from 'lucide-react';
+import { Check, ArrowRight, AlertCircle, Globe, Star, Clock, Phone, MapPin, Info, Globe2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReviewData } from '@/types/store-types';
+import { Badge } from '@/components/ui/badge';
 
 interface BusinessProfileProps {
   businessDetails: {
@@ -85,6 +86,16 @@ const GoogleBusinessIntegration = ({
         </div>
       </CardHeader>
       
+      <div className="px-6 py-2">
+        <Alert variant="success" className="bg-green-100 border-green-200">
+          <Info className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800 text-sm font-medium">Avantage Google Business</AlertTitle>
+          <AlertDescription className="text-xs text-green-700">
+            En utilisant votre fiche Google Business, votre boutique sera mieux référencée et affichera vos photos, horaires et avis clients.
+          </AlertDescription>
+        </Alert>
+      </div>
+      
       <Tabs defaultValue="info" className="px-6" onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="info">Infos</TabsTrigger>
@@ -94,7 +105,13 @@ const GoogleBusinessIntegration = ({
         
         <TabsContent value="info" className="space-y-4 pt-2">
           <div>
-            <h4 className="font-semibold text-base">{businessDetails.name}</h4>
+            <div className="flex items-center mb-1">
+              <h4 className="font-semibold text-base">{businessDetails.name}</h4>
+              <Badge variant="outline" className="ml-2 bg-primary/10 text-primary text-xs">
+                <Globe2 className="h-3 w-3 mr-1" />
+                Fiche Google
+              </Badge>
+            </div>
             <div className="text-sm text-muted-foreground flex items-center mt-1">
               <MapPin className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
               <span>{businessDetails.address}</span>

@@ -1,10 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle } from "lucide-react";
+import { Search, Loader2, AlertCircle, MapPin } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getGoogleMapsApiKey } from '@/services/googleApiService';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface GooglePlacesSearchProps {
   formData: {
@@ -26,6 +28,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
   const [isApiLoaded, setIsApiLoaded] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [apiCheckAttempts, setApiCheckAttempts] = useState(0);
+  const [searchResults, setSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
 
   useEffect(() => {
     const checkGoogleMapsLoaded = () => {
@@ -124,6 +127,7 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
 
     const searchQuery = `${formData.address}, ${formData.city}, ${formData.postalCode || ''}`;
     setIsSearching(true);
+    setSearchResults([]);
     
     try {
       const mapDiv = document.createElement('div');
@@ -147,12 +151,17 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
           setIsSearching(false);
           
           if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-            console.log("Place found:", results[0]);
-            onPlaceSelect(results[0]);
-            toast({
-              title: "Établissement trouvé",
-              description: `"${results[0].name}" a été trouvé avec succès`,
-            });
+            console.log("Places found:", results);
+            setSearchResults(results);
+            
+            // If only one result, automatically select it
+            if (results.length === 1) {
+              onPlaceSelect(results[0]);
+              toast({
+                title: "Établissement trouvé",
+                description: `"${results[0].name}" a été trouvé avec succès`,
+              });
+            }
           } else {
             console.warn("Place search result:", status);
             
@@ -165,11 +174,15 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
                 if (findStatus === window.google.maps.places.PlacesServiceStatus.OK && 
                     findResults && findResults.length > 0) {
                   console.log("Place found with alternate method:", findResults[0]);
-                  onPlaceSelect(findResults[0]);
-                  toast({
-                    title: "Établissement trouvé",
-                    description: `"${findResults[0].name}" a été trouvé avec succès`,
-                  });
+                  setSearchResults(findResults);
+                  
+                  if (findResults.length === 1) {
+                    onPlaceSelect(findResults[0]);
+                    toast({
+                      title: "Établissement trouvé",
+                      description: `"${findResults[0].name}" a été trouvé avec succès`,
+                    });
+                  }
                 } else {
                   toast({
                     title: "Aucun établissement trouvé",
@@ -193,6 +206,11 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         variant: "destructive"
       });
     }
+  };
+
+  const handleResultSelect = (place: google.maps.places.PlaceResult) => {
+    onPlaceSelect(place);
+    setSearchResults([]);
   };
 
   return (
@@ -253,16 +271,32 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
         )}
       </Button>
       
-      {!isApiLoaded && apiCheckAttempts > 3 && (
-        <div className="border border-amber-200 bg-amber-50 p-3 rounded-md flex items-start">
-          <AlertCircle className="w-5 h-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm text-amber-800 font-medium">Problème de chargement</p>
-            <p className="text-xs text-amber-700">
-              L'API Google Maps prend du temps à se charger. Essayez de rafraîchir la page ou vérifiez votre connexion internet.
-            </p>
-          </div>
+      {searchResults.length > 0 && (
+        <div className="mt-4 border rounded-md divide-y">
+          <p className="p-2 bg-muted/50 font-medium text-sm">Établissements trouvés ({searchResults.length})</p>
+          {searchResults.map((result, index) => (
+            <div 
+              key={result.place_id || index} 
+              className="p-3 hover:bg-muted/30 cursor-pointer transition-colors"
+              onClick={() => handleResultSelect(result)}
+            >
+              <h4 className="font-medium flex items-center">
+                <MapPin className="h-4 w-4 mr-1 text-primary/70" />
+                {result.name}
+              </h4>
+              <p className="text-sm text-muted-foreground ml-5">{result.formatted_address}</p>
+            </div>
+          ))}
         </div>
+      )}
+      
+      {!isApiLoaded && apiCheckAttempts > 3 && (
+        <Alert variant="warning" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            L'API Google Maps prend du temps à se charger. Essayez de rafraîchir la page ou vérifiez votre connexion internet.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );
