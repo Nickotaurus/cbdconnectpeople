@@ -156,6 +156,8 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
         google_place_id: string;
         is_ecommerce: boolean;
         ecommerce_url: string;
+        is_premium?: boolean;
+        premium_until?: string;
       } = {
         name: formData.name,
         address: formData.address,
