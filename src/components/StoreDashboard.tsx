@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { StoreUser } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from "@/components/ui/skeleton"; 
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const StoreDashboard = () => {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
   
   // Autres états
   const profileCompleteness = 65;
@@ -31,15 +34,37 @@ const StoreDashboard = () => {
       setError(null);
       
       try {
-        // Vérifier d'abord le sessionStorage
-        const sessionStoreId = sessionStorage.getItem('userStoreId');
-        if (sessionStoreId) {
-          setStoreId(sessionStoreId);
-          setIsLoading(false);
-          return;
+        // Vérifier toutes les sources possibles du storeId
+        let foundStoreId = null;
+        
+        // 1. Vérifier d'abord le localStorage puis sessionStorage
+        foundStoreId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
+        
+        if (foundStoreId) {
+          console.log("StoreID trouvé dans le storage local:", foundStoreId);
+          // Vérifier que le storeId existe dans la base de données
+          const { data: storeData, error: storeCheckError } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('id', foundStoreId)
+            .single();
+            
+          if (!storeCheckError && storeData) {
+            setStoreId(foundStoreId);
+            // Stocker dans les deux stockages pour plus de fiabilité
+            localStorage.setItem('userStoreId', foundStoreId);
+            sessionStorage.setItem('userStoreId', foundStoreId);
+            setIsLoading(false);
+            return;
+          } else {
+            console.warn("StoreID trouvé dans le stockage local mais non valide:", storeCheckError);
+            // Effacer les valeurs invalides
+            localStorage.removeItem('userStoreId');
+            sessionStorage.removeItem('userStoreId');
+          }
         }
         
-        // Si pas dans sessionStorage et qu'on a un utilisateur connecté, vérifier dans Supabase
+        // 2. Si pas dans le storage local et qu'on a un utilisateur connecté, vérifier dans le profil
         if (user && user.id) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -53,54 +78,112 @@ const StoreDashboard = () => {
           }
           
           if (profileData && profileData.store_id) {
+            console.log("StoreID trouvé dans le profil:", profileData.store_id);
             setStoreId(profileData.store_id);
+            localStorage.setItem('userStoreId', profileData.store_id);
             sessionStorage.setItem('userStoreId', profileData.store_id);
-          } else {
-            // Si pas de store_id dans le profil, vérifier les boutiques créées par l'utilisateur
-            const { data: storeData, error: storeError } = await supabase
-              .from('stores')
-              .select('id')
-              .eq('user_id', user.id)
-              .limit(1)
-              .single();
+            setIsLoading(false);
+            return;
+          }
+          
+          // 3. Si pas de store_id dans le profil, rechercher les boutiques créées par l'utilisateur
+          const { data: storeData, error: storeError } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('registration_date', { ascending: false })
+            .limit(1);
+            
+          if (storeError) {
+            console.error("Erreur lors de la recherche de boutique:", storeError);
+            throw new Error("Impossible de rechercher vos boutiques.");
+          }
+          
+          if (storeData && storeData.length > 0) {
+            console.log("StoreID trouvé dans les boutiques de l'utilisateur:", storeData[0].id);
+            // Mettre à jour le profil avec l'ID de la boutique trouvée
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ store_id: storeData[0].id })
+              .eq('id', user.id);
               
-            if (storeError && storeError.code !== 'PGRST116') { // PGRST116 = no rows returned
-              console.error("Erreur lors de la recherche de boutique:", storeError);
-              throw new Error("Impossible de rechercher vos boutiques.");
+            if (updateError) {
+              console.error("Erreur lors de la mise à jour du profil:", updateError);
             }
             
-            if (storeData) {
-              // Mettre à jour le profil avec l'ID de la boutique trouvée
-              const { error: updateError } = await supabase
-                .from('profiles')
-                .update({ store_id: storeData.id })
-                .eq('id', user.id);
-                
-              if (updateError) {
-                console.error("Erreur lors de la mise à jour du profil:", updateError);
-              }
-              
-              setStoreId(storeData.id);
-              sessionStorage.setItem('userStoreId', storeData.id);
-            }
+            setStoreId(storeData[0].id);
+            localStorage.setItem('userStoreId', storeData[0].id);
+            sessionStorage.setItem('userStoreId', storeData[0].id);
+            setIsLoading(false);
+            return;
           }
+        }
+
+        // Si aucune boutique trouvée
+        if (retryCount < maxRetries) {
+          console.log(`Aucune boutique trouvée, nouvelle tentative dans 1s (${retryCount + 1}/${maxRetries})`);
+          setRetryCount(prevCount => prevCount + 1);
+          setTimeout(() => fetchStoreId(), 1000); // Réessayer dans 1 seconde
+        } else {
+          setIsLoading(false); // Terminer le chargement même sans boutique
+          console.log("Nombre maximal de tentatives atteint, aucune boutique trouvée");
         }
       } catch (err) {
         console.error("Erreur lors de la récupération de l'ID de la boutique:", err);
         setError("Impossible de récupérer les informations de votre boutique.");
+        setIsLoading(false);
         
         toast({
           title: "Erreur",
           description: err instanceof Error ? err.message : "Une erreur est survenue lors du chargement de votre boutique.",
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
       }
     };
     
     fetchStoreId();
-  }, [user, toast]);
+  }, [user, toast, retryCount]);
+  
+  // Rendre un état de chargement sur mobile et desktop
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <Card className="w-full md:w-2/3">
+            <CardHeader>
+              <Skeleton className="h-6 w-64 mb-2" />
+              <Skeleton className="h-4 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-2 w-full" />
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="w-full md:w-1/3">
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -121,16 +204,14 @@ const StoreDashboard = () => {
               <Progress value={profileCompleteness} className="h-2" />
             </div>
             
-            {isLoading ? (
-              <div className="py-4 flex items-center justify-center">
-                <div className="animate-spin h-6 w-6 border-2 border-primary border-r-transparent rounded-full"></div>
-                <span className="ml-2 text-sm">Chargement des informations de votre boutique...</span>
-              </div>
-            ) : error ? (
+            {error ? (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-md text-sm">
                 <p className="font-medium text-red-800 dark:text-red-300">Erreur de chargement</p>
                 <p className="text-muted-foreground mt-1">{error}</p>
-                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={() => window.location.reload()}>
+                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={() => {
+                  setRetryCount(0);
+                  setIsLoading(true);
+                }}>
                   Réessayer
                 </Button>
               </div>

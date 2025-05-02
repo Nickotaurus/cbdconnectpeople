@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ const AddStore = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const { fromRegistration, storeType, requiresSubscription } = 
     (location.state as { 
@@ -22,13 +23,16 @@ const AddStore = () => {
     }) || {};
 
   const handleStoreAdded = async (store: Store) => {
+    setIsTransitioning(true);
+    
     toast({
       title: "Boutique ajoutée avec succès",
       description: "Votre boutique a été référencée dans l'annuaire. Vous pouvez maintenant accéder à votre espace boutique.",
       duration: 5000,
     });
 
-    // Enregistrer l'ID de la nouvelle boutique dans sessionStorage
+    // Enregistrer l'ID de la nouvelle boutique dans localStorage et sessionStorage pour plus de fiabilité
+    localStorage.setItem('userStoreId', store.id);
     sessionStorage.setItem('userStoreId', store.id);
     sessionStorage.setItem('newlyAddedStore', store.id);
 
@@ -41,11 +45,13 @@ const AddStore = () => {
             storeId: store.id
           } 
         });
+        setIsTransitioning(false);
       }, 1500);
     } else {
       // Navigation vers le tableau de bord de la boutique
       setTimeout(() => {
         navigate(`/store/${store.id}/admin`);
+        setIsTransitioning(false);
       }, 1500);
     }
   };
@@ -57,6 +63,7 @@ const AddStore = () => {
           variant="ghost" 
           className="gap-2" 
           onClick={() => navigate('/map')}
+          disabled={isTransitioning}
         >
           <ArrowLeft className="h-4 w-4" />
           Retour à la carte

@@ -50,8 +50,67 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDuplicate, setIsDuplicate] = useState(false);
   const [step, setStep] = useState<'search' | 'address' | 'details'>('search');
   const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Vérifier si la boutique existe déjà lorsque l'adresse et les coordonnées sont définies
+    const checkForDuplicate = async () => {
+      if (!formData.address || !formData.latitude || !formData.longitude || !formData.placeId) {
+        return;
+      }
+
+      try {
+        // Vérifier par placeId d'abord (le plus précis)
+        if (formData.placeId) {
+          const { data: placeData } = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('address', formData.address)
+            .limit(1);
+
+          if (placeData && placeData.length > 0) {
+            setIsDuplicate(true);
+            toast({
+              title: "Boutique déjà enregistrée",
+              description: `Une boutique à cette adresse existe déjà : ${placeData[0].name}`,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
+        // Vérifier par proximité géographique (dans un rayon de ~100m)
+        const latDiff = 0.001; // Environ 100m
+        const lngDiff = 0.001; // Environ 100m
+
+        const { data: geoData } = await supabase
+          .from('stores')
+          .select('id, name, latitude, longitude')
+          .gte('latitude', formData.latitude - latDiff)
+          .lte('latitude', formData.latitude + latDiff)
+          .gte('longitude', formData.longitude - lngDiff)
+          .lte('longitude', formData.longitude + lngDiff)
+          .limit(1);
+
+        if (geoData && geoData.length > 0) {
+          setIsDuplicate(true);
+          toast({
+            title: "Boutique potentiellement déjà enregistrée",
+            description: `Une boutique similaire existe déjà à proximité : ${geoData[0].name}`,
+            variant: "destructive",
+          });
+        } else {
+          setIsDuplicate(false);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification des doublons:", error);
+      }
+    };
+
+    checkForDuplicate();
+  }, [formData.address, formData.latitude, formData.longitude, formData.placeId, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -173,6 +232,15 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       return;
     }
 
+    if (isDuplicate) {
+      toast({
+        title: "Boutique déjà existante",
+        description: "Cette boutique semble déjà être enregistrée dans notre système",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -284,6 +352,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
 
             // Stocker l'ID de la boutique dans sessionStorage pour une utilisation immédiate
             sessionStorage.setItem('userStoreId', storeData.id);
+            localStorage.setItem('userStoreId', storeData.id);
           }
         } catch (supabaseError) {
           console.error("Erreur Supabase complète:", supabaseError);
@@ -392,6 +461,16 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
                   {formData.address}, {formData.postalCode} {formData.city}, France
                 </div>
               </div>
+
+              {isDuplicate && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Attention</AlertTitle>
+                  <AlertDescription>
+                    Une boutique à cette adresse ou très similaire existe déjà dans notre système.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {formData.openingHours.length > 0 && (
                 <div>
