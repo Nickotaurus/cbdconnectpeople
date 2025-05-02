@@ -18,21 +18,20 @@ export const useStoreAssociation = (
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Nettoyer les données de session au démarrage pour éviter les conflits
+  // Clean session data on startup to avoid conflicts
   useEffect(() => {
-    // Nettoyage des données stockées pour ce profil
     localStorage.removeItem('userStoreId');
     sessionStorage.removeItem('userStoreId');
     sessionStorage.removeItem('newlyAddedStore');
   }, []);
   
-  // Vérifier si la boutique est déjà associée au démarrage
+  // Check if store is already associated at startup
   useEffect(() => {
     const checkExistingAssociation = async () => {
       if (!email) return;
       
       try {
-        // 1. Trouver l'ID utilisateur à partir de l'email
+        // 1. Find user ID from email
         const { data: userData, error: userError } = await supabase
           .from('profiles')
           .select('id, store_id, email')
@@ -45,7 +44,7 @@ export const useStoreAssociation = (
         }
 
         if (userData?.store_id) {
-          // L'utilisateur a déjà une boutique associée
+          // User already has an associated store
           console.log("Boutique déjà associée:", userData.store_id);
           localStorage.setItem('userStoreId', userData.store_id);
           sessionStorage.setItem('userStoreId', userData.store_id);
@@ -75,9 +74,9 @@ export const useStoreAssociation = (
     setResult({});
 
     try {
-      // Forcer la suppression de toute association existante
+      // Force remove any existing association
       if (email === 'histoiredechanvre29@gmail.com') {
-        // Récupérer l'ID utilisateur
+        // Get user ID
         const { data: userData, error: userError } = await supabase
           .from('profiles')
           .select('id')
@@ -89,17 +88,17 @@ export const useStoreAssociation = (
           throw new Error('Profil non trouvé');
         }
         
-        // Supprimer l'association store_id du profil
+        // Remove store_id association from profile
         await supabase
           .from('profiles')
           .update({ store_id: null })
           .eq('id', userData.id);
           
-        // Nettoyer l'association côté boutique si elle existe
+        // Clean store association if it exists
         const { data: storeData } = await supabase
           .from('stores')
           .select('id')
-          .eq('name', 'ilike', `%${storeName}%`);
+          .ilike('name', `%${storeName}%`);
           
         if (storeData && storeData.length > 0) {
           await supabase
@@ -108,23 +107,23 @@ export const useStoreAssociation = (
             .eq('id', storeData[0].id);
         }
         
-        // Nettoyer le stockage local
+        // Clean local storage
         localStorage.removeItem('userStoreId');
         sessionStorage.removeItem('userStoreId');
       }
       
-      // Créer une nouvelle association
+      // Create a new association - passing just the two required parameters
       const response = await associateStoreWithUser(email, storeName);
       setResult(response);
       
       if (response.success && response.storeId) {
-        // Afficher une notification de succès
+        // Show success notification
         toast({
           title: "Association réussie",
           description: "Votre boutique a été associée avec succès à votre profil",
         });
         
-        // Si l'association a réussi, recharger la page après 1.5 secondes
+        // If association succeeded, reload page after 1.5 seconds
         setTimeout(() => {
           if (onSuccess) {
             onSuccess();
