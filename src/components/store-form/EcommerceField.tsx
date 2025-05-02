@@ -31,7 +31,7 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceU
                 name: 'isEcommerce',
                 value: checked
               }
-            } as React.ChangeEvent<HTMLInputElement>;
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
             onChange(syntheticEvent);
           }}
         />
