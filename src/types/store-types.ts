@@ -17,7 +17,7 @@ export interface StoreData {
   description?: string;
   logo_url?: string;
   photo_url?: string;
-  // Add fields used in the application
+  // Add missing fields that are being accessed in the application
   is_ecommerce?: boolean;
   ecommerce_url?: string;
   is_premium?: boolean;
@@ -47,4 +47,29 @@ export interface BusinessDetails {
   totalReviews?: number;
   reviews?: ReviewData[];
   openingHours?: string[];
+}
+
+// Interface representing the database stores schema
+export interface StoreDBType {
+  address: string;
+  city: string;
+  claimed_by: string | null;
+  description: string | null;
+  id: string;
+  is_verified: boolean | null;
+  latitude: number;
+  logo_url: string | null;
+  longitude: number;
+  name: string;
+  phone: string | null;
+  photo_url: string | null;
+  postal_code: string;
+  registration_date: string | null;
+  user_id: string | null;
+  website: string | null;
+  google_place_id?: string | null;
+  is_ecommerce?: boolean | null;
+  ecommerce_url?: string | null;
+  is_premium?: boolean | null;
+  premium_until?: string | null;
 }

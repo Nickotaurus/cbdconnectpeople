@@ -9,7 +9,7 @@ import BasicInfoFields from '@/components/store-form/BasicInfoFields';
 import EcommerceField from '@/components/store-form/EcommerceField';
 import FormActions from '@/components/store-form/FormActions';
 import StoreSearch from '@/components/store/StoreSearch';
-import { StoreData } from '@/types/store-types';
+import { StoreData, StoreDBType } from '@/types/store-types';
 import { Store } from '@/types/store';
 
 // Default placeholder image when no image is available
@@ -209,7 +209,9 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
             reviews: [],
             products: [],
             isEcommerce: data[0].is_ecommerce || false,
-            ecommerceUrl: data[0].ecommerce_url || ''
+            ecommerceUrl: data[0].ecommerce_url || '',
+            isPremium: data[0].is_premium || false,
+            premiumUntil: data[0].premium_until || undefined
           };
           
           if (onSuccess) {
@@ -264,22 +266,23 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
               variant: "destructive"
             });
           } else if (data) {
+            const storeData = data as StoreDBType;
             setFormData({
-              id: data.id,
-              name: data.name,
-              address: data.address,
-              city: data.city,
-              postalCode: data.postal_code || '',
-              latitude: data.latitude || null,
-              longitude: data.longitude || null,
-              description: data.description || '',
-              phone: data.phone || '',
-              website: data.website || '',
-              logoUrl: data.logo_url || '',
-              photoUrl: data.photo_url || '',
-              placeId: data.google_place_id || '',
-              isEcommerce: data.is_ecommerce || false,
-              ecommerceUrl: data.ecommerce_url || ''
+              id: storeData.id,
+              name: storeData.name,
+              address: storeData.address,
+              city: storeData.city,
+              postalCode: storeData.postal_code || '',
+              latitude: storeData.latitude || null,
+              longitude: storeData.longitude || null,
+              description: storeData.description || '',
+              phone: storeData.phone || '',
+              website: storeData.website || '',
+              logoUrl: storeData.logo_url || '',
+              photoUrl: storeData.photo_url || '',
+              placeId: storeData.google_place_id || '',
+              isEcommerce: storeData.is_ecommerce || false,
+              ecommerceUrl: storeData.ecommerce_url || ''
             });
             setIsAddressValid(true);
             setHasSearched(true);
@@ -356,6 +359,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
               
               <EcommerceField 
                 ecommerceUrl={formData.ecommerceUrl}
+                isEcommerce={formData.isEcommerce}
                 onChange={handleInputChange}
               />
               

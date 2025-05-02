@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Store } from '@/types/store';
+import { StoreDBType } from '@/types/store-types';
 import { useToast } from "@/components/ui/use-toast";
 
 export const useStores = () => {
@@ -23,7 +24,7 @@ export const useStores = () => {
       if (error) throw new Error(error.message);
 
       // Transformer les données de Supabase pour correspondre à l'interface Store
-      const transformedStores: Store[] = (data || []).map(store => ({
+      const transformedStores: Store[] = (data || []).map((store: StoreDBType) => ({
         id: store.id,
         name: store.name,
         address: store.address,
