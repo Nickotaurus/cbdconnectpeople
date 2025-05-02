@@ -14,9 +14,10 @@ interface StoreListProps {
     minRating: number;
     maxDistance: number | null;
   };
+  isLoading?: boolean; // Added isLoading prop
 }
 
-const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilters }: StoreListProps) => {
+const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilters, isLoading = false }: StoreListProps) => {
   // Filter stores based on search term and active filters
   let filteredStores = stores;
   
@@ -55,6 +56,16 @@ const StoreList = ({ stores, searchTerm, userLocation, onSelectStore, activeFilt
       );
       return distance <= activeFilters.maxDistance!;
     });
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Chargement des boutiques...</p>
+      </div>
+    );
   }
   
   if (filteredStores.length === 0) {
