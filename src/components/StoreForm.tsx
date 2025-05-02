@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { addStore } from '@/utils/storeUtils';
@@ -57,7 +56,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   useEffect(() => {
     // Vérifier si la boutique existe déjà lorsque l'adresse et les coordonnées sont définies
     const checkForDuplicate = async () => {
-      if (!formData.address || !formData.latitude || !formData.longitude || !formData.placeId) {
+      if (!formData.address || !formData.latitude || !formData.longitude) {
         return;
       }
 
@@ -67,23 +66,42 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
           const { data: placeData } = await supabase
             .from('stores')
             .select('id, name')
-            .eq('address', formData.address)
+            .eq('google_place_id', formData.placeId)
             .limit(1);
 
           if (placeData && placeData.length > 0) {
             setIsDuplicate(true);
             toast({
               title: "Boutique déjà enregistrée",
-              description: `Une boutique à cette adresse existe déjà : ${placeData[0].name}`,
+              description: `Une boutique avec ce Google Place ID existe déjà : ${placeData[0].name}`,
               variant: "destructive",
             });
             return;
           }
         }
 
-        // Vérifier par proximité géographique (dans un rayon de ~100m)
-        const latDiff = 0.001; // Environ 100m
-        const lngDiff = 0.001; // Environ 100m
+        // Vérifier aussi par l'adresse exacte
+        const { data: addressData } = await supabase
+          .from('stores')
+          .select('id, name')
+          .eq('address', formData.address)
+          .eq('city', formData.city)
+          .eq('postal_code', formData.postalCode)
+          .limit(1);
+
+        if (addressData && addressData.length > 0) {
+          setIsDuplicate(true);
+          toast({
+            title: "Boutique déjà enregistrée",
+            description: `Une boutique à cette adresse existe déjà : ${addressData[0].name}`,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Vérifier par proximité géographique (dans un rayon de ~50m)
+        const latDiff = 0.0005; // Environ 50m
+        const lngDiff = 0.0005; // Environ 50m
 
         const { data: geoData } = await supabase
           .from('stores')
@@ -110,7 +128,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     };
 
     checkForDuplicate();
-  }, [formData.address, formData.latitude, formData.longitude, formData.placeId, toast]);
+  }, [formData.address, formData.latitude, formData.longitude, formData.placeId, formData.city, formData.postalCode, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -235,7 +253,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     if (isDuplicate) {
       toast({
         title: "Boutique déjà existante",
-        description: "Cette boutique semble déjà être enregistrée dans notre système",
+        description: "Cette boutique semble déjà être enregistrée dans notre système. Veuillez vérifier les informations saisies.",
         variant: "destructive",
       });
       return;

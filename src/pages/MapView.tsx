@@ -31,30 +31,47 @@ const MapView = () => {
     maxDistance: null as number | null,
   });
 
-  // Memoized function to combine and deduplicate stores
+  // Memoized function to combine and deduplicate stores with improved deduplication
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Create a store map using a regular JavaScript object instead of Map constructor
+    // Create a store map using keys that will help catch duplicates
     const storeMap: Record<string, Store> = {};
+    
+    // Function to generate a consistent key for a store
+    const getStoreKey = (store: Store): string => {
+      // Try to use placeId as the most reliable identifier
+      if (store.placeId) {
+        return `place_${store.placeId}`;
+      }
+      
+      // Next best option is to use coordinate-based identification for more precise deduplication
+      if (store.latitude && store.longitude) {
+        // Round coordinates to 5 decimal places (~1m precision) to catch very close duplicates
+        const lat = Math.round(store.latitude * 100000) / 100000;
+        const lng = Math.round(store.longitude * 100000) / 100000;
+        return `geo_${lat}_${lng}`;
+      }
+      
+      // Fallback to address-name based identification
+      return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
+    };
     
     // First add local stores to the map
     localStores.forEach(store => {
-      const key = store.placeId || `${store.address}-${store.name}`.toLowerCase().replace(/\s+/g, '');
+      const key = getStoreKey(store);
       storeMap[key] = store;
     });
     
     // Then add Supabase stores, overwriting local ones if they exist with same key
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
-        const key = store.placeId || `${store.address}-${store.name}`.toLowerCase().replace(/\s+/g, '');
-        if (!storeMap[key]) {
-          storeMap[key] = store;
-        }
+        const key = getStoreKey(store);
+        storeMap[key] = store;
       });
     }
     
     // Convert map back to array and sort by distance
     const uniqueStores = Object.values(storeMap);
-    // Return the sorted stores by passing uniqueStores as the custom stores parameter
+    // Return the sorted stores
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
   

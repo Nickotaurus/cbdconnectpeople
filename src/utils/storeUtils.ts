@@ -1,3 +1,4 @@
+
 import { Store } from '@/types/store';
 import { storesData } from '@/data/storesData';
 import { calculateDistance } from './geoUtils';
