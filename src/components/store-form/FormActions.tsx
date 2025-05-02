@@ -21,7 +21,7 @@ const FormActions = ({ storeType, isSubmitting = false }: FormActionsProps) => {
       >
         {isSubmitting ? (
           <div className="flex items-center justify-center w-full">
-            <div className="animate-spin h-4 w-4 border-2 border-current border-r-transparent rounded-full mr-2"></div>
+            <div className="animate-spin h-5 w-5 border-2 border-current border-r-transparent rounded-full mr-2"></div>
             <span>Enregistrement en cours...</span>
           </div>
         ) : (
