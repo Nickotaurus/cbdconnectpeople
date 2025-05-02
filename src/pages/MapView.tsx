@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -33,17 +32,17 @@ const MapView = () => {
 
   // Fonction améliorée pour combiner et dédupliquer les boutiques avec un traitement spécifique pour "CBD Histoire de Chanvre"
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Fixed: Using a standard JavaScript Map object instead of trying to instantiate a custom Map class
-    const storeMap = new Map<string, Store>();
+    // Use an object instead of Map to store unique stores
+    const storeMap: Record<string, Store> = {};
     
     // Ajouter les boutiques locales à la map
     localStores.forEach(store => {
       // Clé spéciale pour CBD Histoire de Chanvre
       if (store.name.includes("CBD Histoire de Chanvre")) {
-        storeMap.set("cbd_histoire_de_chanvre_special_key", store);
+        storeMap["cbd_histoire_de_chanvre_special_key"] = store;
       } else {
         const key = getStoreKey(store);
-        storeMap.set(key, store);
+        storeMap[key] = store;
       }
     });
     
@@ -54,17 +53,17 @@ const MapView = () => {
         if (store.name.includes("CBD Histoire de Chanvre")) {
           // Uniquement remplacer si on a un placeId (plus fiable)
           if (store.placeId) {
-            storeMap.set("cbd_histoire_de_chanvre_special_key", store);
+            storeMap["cbd_histoire_de_chanvre_special_key"] = store;
           }
         } else {
           const key = getStoreKey(store);
-          storeMap.set(key, store);
+          storeMap[key] = store;
         }
       });
     }
     
-    // Convertir la map en tableau et trier par distance
-    const uniqueStores = Array.from(storeMap.values());
+    // Convertir l'objet en tableau et trier par distance
+    const uniqueStores = Object.values(storeMap);
     console.log(`Nombre final de boutiques après déduplication: ${uniqueStores.length}`);
     
     // Retourner les boutiques triées par distance
