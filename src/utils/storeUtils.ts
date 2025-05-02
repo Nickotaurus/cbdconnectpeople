@@ -1,6 +1,8 @@
+
 import { Store } from '@/types/store';
 import { storesData } from '@/data/storesData';
 import { calculateDistance } from './geoUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 // Export the stores array directly
 export const stores = storesData;
@@ -84,4 +86,135 @@ export const isStoreDuplicate = (name: string): boolean => {
     const storeName = store.name.toLowerCase().replace(/\s+/g, '');
     return storeName === normalizedName;
   });
+};
+
+// Nouvelle fonction pour associer une boutique à un profil utilisateur
+export const associateStoreWithUser = async (
+  email: string,
+  storeName: string
+): Promise<{ success: boolean; message: string; storeId?: string }> => {
+  try {
+    // 1. Trouver l'ID utilisateur à partir de l'email
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (userError) {
+      console.error('Erreur lors de la recherche du profil:', userError);
+      return { success: false, message: 'Profil utilisateur non trouvé' };
+    }
+
+    const userId = userData?.id;
+    if (!userId) {
+      return { success: false, message: 'ID utilisateur non trouvé' };
+    }
+
+    // 2. Rechercher la boutique par nom dans la base de données Supabase
+    const { data: storeData, error: storeDbError } = await supabase
+      .from('stores')
+      .select('*')
+      .ilike('name', `%${storeName}%`);
+
+    // 3. Si la boutique existe dans Supabase, l'associer au profil utilisateur
+    if (storeData && storeData.length > 0) {
+      const store = storeData[0];
+      
+      // Mise à jour du champ user_id de la boutique
+      const { error: updateError } = await supabase
+        .from('stores')
+        .update({ user_id: userId, claimed_by: userId })
+        .eq('id', store.id);
+
+      if (updateError) {
+        console.error('Erreur lors de la mise à jour de la boutique:', updateError);
+        return { success: false, message: 'Erreur lors de l\'association de la boutique' };
+      }
+
+      // Mise à jour du profil utilisateur avec l'ID de la boutique
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ store_id: store.id, store_type: 'physical' })
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error('Erreur lors de la mise à jour du profil:', profileError);
+        return { success: false, message: 'Erreur lors de la mise à jour du profil' };
+      }
+
+      // Stockage de l'ID de boutique dans localStorage et sessionStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userStoreId', store.id);
+        sessionStorage.setItem('userStoreId', store.id);
+      }
+
+      return { 
+        success: true, 
+        message: 'Boutique associée avec succès au profil',
+        storeId: store.id
+      };
+    }
+
+    // 4. Si non trouvée dans Supabase, chercher dans les données locales
+    const localStore = stores.find(s => 
+      s.name.toLowerCase().includes(storeName.toLowerCase())
+    );
+
+    if (localStore) {
+      // Si trouvée dans les données locales, l'ajouter à Supabase puis l'associer
+      const { data: newStore, error: insertError } = await supabase
+        .from('stores')
+        .insert({
+          name: localStore.name,
+          address: localStore.address,
+          city: localStore.city,
+          postal_code: localStore.postalCode,
+          latitude: localStore.latitude,
+          longitude: localStore.longitude,
+          phone: localStore.phone || '',
+          website: localStore.website || '',
+          description: localStore.description || '',
+          photo_url: localStore.imageUrl || '',
+          user_id: userId,
+          claimed_by: userId,
+          is_verified: true
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Erreur lors de l\'insertion de la boutique:', insertError);
+        return { success: false, message: 'Erreur lors de l\'ajout de la boutique à la base de données' };
+      }
+
+      // Mise à jour du profil utilisateur avec l'ID de la boutique
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ store_id: newStore.id, store_type: 'physical' })
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error('Erreur lors de la mise à jour du profil:', profileError);
+        return { success: false, message: 'Erreur lors de la mise à jour du profil' };
+      }
+
+      // Stockage de l'ID de boutique dans localStorage et sessionStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userStoreId', newStore.id);
+        sessionStorage.setItem('userStoreId', newStore.id);
+      }
+
+      return { 
+        success: true, 
+        message: 'Boutique ajoutée et associée avec succès au profil',
+        storeId: newStore.id
+      };
+    }
+
+    return { success: false, message: 'Boutique non trouvée' };
+  } catch (error) {
+    console.error('Erreur inattendue:', error);
+    return { success: false, message: 'Une erreur inattendue s\'est produite' };
+  }
 };

@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { StoreUser } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from "@/components/ui/skeleton"; 
+import StoreAssociationTool from '@/components/store/StoreAssociationTool';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
@@ -21,12 +22,17 @@ const StoreDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showAssociationTool, setShowAssociationTool] = useState(false);
   const maxRetries = 3;
   
   // Autres états
   const profileCompleteness = 65;
   const storeVerificationStatus = storeUser?.siretVerified ? "Vérifié" : "En attente";
   const partnerFavorites = storeUser?.partnerFavorites || [];
+  
+  // Vérifier si l'utilisateur est "histoiredechanvre29@gmail.com"
+  // et n'a pas encore de boutique associée
+  const isHistoireDeChanvreUser = user?.email === "histoiredechanvre29@gmail.com";
 
   useEffect(() => {
     const fetchStoreId = async () => {
@@ -117,6 +123,13 @@ const StoreDashboard = () => {
             setIsLoading(false);
             return;
           }
+          
+          // 4. Pour Histoire de Chanvre spécifiquement, offrir l'outil d'association
+          if (isHistoireDeChanvreUser) {
+            setShowAssociationTool(true);
+            setIsLoading(false);
+            return;
+          }
         }
 
         // Si aucune boutique trouvée
@@ -142,7 +155,7 @@ const StoreDashboard = () => {
     };
     
     fetchStoreId();
-  }, [user, toast, retryCount]);
+  }, [user, toast, retryCount, isHistoireDeChanvreUser]);
   
   // Rendre un état de chargement sur mobile et desktop
   if (isLoading) {
@@ -181,6 +194,26 @@ const StoreDashboard = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
+    );
+  }
+  
+  // Montrer l'outil d'association pour Histoire de Chanvre
+  if (showAssociationTool) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Association de votre boutique</CardTitle>
+            <CardDescription>
+              Nous avons trouvé votre boutique "CBD Histoire de Chanvre" dans notre base de données. 
+              Veuillez confirmer l'association de cette boutique à votre profil.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StoreAssociationTool />
+          </CardContent>
+        </Card>
       </div>
     );
   }
