@@ -52,10 +52,10 @@ export const useStores = () => {
           isAffiliate: false
         },
         lotteryPrize: undefined,
-        isPremium: false,
-        premiumUntil: undefined,
-        isEcommerce: false,
-        ecommerceUrl: undefined
+        isPremium: store.is_premium || false,
+        premiumUntil: store.premium_until || undefined,
+        isEcommerce: store.is_ecommerce || false,
+        ecommerceUrl: store.ecommerce_url || undefined
       }));
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);

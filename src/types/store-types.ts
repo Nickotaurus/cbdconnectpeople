@@ -14,6 +14,9 @@ export interface StoreData {
   totalReviews?: number;
   reviews?: ReviewData[];
   openingHours?: string[];
+  description?: string;
+  logo_url?: string;
+  photo_url?: string;
 }
 
 export interface ReviewData {

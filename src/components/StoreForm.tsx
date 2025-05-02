@@ -11,6 +11,7 @@ import EcommerceField from '@/components/store-form/EcommerceField';
 import FormActions from '@/components/store-form/FormActions';
 import StoreSearch from '@/components/store/StoreSearch';
 import { StoreData } from '@/types/store-types';
+import { Store } from '@/types/store';
 
 // Default placeholder image when no image is available
 const placeholderImageUrl = "https://via.placeholder.com/150x150?text=CBD+Store";
@@ -53,9 +54,11 @@ const initialFormData: FormData = {
 interface StoreFormProps {
   isEdit?: boolean;
   storeId?: string;
+  onSuccess?: (store: Store) => Promise<void>;
+  storeType?: string;
 }
 
-const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
+const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('search');
@@ -185,7 +188,36 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
             description: "Votre boutique a été ajoutée avec succès.",
           });
           
-          navigate(`/store/${data[0].id}`);
+          // Convert to Store type for onSuccess callback
+          const storeForCallback: Store = {
+            id: data[0].id,
+            name: data[0].name,
+            address: data[0].address,
+            city: data[0].city,
+            postalCode: data[0].postal_code || '',
+            latitude: data[0].latitude,
+            longitude: data[0].longitude,
+            phone: data[0].phone || '',
+            website: data[0].website || '',
+            imageUrl: data[0].photo_url || placeholderImageUrl,
+            logo_url: data[0].logo_url || '',
+            photo_url: data[0].photo_url || '',
+            description: data[0].description || '',
+            openingHours: [],
+            rating: 0,
+            reviewCount: 0,
+            placeId: data[0].google_place_id || '',
+            reviews: [],
+            products: [],
+            isEcommerce: data[0].is_ecommerce || false,
+            ecommerceUrl: data[0].ecommerce_url || ''
+          };
+          
+          if (onSuccess) {
+            await onSuccess(storeForCallback);
+          } else {
+            navigate(`/store/${data[0].id}`);
+          }
         }
       }
     } catch (error) {
@@ -216,12 +248,15 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
   useEffect(() => {
     if (isEdit && storeId) {
       setIsLoading(true);
-      supabase
-        .from('stores')
-        .select('*')
-        .eq('id', storeId)
-        .single()
-        .then(({ data, error }) => {
+      
+      const fetchStoreData = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', storeId)
+            .single();
+
           if (error) {
             console.error("Error fetching store data:", error);
             toast({
@@ -250,8 +285,14 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
             setIsAddressValid(true);
             setHasSearched(true);
           }
-        })
-        .finally(() => setIsLoading(false));
+        } catch (error) {
+          console.error("Error in fetch:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchStoreData();
     }
   }, [isEdit, storeId, toast]);
 
@@ -310,11 +351,10 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
             <div className="rounded-lg bg-card p-6 shadow-sm space-y-6">
               <BasicInfoFields 
                 formData={formData} 
-                onChange={handleInputChange}
+                handleChange={handleInputChange}
               />
               
               <EcommerceField 
-                isEcommerce={formData.isEcommerce}
                 ecommerceUrl={formData.ecommerceUrl}
                 onChange={handleInputChange}
               />
@@ -322,6 +362,7 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
               <FormActions 
                 isLoading={isLoading}
                 onCancel={() => navigate(-1)}
+                storeType={storeType}
               />
             </div>
           </TabsContent>

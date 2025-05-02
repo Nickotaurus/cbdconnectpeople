@@ -6,9 +6,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface FormActionsProps {
   storeType?: string;
   isSubmitting?: boolean;
+  isLoading?: boolean;
+  onCancel?: () => void;
 }
 
-const FormActions = ({ storeType, isSubmitting = false }: FormActionsProps) => {
+const FormActions = ({ storeType, isSubmitting = false, isLoading = false, onCancel }: FormActionsProps) => {
   const isMobile = useIsMobile();
   
   return (
@@ -17,9 +19,9 @@ const FormActions = ({ storeType, isSubmitting = false }: FormActionsProps) => {
         type="submit" 
         className={`w-full ${isMobile ? 'py-3' : ''}`}
         size={isMobile ? "lg" : "default"}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isLoading}
       >
-        {isSubmitting ? (
+        {isSubmitting || isLoading ? (
           <div className="flex items-center justify-center w-full">
             <div className="animate-spin h-5 w-5 border-2 border-current border-r-transparent rounded-full mr-2"></div>
             <span>Enregistrement en cours...</span>

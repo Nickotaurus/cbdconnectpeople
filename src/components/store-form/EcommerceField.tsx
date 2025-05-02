@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Globe } from "lucide-react";
 
 interface EcommerceFieldProps {
+  isEcommerce?: boolean;
   ecommerceUrl: string;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const EcommerceField: React.FC<EcommerceFieldProps> = ({ ecommerceUrl, handleChange }) => {
+const EcommerceField: React.FC<EcommerceFieldProps> = ({ ecommerceUrl, onChange }) => {
   return (
     <div className="space-y-2 border p-4 rounded-lg bg-primary/5 border-primary/20">
       <div className="flex items-center gap-2 mb-2">
@@ -24,7 +25,7 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ ecommerceUrl, handleCha
           type="url"
           placeholder="https://www.votreboutiquecbd.fr" 
           value={ecommerceUrl} 
-          onChange={handleChange} 
+          onChange={onChange} 
         />
         <p className="text-sm text-muted-foreground">
           Vous pourrez configurer plus de détails sur votre e-commerce après avoir souscrit à un abonnement.
