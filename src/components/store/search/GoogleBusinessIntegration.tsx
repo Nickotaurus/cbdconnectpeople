@@ -87,7 +87,7 @@ const GoogleBusinessIntegration = ({
       </CardHeader>
       
       <div className="px-6 py-2">
-        <Alert variant="success" className="bg-green-100 border-green-200">
+        <Alert variant="default" className="bg-green-100 border-green-200">
           <Info className="h-4 w-4 text-green-600" />
           <AlertTitle className="text-green-800 text-sm font-medium">Avantage Google Business</AlertTitle>
           <AlertDescription className="text-xs text-green-700">

@@ -291,9 +291,9 @@ const GooglePlacesSearch: React.FC<GooglePlacesSearchProps> = ({
       )}
       
       {!isApiLoaded && apiCheckAttempts > 3 && (
-        <Alert variant="warning" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert variant="default" className="mt-4 border-yellow-200 bg-yellow-50">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-700">
             L'API Google Maps prend du temps à se charger. Essayez de rafraîchir la page ou vérifiez votre connexion internet.
           </AlertDescription>
         </Alert>
