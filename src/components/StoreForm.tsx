@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -9,9 +10,10 @@ import BasicInfoFields from '@/components/store-form/BasicInfoFields';
 import EcommerceField from '@/components/store-form/EcommerceField';
 import FormActions from '@/components/store-form/FormActions';
 import StoreSearch from '@/components/store/StoreSearch';
-
-import { placeholderImageUrl } from '@/utils/storeUtils';
 import { StoreData } from '@/types/store-types';
+
+// Default placeholder image when no image is available
+const placeholderImageUrl = "https://via.placeholder.com/150x150?text=CBD+Store";
 
 interface FormData {
   id?: string;
@@ -86,7 +88,7 @@ const StoreForm = ({ isEdit = false, storeId }: StoreFormProps) => {
           toast({
             title: "Boutique existante",
             description: "Une boutique existe déjà à cette adresse.",
-            variant: "warning"
+            variant: "destructive"
           });
         }
       } catch (error) {

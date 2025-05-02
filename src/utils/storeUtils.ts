@@ -1,10 +1,12 @@
-
 import { Store } from '@/types/store';
 import { storesData } from '@/data/storesData';
 import { calculateDistance } from './geoUtils';
 
 // Export the stores array directly
 export const stores = storesData;
+
+// Placeholder image URL for stores without images
+export const placeholderImageUrl = "https://via.placeholder.com/150x150?text=CBD+Store";
 
 export const addStore = (store: Omit<Store, 'id'>): Store => {
   const newId = (Math.max(...stores.map(s => parseInt(s.id))) + 1).toString();

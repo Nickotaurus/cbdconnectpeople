@@ -35,10 +35,17 @@ const MapView = () => {
     // Use an object instead of Map to store unique stores
     const storeMap: Record<string, Store> = {};
     
-    // Ajouter les boutiques locales à la map
+    // Add a counter to track how many stores we're processing
+    console.log(`Nombre de boutiques locales: ${localStores.length}`);
+    console.log(`Nombre de boutiques depuis supabase: ${dbStores ? dbStores.length : 0}`);
+    
+    let cbdHistoireCount = 0;
+    
+    // Ajouter les boutiques locales à l'objet
     localStores.forEach(store => {
       // Clé spéciale pour CBD Histoire de Chanvre
-      if (store.name.includes("CBD Histoire de Chanvre")) {
+      if (store.name.toLowerCase().includes("cbd histoire de chanvre")) {
+        cbdHistoireCount++;
         storeMap["cbd_histoire_de_chanvre_special_key"] = store;
       } else {
         const key = getStoreKey(store);
@@ -50,7 +57,8 @@ const MapView = () => {
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
         // Clé spéciale pour CBD Histoire de Chanvre
-        if (store.name.includes("CBD Histoire de Chanvre")) {
+        if (store.name.toLowerCase().includes("cbd histoire de chanvre")) {
+          cbdHistoireCount++;
           // Uniquement remplacer si on a un placeId (plus fiable)
           if (store.placeId) {
             storeMap["cbd_histoire_de_chanvre_special_key"] = store;
@@ -62,9 +70,11 @@ const MapView = () => {
       });
     }
     
+    console.log(`Nombre d'instances "CBD Histoire de Chanvre" trouvées: ${cbdHistoireCount}`);
+    console.log(`Nombre final de boutiques après déduplication: ${Object.keys(storeMap).length}`);
+    
     // Convertir l'objet en tableau et trier par distance
     const uniqueStores = Object.values(storeMap);
-    console.log(`Nombre final de boutiques après déduplication: ${uniqueStores.length}`);
     
     // Retourner les boutiques triées par distance
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
@@ -92,6 +102,7 @@ const MapView = () => {
   useEffect(() => {
     // Obtenir les boutiques locales
     const localStores = getStoresByDistance(userLocation.latitude, userLocation.longitude);
+    
     // Puis combiner avec les boutiques de Supabase et assurer une bonne déduplication
     const combined = combineAndDeduplicateStores(localStores, supabaseStores);
     setCombinedStores(combined);
