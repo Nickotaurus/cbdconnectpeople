@@ -11,6 +11,7 @@ interface BasicInfoFieldsProps {
     city: string;
     postalCode: string;
     website: string;
+    description?: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }

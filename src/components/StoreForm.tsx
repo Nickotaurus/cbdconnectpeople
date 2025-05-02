@@ -296,6 +296,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
   }, [isEdit, storeId, toast]);
 
   return (
+    
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">
         {isEdit ? 'Modifier ma boutique' : 'Ajouter une boutique'}
