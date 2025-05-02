@@ -6,6 +6,7 @@ import BasicInfoFields from './BasicInfoFields';
 import EcommerceField from './EcommerceField';
 import FormActions from './FormActions';
 import { StoreData } from '@/types/store-types';
+import StoreSearch from '../store/StoreSearch';
 
 interface FormData {
   id?: string;
@@ -69,6 +70,33 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
           <TabsTrigger value="search" disabled={isEdit}>Rechercher une boutique</TabsTrigger>
           <TabsTrigger value="details">Détails de la boutique</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="search" className="space-y-6">
+          <div className="bg-card p-6 rounded-lg shadow-sm space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-medium">Recherchez votre boutique</h3>
+              <p className="text-muted-foreground text-sm">
+                Trouvez votre boutique pour importer automatiquement les informations de Google Business
+              </p>
+            </div>
+            <StoreSearch 
+              onStoreSelect={handleStoreSelect} 
+              isRegistration={true}
+            />
+            <div className="text-center pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setActiveTab('details');
+                  setHasSearched(true);
+                }}
+              >
+                Passer cette étape
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
         
         <TabsContent value="details" className="space-y-6">
           <div className="rounded-lg bg-card p-6 shadow-sm space-y-6">
