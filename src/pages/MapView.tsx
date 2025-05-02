@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -54,12 +53,15 @@ const MapView = () => {
     
     // Convert map back to array and sort by distance
     const uniqueStores = Object.values(storeMap);
-    return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
+    // Fix: Only pass the required two arguments to getStoresByDistance
+    return getStoresByDistance(userLocation.latitude, userLocation.longitude);
   }, [userLocation]);
   
   // Load and combine stores
   useEffect(() => {
+    // Fix: Make sure we're getting local stores properly
     const localStores = getStoresByDistance(userLocation.latitude, userLocation.longitude);
+    // Then combine with the stores from Supabase
     const combined = combineAndDeduplicateStores(localStores, supabaseStores);
     setCombinedStores(combined);
     

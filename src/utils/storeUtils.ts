@@ -1,4 +1,3 @@
-
 import { Store } from '@/types/store';
 import { storesData } from '@/data/storesData';
 import { calculateDistance } from './geoUtils';
@@ -55,8 +54,10 @@ export const deleteStore = (id: string): boolean => {
   return false;
 };
 
-export const getStoresByDistance = (userLat: number, userLng: number) => {
-  return [...stores].sort((a, b) => {
+export const getStoresByDistance = (userLat: number, userLng: number, customStores?: Store[]) => {
+  const storesToSort = customStores || [...stores];
+  
+  return storesToSort.sort((a, b) => {
     const distA = calculateDistance(userLat, userLng, a.latitude, a.longitude);
     const distB = calculateDistance(userLat, userLng, b.latitude, b.longitude);
     return distA - distB;
