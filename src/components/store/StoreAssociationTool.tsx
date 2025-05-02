@@ -128,6 +128,8 @@ const StoreAssociationTool = ({
       }
       
       // Créer une nouvelle association
+      // FIX: Remove the third argument from the associateStoreWithUser call
+      // The function only expects 2 arguments: email and storeName
       const response = await associateStoreWithUser(email, storeName);
       setResult(response);
       
