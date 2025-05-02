@@ -40,7 +40,7 @@ export const useStores = () => {
         photo_url: store.photo_url || '',
         rating: 0, // Valeur par défaut
         reviewCount: 0, // Valeur par défaut
-        placeId: store.google_place_id || '', // Using the correct field from database: google_place_id
+        placeId: store.google_place_id || '', // Changed from place_id to google_place_id
         reviews: [], // Données à implémenter ultérieurement
         products: [], // Données à implémenter ultérieurement
         // Ajout d'autres champs avec des valeurs par défaut si nécessaires

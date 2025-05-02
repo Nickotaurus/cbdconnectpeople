@@ -33,27 +33,27 @@ const MapView = () => {
 
   // Memoized function to combine and deduplicate stores
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Create a Map object using placeId or address+name as unique identifier
-    const storeMap = new Map<string, Store>();
+    // Create a store map using a regular JavaScript object instead of Map constructor
+    const storeMap: Record<string, Store> = {};
     
     // First add local stores to the map
     localStores.forEach(store => {
       const key = store.placeId || `${store.address}-${store.name}`.toLowerCase().replace(/\s+/g, '');
-      storeMap.set(key, store);
+      storeMap[key] = store;
     });
     
     // Then add Supabase stores, overwriting local ones if they exist with same key
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
         const key = store.placeId || `${store.address}-${store.name}`.toLowerCase().replace(/\s+/g, '');
-        if (!storeMap.has(key)) {
-          storeMap.set(key, store);
+        if (!storeMap[key]) {
+          storeMap[key] = store;
         }
       });
     }
     
     // Convert map back to array and sort by distance
-    const uniqueStores = Array.from(storeMap.values());
+    const uniqueStores = Object.values(storeMap);
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
   
