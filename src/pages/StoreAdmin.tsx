@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,22 @@ import { CalendarIcon, ChevronDown, ShoppingBag, Ticket, BarChart4, CreditCard }
 import CouponCard from "@/components/CouponCard";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
 import { getStoreById } from "@/utils/data";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
-  const store = id ? getStoreById(id) : null;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const initialTab = searchParams.get('tab') || "dashboard";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [store, setStore] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [couponForm, setCouponForm] = useState({
     code: "",
     discount: "",
@@ -31,27 +40,120 @@ const StoreAdmin = () => {
   });
   
   const [date, setDate] = useState<Date | undefined>(new Date());
-  
-  if (!store) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold mb-6">Espace boutique</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Boutique non trouvée</CardTitle>
-            <CardDescription>
-              Cette boutique n'existe pas ou vous n'avez pas les permissions nécessaires.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <Link to="/">Retour à l'accueil</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
+  useEffect(() => {
+    const loadStore = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        if (!id) {
+          // Si id n'est pas présent, essayons de récupérer depuis sessionStorage
+          const sessionStoreId = sessionStorage.getItem('userStoreId');
+          if (sessionStoreId) {
+            navigate(`/store/${sessionStoreId}/admin`, { replace: true });
+            return;
+          }
+          
+          // Si on a un utilisateur connecté, recherchons sa boutique
+          if (user?.id) {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('store_id')
+              .eq('id', user.id)
+              .single();
+              
+            if (profileError && profileError.code !== 'PGRST116') {
+              throw new Error("Impossible de récupérer votre profil.");
+            }
+            
+            if (profileData?.store_id) {
+              navigate(`/store/${profileData.store_id}/admin`, { replace: true });
+              return;
+            }
+            
+            // Vérifier les boutiques associées à cet utilisateur
+            const { data: storeData, error: storeError } = await supabase
+              .from('stores')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .single();
+              
+            if (storeError && storeError.code !== 'PGRST116') {
+              throw new Error("Impossible de rechercher vos boutiques.");
+            }
+            
+            if (storeData) {
+              navigate(`/store/${storeData.id}/admin`, { replace: true });
+              return;
+            }
+            
+            throw new Error("Vous n'avez pas encore créé de boutique.");
+          }
+          
+          throw new Error("Identifiant de boutique manquant");
+        }
+        
+        // Essayer d'abord la méthode locale pour les anciennes données
+        const localStore = getStoreById(id);
+        if (localStore) {
+          setStore(localStore);
+          setLoading(false);
+          return;
+        }
+        
+        // Ensuite, essayons Supabase
+        const { data: storeData, error: storeError } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (storeError) {
+          throw new Error("Boutique non trouvée dans la base de données.");
+        }
+        
+        // Adapter au format attendu par l'interface
+        const adaptedStore = {
+          id: storeData.id,
+          name: storeData.name,
+          address: storeData.address,
+          city: storeData.city,
+          postalCode: storeData.postal_code,
+          latitude: storeData.latitude,
+          longitude: storeData.longitude,
+          phone: storeData.phone || '',
+          website: storeData.website || '',
+          description: storeData.description || '',
+          imageUrl: storeData.photo_url || '',
+          logo_url: storeData.logo_url || '',
+          photo_url: storeData.photo_url || '',
+          rating: 0,
+          reviewCount: 0,
+          isPremium: false,
+          coupon: {
+            code: `WELCOME${Math.floor(Math.random() * 1000)}`,
+            discount: "10% sur tout le magasin",
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            usageCount: 0,
+            isAffiliate: false
+          },
+          reviews: [],
+          openingHours: []
+        };
+        
+        setStore(adaptedStore);
+      } catch (err) {
+        console.error("Erreur lors du chargement de la boutique:", err);
+        setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadStore();
+  }, [id, user, navigate]);
   
   const handleCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,12 +170,49 @@ const StoreAdmin = () => {
     });
   };
   
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+        <div className="animate-spin h-10 w-10 border-4 border-primary border-r-transparent rounded-full"></div>
+        <span className="ml-4 text-lg">Chargement de votre boutique...</span>
+      </div>
+    );
+  }
+  
+  if (error || !store) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-2xl font-bold mb-6">Espace boutique</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Boutique non trouvée</CardTitle>
+            <CardDescription>
+              {error || "Cette boutique n'existe pas ou vous n'avez pas les permissions nécessaires."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button asChild>
+              <Link to="/">Retour à l'accueil</Link>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/add-store')}
+            >
+              Créer une boutique
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-2">Espace boutique</h1>
       <p className="text-muted-foreground mb-6">Gérez votre boutique {store.name}</p>
       
-      <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="dashboard">
             <BarChart4 className="h-4 w-4 mr-2" />

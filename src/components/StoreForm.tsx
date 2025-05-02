@@ -12,6 +12,8 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ManualStoreSearch from './store/ManualStoreSearch';
 import ManualAddressForm from './store/ManualAddressForm';
+import { useAuth } from '@/contexts/auth';
+import { supabase } from "@/integrations/supabase/client";
 
 interface StoreFormProps {
   onSuccess?: (store: Store) => void;
@@ -20,6 +22,7 @@ interface StoreFormProps {
 
 const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -45,7 +48,8 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
     logo: false,
     photo: false
   });
-
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<'search' | 'address' | 'details'>('search');
   const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
 
@@ -169,6 +173,8 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       // Convertir les avis Google en avis de la boutique
       const reviewsData = selectedReviews.map((review, index) => {
@@ -224,11 +230,70 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
           code: `WELCOME${Math.floor(Math.random() * 1000)}`,
           discount: "10%",
           validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          usageCount: 0,
           isAffiliate: false
         }
       };
 
+      // 1. Ajouter la boutique à nos données locales
       const newStore = addStore(storeData);
+
+      // 2. Si nous avons un utilisateur connecté et Supabase, enregistrer également la boutique dans Supabase
+      if (user && user.id) {
+        try {
+          // Insérer la boutique dans Supabase
+          const { data: storeData, error: storeError } = await supabase
+            .from('stores')
+            .insert({
+              name: newStore.name,
+              address: newStore.address,
+              city: newStore.city,
+              postal_code: newStore.postalCode,
+              latitude: newStore.latitude,
+              longitude: newStore.longitude,
+              phone: newStore.phone,
+              website: newStore.website,
+              description: newStore.description,
+              logo_url: newStore.logo_url,
+              photo_url: newStore.photo_url,
+              user_id: user.id,
+              is_verified: true
+            })
+            .select()
+            .single();
+
+          if (storeError) {
+            console.error("Erreur lors de l'enregistrement de la boutique dans Supabase:", storeError);
+            throw storeError;
+          }
+
+          // Mettre à jour le profil utilisateur avec l'ID de la boutique
+          if (storeData) {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .update({ 
+                store_id: storeData.id,
+                store_type: storeType 
+              })
+              .eq('id', user.id);
+
+            if (profileError) {
+              console.error("Erreur lors de la mise à jour du profil utilisateur:", profileError);
+              throw profileError;
+            }
+
+            // Stocker l'ID de la boutique dans sessionStorage pour une utilisation immédiate
+            sessionStorage.setItem('userStoreId', storeData.id);
+          }
+        } catch (supabaseError) {
+          console.error("Erreur Supabase complète:", supabaseError);
+          toast({
+            title: "Erreur de synchronisation",
+            description: "Votre boutique a été créée localement mais n'a pas pu être synchronisée avec votre compte. Veuillez réessayer plus tard.",
+            variant: "destructive",
+          });
+        }
+      }
 
       toast({
         title: "Boutique ajoutée",
@@ -255,6 +320,8 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
         description: "Une erreur est survenue lors de l'ajout de la boutique.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -409,7 +476,7 @@ const StoreForm = ({ onSuccess, storeType = 'physical' }: StoreFormProps) => {
             </Card>
           )}
           
-          <FormActions storeType={storeType} />
+          <FormActions storeType={storeType} isSubmitting={isSubmitting} />
         </form>
       )}
     </div>

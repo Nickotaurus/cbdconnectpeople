@@ -1,22 +1,106 @@
 
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { StoreUser } from '@/types/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const storeUser = user as StoreUser;
   
-  // Mock data - would come from API in real app
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Autres états
   const profileCompleteness = 65;
   const storeVerificationStatus = storeUser?.siretVerified ? "Vérifié" : "En attente";
-  const storeId = storeUser?.storeId || "new";
   const partnerFavorites = storeUser?.partnerFavorites || [];
+
+  useEffect(() => {
+    const fetchStoreId = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // Vérifier d'abord le sessionStorage
+        const sessionStoreId = sessionStorage.getItem('userStoreId');
+        if (sessionStoreId) {
+          setStoreId(sessionStoreId);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Si pas dans sessionStorage et qu'on a un utilisateur connecté, vérifier dans Supabase
+        if (user && user.id) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('store_id')
+            .eq('id', user.id)
+            .single();
+            
+          if (profileError) {
+            console.error("Erreur lors de la récupération du profil:", profileError);
+            throw new Error("Impossible de récupérer votre profil.");
+          }
+          
+          if (profileData && profileData.store_id) {
+            setStoreId(profileData.store_id);
+            sessionStorage.setItem('userStoreId', profileData.store_id);
+          } else {
+            // Si pas de store_id dans le profil, vérifier les boutiques créées par l'utilisateur
+            const { data: storeData, error: storeError } = await supabase
+              .from('stores')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .single();
+              
+            if (storeError && storeError.code !== 'PGRST116') { // PGRST116 = no rows returned
+              console.error("Erreur lors de la recherche de boutique:", storeError);
+              throw new Error("Impossible de rechercher vos boutiques.");
+            }
+            
+            if (storeData) {
+              // Mettre à jour le profil avec l'ID de la boutique trouvée
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ store_id: storeData.id })
+                .eq('id', user.id);
+                
+              if (updateError) {
+                console.error("Erreur lors de la mise à jour du profil:", updateError);
+              }
+              
+              setStoreId(storeData.id);
+              sessionStorage.setItem('userStoreId', storeData.id);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération de l'ID de la boutique:", err);
+        setError("Impossible de récupérer les informations de votre boutique.");
+        
+        toast({
+          title: "Erreur",
+          description: err instanceof Error ? err.message : "Une erreur est survenue lors du chargement de votre boutique.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStoreId();
+  }, [user, toast]);
   
   return (
     <div className="space-y-6">
@@ -37,7 +121,20 @@ const StoreDashboard = () => {
               <Progress value={profileCompleteness} className="h-2" />
             </div>
             
-            {!storeUser?.storeId && (
+            {isLoading ? (
+              <div className="py-4 flex items-center justify-center">
+                <div className="animate-spin h-6 w-6 border-2 border-primary border-r-transparent rounded-full"></div>
+                <span className="ml-2 text-sm">Chargement des informations de votre boutique...</span>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-md text-sm">
+                <p className="font-medium text-red-800 dark:text-red-300">Erreur de chargement</p>
+                <p className="text-muted-foreground mt-1">{error}</p>
+                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={() => window.location.reload()}>
+                  Réessayer
+                </Button>
+              </div>
+            ) : !storeId ? (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-md text-sm">
                 <p className="font-medium text-yellow-800 dark:text-yellow-300">Votre fiche boutique n'est pas encore créée.</p>
                 <p className="text-muted-foreground mt-1">Complétez votre profil pour être visible sur notre plateforme.</p>
@@ -45,32 +142,32 @@ const StoreDashboard = () => {
                   Créer ma fiche boutique
                 </Button>
               </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-center p-3 border rounded-md">
+                  <Building className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
+                  <div>
+                    <p className="text-sm font-medium">Statut SIRET</p>
+                    <p className={`text-sm ${storeUser?.siretVerified ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                      {storeVerificationStatus}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center p-3 border rounded-md">
+                  <Users className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
+                  <div>
+                    <p className="text-sm font-medium">Accès partenaires</p>
+                    <p className="text-sm text-muted-foreground">
+                      {storeUser?.siretVerified ? 'Disponible' : 'Débloqué après vérification'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex items-center p-3 border rounded-md">
-                <Building className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
-                <div>
-                  <p className="text-sm font-medium">Statut SIRET</p>
-                  <p className={`text-sm ${storeUser?.siretVerified ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {storeVerificationStatus}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center p-3 border rounded-md">
-                <Users className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
-                <div>
-                  <p className="text-sm font-medium">Accès partenaires</p>
-                  <p className="text-sm text-muted-foreground">
-                    {storeUser?.siretVerified ? 'Disponible' : 'Débloqué après vérification'}
-                  </p>
-                </div>
-              </div>
-            </div>
           </CardContent>
           <CardFooter className="flex-col items-start space-y-2">
-            {storeUser?.storeId && (
+            {storeId && (
               <Button 
                 variant="outline" 
                 className="w-full md:w-auto" 
@@ -97,23 +194,27 @@ const StoreDashboard = () => {
               Annuaire des partenaires
             </Button>
             
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={() => navigate(`/store/${storeId}/admin?tab=coupons`)}
-            >
-              <Gift className="mr-2 h-4 w-4" />
-              Gérer mes coupons
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={() => navigate(`/store/${storeId}/admin?tab=stats`)}
-            >
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Statistiques
-            </Button>
+            {storeId && (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate(`/store/${storeId}/admin?tab=coupons`)}
+                >
+                  <Gift className="mr-2 h-4 w-4" />
+                  Gérer mes coupons
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate(`/store/${storeId}/admin?tab=stats`)}
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Statistiques
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

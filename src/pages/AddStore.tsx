@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import StoreForm from '@/components/StoreForm';
 import { Store } from '@/types/store';
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from '@/contexts/auth';
 
 const AddStore = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const { fromRegistration, storeType, requiresSubscription } = 
     (location.state as { 
@@ -27,6 +29,7 @@ const AddStore = () => {
     });
 
     // Enregistrer l'ID de la nouvelle boutique dans sessionStorage
+    sessionStorage.setItem('userStoreId', store.id);
     sessionStorage.setItem('newlyAddedStore', store.id);
 
     // Si provient de l'inscription et nécessite un abonnement (ecommerce ou les deux)

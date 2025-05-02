@@ -1,23 +1,38 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
 
 interface FormActionsProps {
   storeType?: string;
+  isSubmitting?: boolean;
 }
 
-const FormActions: React.FC<FormActionsProps> = ({ storeType }) => {
-  const navigate = useNavigate();
-
+const FormActions = ({ storeType, isSubmitting = false }: FormActionsProps) => {
   return (
-    <div className="pt-6 flex justify-end gap-4">
-      <Button type="button" variant="outline" onClick={() => navigate('/map')}>
-        Annuler
+    <div className="flex flex-col gap-3">
+      <Button 
+        type="submit" 
+        className="w-full" 
+        size="lg"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center">
+            <div className="animate-spin h-4 w-4 border-2 border-current border-r-transparent rounded-full mr-2"></div>
+            <span>Enregistrement en cours...</span>
+          </div>
+        ) : (
+          <>Enregistrer ma boutique</>
+        )}
       </Button>
-      <Button type="submit">
-        {storeType === 'both' ? "Continuer vers la configuration e-commerce" : "Ajouter la boutique"}
-      </Button>
+      
+      <p className="text-xs text-center text-muted-foreground">
+        {storeType === 'ecommerce' || storeType === 'both' ? (
+          "Après avoir enregistré votre boutique physique, vous pourrez configurer votre boutique en ligne."
+        ) : (
+          "En enregistrant votre boutique, vous rejoignez notre réseau de professionnels du CBD."
+        )}
+      </p>
     </div>
   );
 };
