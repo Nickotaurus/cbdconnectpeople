@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -182,7 +181,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
         
         if (error) throw error;
         
-        if (data && data[0]) {
+        if (data && data.length > 0) {
           toast({
             title: "Boutique ajoutée",
             description: "Votre boutique a été ajoutée avec succès.",
@@ -303,7 +302,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
       </h1>
       
       <form onSubmit={handleSubmit} className="space-y-8">
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="search" disabled={isEdit}>Rechercher une boutique</TabsTrigger>
             <TabsTrigger value="details">Détails de la boutique</TabsTrigger>

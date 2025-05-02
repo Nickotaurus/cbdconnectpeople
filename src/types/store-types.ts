@@ -17,6 +17,12 @@ export interface StoreData {
   description?: string;
   logo_url?: string;
   photo_url?: string;
+  // Add fields used in the application
+  is_ecommerce?: boolean;
+  ecommerce_url?: string;
+  is_premium?: boolean;
+  premium_until?: string;
+  google_place_id?: string;
 }
 
 export interface ReviewData {

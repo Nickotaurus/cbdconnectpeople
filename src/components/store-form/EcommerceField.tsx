@@ -10,7 +10,7 @@ interface EcommerceFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const EcommerceField: React.FC<EcommerceFieldProps> = ({ ecommerceUrl, onChange }) => {
+const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceUrl, onChange }) => {
   return (
     <div className="space-y-2 border p-4 rounded-lg bg-primary/5 border-primary/20">
       <div className="flex items-center gap-2 mb-2">
