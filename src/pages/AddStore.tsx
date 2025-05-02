@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import StoreForm from '@/components/StoreForm';
-import StoreAssociationTool from '@/components/store/StoreAssociationTool';
+import StoreAssociationTool from '@/components/store/store-association/StoreAssociationTool';
 import { Store } from '@/types/store';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
 
