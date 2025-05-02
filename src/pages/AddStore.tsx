@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import StoreForm from '@/components/StoreForm';
+import StoreAssociationTool from '@/components/store/StoreAssociationTool';
 import { Store } from '@/types/store';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/contexts/auth';
@@ -17,6 +18,7 @@ const AddStore = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [existingStoreId, setExistingStoreId] = useState<string | null>(null);
   const [isCheckingExistingStore, setIsCheckingExistingStore] = useState(true);
+  const [showAssociationTool, setShowAssociationTool] = useState(false);
   
   const { fromRegistration, storeType, requiresSubscription } = 
     (location.state as { 
@@ -25,8 +27,19 @@ const AddStore = () => {
       requiresSubscription?: boolean;
     }) || {};
 
-  // Vérifie si l'utilisateur a déjà une boutique associée
+  // Avant toute vérification, nettoyons le localStorage/sessionStorage
   useEffect(() => {
+    if (user?.email === 'histoiredechanvre29@gmail.com') {
+      localStorage.removeItem('userStoreId');
+      sessionStorage.removeItem('userStoreId');
+      sessionStorage.removeItem('newlyAddedStore');
+      
+      // Pour cet utilisateur spécifique, montrer directement l'outil d'association
+      setShowAssociationTool(true);
+      setIsCheckingExistingStore(false);
+      return;
+    }
+    
     const checkExistingStore = async () => {
       if (!user) {
         setIsCheckingExistingStore(false);
@@ -34,36 +47,17 @@ const AddStore = () => {
       }
       
       try {
-        // Vérifier d'abord le localStorage/sessionStorage
-        const storedStoreId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
-        
-        if (storedStoreId) {
-          // Vérifier que ce storeId existe bien et appartient à l'utilisateur
-          const { data, error } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('id', storedStoreId)
-            .eq('user_id', user.id)
-            .single();
-            
-          if (!error && data) {
-            setExistingStoreId(storedStoreId);
-          }
-        }
-        
-        if (!existingStoreId) {
-          // Vérifier si l'utilisateur a un store_id dans son profil
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('store_id')
-            .eq('id', user.id)
-            .single();
-            
-          if (!profileError && profileData?.store_id) {
-            setExistingStoreId(profileData.store_id);
-            localStorage.setItem('userStoreId', profileData.store_id);
-            sessionStorage.setItem('userStoreId', profileData.store_id);
-          }
+        // Vérifier si l'utilisateur a un store_id dans son profil
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('store_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (!profileError && profileData?.store_id) {
+          setExistingStoreId(profileData.store_id);
+          localStorage.setItem('userStoreId', profileData.store_id);
+          sessionStorage.setItem('userStoreId', profileData.store_id);
         }
       } catch (error) {
         console.error("Erreur lors de la vérification de la boutique existante:", error);
@@ -73,7 +67,7 @@ const AddStore = () => {
     };
     
     checkExistingStore();
-  }, [user, existingStoreId]);
+  }, [user]);
 
   const handleStoreAdded = async (store: Store) => {
     setIsTransitioning(true);
@@ -120,10 +114,20 @@ const AddStore = () => {
       }, 1500);
     }
   };
+  
+  const handleAssociationSuccess = () => {
+    const storeId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
+    if (storeId) {
+      navigate(`/store/${storeId}/admin`, { replace: true });
+    } else {
+      // Si aucun ID de boutique n'est trouvé, recharger la page
+      window.location.reload();
+    }
+  };
 
   // Rediriger vers la boutique existante si on en trouve une
   useEffect(() => {
-    if (!isCheckingExistingStore && existingStoreId) {
+    if (!isCheckingExistingStore && existingStoreId && !showAssociationTool) {
       toast({
         title: "Vous avez déjà une boutique",
         description: "Vous allez être redirigé vers votre espace boutique existant.",
@@ -134,7 +138,7 @@ const AddStore = () => {
         navigate(`/store/${existingStoreId}/admin`, { replace: true });
       }, 1500);
     }
-  }, [existingStoreId, isCheckingExistingStore, toast, navigate]);
+  }, [existingStoreId, isCheckingExistingStore, toast, navigate, showAssociationTool]);
 
   if (isCheckingExistingStore) {
     return (
@@ -143,6 +147,33 @@ const AddStore = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Vérification de votre profil...</p>
         </div>
+      </div>
+    );
+  }
+  
+  if (showAssociationTool) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            className="gap-2" 
+            onClick={() => navigate('/map')}
+            disabled={isTransitioning}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour à la carte
+          </Button>
+        </div>
+        
+        <div className="mb-8 max-w-2xl mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-2">Associer votre boutique</h1>
+          <p className="text-muted-foreground">
+            Utilisez cet outil pour associer votre boutique existante à votre profil.
+          </p>
+        </div>
+        
+        <StoreAssociationTool onSuccess={handleAssociationSuccess} />
       </div>
     );
   }

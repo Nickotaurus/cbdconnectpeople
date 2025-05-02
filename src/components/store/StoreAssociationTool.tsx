@@ -32,6 +32,14 @@ const StoreAssociationTool = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Nettoyer les données de session au démarrage pour éviter les conflits
+  useEffect(() => {
+    // Nettoyage des données stockées pour ce profil
+    localStorage.removeItem('userStoreId');
+    sessionStorage.removeItem('userStoreId');
+    sessionStorage.removeItem('newlyAddedStore');
+  }, []);
+  
   // Vérifier si la boutique est déjà associée au démarrage
   useEffect(() => {
     const checkExistingAssociation = async () => {
@@ -41,7 +49,7 @@ const StoreAssociationTool = ({
         // 1. Trouver l'ID utilisateur à partir de l'email
         const { data: userData, error: userError } = await supabase
           .from('profiles')
-          .select('id, store_id')
+          .select('id, store_id, email')
           .eq('email', email)
           .single();
 
@@ -81,6 +89,45 @@ const StoreAssociationTool = ({
     setResult({});
 
     try {
+      // Forcer la suppression de toute association existante
+      if (email === 'histoiredechanvre29@gmail.com') {
+        // Récupérer l'ID utilisateur
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .single();
+        
+        if (userError) {
+          console.error('Erreur lors de la récupération du profil:', userError);
+          throw new Error('Profil non trouvé');
+        }
+        
+        // Supprimer l'association store_id du profil
+        await supabase
+          .from('profiles')
+          .update({ store_id: null })
+          .eq('id', userData.id);
+          
+        // Nettoyer l'association côté boutique si elle existe
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('name', 'ilike', `%${storeName}%`);
+          
+        if (storeData && storeData.length > 0) {
+          await supabase
+            .from('stores')
+            .update({ user_id: null, claimed_by: null })
+            .eq('id', storeData[0].id);
+        }
+        
+        // Nettoyer le stockage local
+        localStorage.removeItem('userStoreId');
+        sessionStorage.removeItem('userStoreId');
+      }
+      
+      // Créer une nouvelle association
       const response = await associateStoreWithUser(email, storeName);
       setResult(response);
       

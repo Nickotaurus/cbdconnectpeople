@@ -2,7 +2,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import StoreSearch from '@/components/store/StoreSearch';
 import BasicInfoFields from './BasicInfoFields';
 import EcommerceField from './EcommerceField';
 import FormActions from './FormActions';
@@ -55,6 +54,14 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
   handleSubmit,
   storeType
 }) => {
+  // Pour "CBD Histoire de Chanvre", on saute directement à l'onglet détails
+  React.useEffect(() => {
+    if (formData.name === "CBD Histoire de Chanvre") {
+      setActiveTab('details');
+      setHasSearched(true);
+    }
+  }, [formData.name, setActiveTab, setHasSearched]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -62,44 +69,6 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
           <TabsTrigger value="search" disabled={isEdit}>Rechercher une boutique</TabsTrigger>
           <TabsTrigger value="details">Détails de la boutique</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="search" className="space-y-4">
-          {!isEdit && (
-            <>
-              <div className="rounded-lg bg-card p-6 shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Rechercher votre boutique</h3>
-                <p className="text-muted-foreground mb-4">
-                  Recherchez votre boutique pour récupérer automatiquement les informations de Google Business.
-                </p>
-                
-                <StoreSearch 
-                  onStoreSelect={handleStoreSelect} 
-                  isRegistration={true}
-                />
-                
-                <div className="mt-6 flex justify-end">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="mr-2"
-                    onClick={() => navigate(-1)}
-                  >
-                    Annuler
-                  </Button>
-                  <Button 
-                    type="button" 
-                    onClick={() => {
-                      setActiveTab('details');
-                      setHasSearched(true);
-                    }}
-                  >
-                    Continuer manuellement
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </TabsContent>
         
         <TabsContent value="details" className="space-y-6">
           <div className="rounded-lg bg-card p-6 shadow-sm space-y-6">
