@@ -40,7 +40,7 @@ export const useStores = () => {
         photo_url: store.photo_url || '',
         rating: 0, // Valeur par défaut
         reviewCount: 0, // Valeur par défaut
-        placeId: store.placeId || '', // Use the field that exists in the database response
+        placeId: '', // Default empty string since there's no placeId in the database
         reviews: [], // Données à implémenter ultérieurement
         products: [], // Données à implémenter ultérieurement
         // Ajout d'autres champs avec des valeurs par défaut si nécessaires
