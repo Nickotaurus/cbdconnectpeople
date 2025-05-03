@@ -4,15 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import StoreFormTabs from '@/components/store-form/StoreFormTabs';
 import { useStoreForm } from '@/hooks/useStoreForm';
 import { Store } from '@/types/store';
+import { StoreData } from '@/types/store-types';
 
 interface StoreFormProps {
   isEdit?: boolean;
   storeId?: string;
   onSuccess?: (store: Store) => Promise<void>;
   storeType?: string;
+  initialStoreData?: StoreData;
 }
 
-const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormProps) => {
+const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStoreData }: StoreFormProps) => {
   const navigate = useNavigate();
   
   const {
@@ -25,7 +27,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
     handleInputChange,
     handleStoreSelect,
     handleSubmit: submitForm
-  } = useStoreForm({ isEdit, storeId, onSuccess, storeType });
+  } = useStoreForm({ isEdit, storeId, onSuccess, storeType, initialStoreData });
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +43,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
   };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEdit ? 'Modifier ma boutique' : 'Ajouter une boutique'}
-      </h1>
-      
+    <div className="container mx-auto px-4 py-4">
       <StoreFormTabs 
         isEdit={isEdit}
         activeTab={activeTab}
@@ -59,6 +57,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: StoreFormP
         navigate={navigate}
         handleSubmit={handleSubmit}
         storeType={storeType}
+        skipSearch={!!initialStoreData}
       />
     </div>
   );

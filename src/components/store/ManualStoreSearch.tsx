@@ -12,6 +12,7 @@ import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PartyPopper } from "lucide-react";
 import { ReviewData } from '@/types/store-types';
+import { Separator } from '@/components/ui/separator';
 
 interface ManualStoreSearchProps {
   onStoreSelect: (store: {
@@ -321,7 +322,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Trouvez votre établissement</CardTitle>
+        <CardTitle>Recherchez votre établissement</CardTitle>
       </CardHeader>
       <CardContent>
         {showWelcome ? (
@@ -342,33 +343,40 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
           </Alert>
         ) : (
           <>
+            <div className="bg-muted p-3 rounded-md mb-4 text-sm">
+              <p>Pour retrouver votre établissement, commencez par saisir son nom et sa ville. 
+              Nous chercherons automatiquement les informations disponibles sur Google.</p>
+            </div>
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ville</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Paris" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="storeName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom de votre établissement</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ma Boutique CBD" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="storeName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom de votre établissement</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: CBD Histoire de Chanvre" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ville</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Paris" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
                 <Button 
                   type="submit" 
@@ -388,7 +396,7 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
                   ) : (
                     <>
                       <Search className="h-4 w-4 mr-2" />
-                      Rechercher
+                      Rechercher mon établissement
                     </>
                   )}
                 </Button>
@@ -396,12 +404,15 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
             </Form>
 
             {businessDetails && (
-              <GoogleBusinessIntegration
-                businessDetails={businessDetails}
-                isLoading={false}
-                onAccept={handleSelectBusiness}
-                onReject={handleManualEntry}
-              />
+              <>
+                <Separator className="my-6" />
+                <GoogleBusinessIntegration
+                  businessDetails={businessDetails}
+                  isLoading={false}
+                  onAccept={handleSelectBusiness}
+                  onReject={handleManualEntry}
+                />
+              </>
             )}
 
             {isLoading ? (
@@ -410,10 +421,11 @@ const ManualStoreSearch: React.FC<ManualStoreSearchProps> = ({
                 <p className="text-sm text-muted-foreground">Recherche en cours...</p>
               </div>
             ) : !businessDetails && (
-              <div className="mt-4">
+              <div className="mt-6">
+                <Separator className="mb-6" />
                 <p className="text-sm text-muted-foreground mb-4">
-                  Entrez le nom de votre boutique et la ville pour rechercher votre établissement.
-                  Si aucun résultat n'est trouvé, vous pourrez saisir manuellement les informations.
+                  Si vous ne trouvez pas votre établissement ou si vous êtes en cours de création, 
+                  vous pouvez saisir manuellement vos informations.
                 </p>
                 <Button
                   variant="outline"

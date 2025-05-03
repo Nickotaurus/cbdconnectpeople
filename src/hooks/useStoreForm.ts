@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { StoreData } from '@/types/store-types';
@@ -9,13 +9,47 @@ import { useStoreDuplicateCheck } from './useStoreDuplicateCheck';
 import { useStoreDataFetcher } from './useStoreDataFetcher';
 import { createStoreDataFromForm, convertToStore, initialFormData } from '@/utils/storeFormUtils';
 
-export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: UseStoreFormProps): UseStoreFormReturn => {
+export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStoreData }: UseStoreFormProps): UseStoreFormReturn => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('search');
+  const [activeTab, setActiveTab] = useState(initialStoreData ? 'details' : 'search');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAddressValid, setIsAddressValid] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [isAddressValid, setIsAddressValid] = useState(!!initialStoreData);
+  const [hasSearched, setHasSearched] = useState(!!initialStoreData);
+
+  // Appliquer les données initiales si disponibles
+  useEffect(() => {
+    if (initialStoreData && !formData.id) {
+      const hasGoogleInfo = Boolean(
+        initialStoreData.photos && initialStoreData.photos.length > 0 || 
+        initialStoreData.rating || 
+        initialStoreData.totalReviews || 
+        initialStoreData.openingHours
+      );
+
+      setFormData({
+        ...formData,
+        name: initialStoreData.name || '',
+        address: initialStoreData.address || '',
+        city: initialStoreData.city || '',
+        postalCode: initialStoreData.postalCode || '',
+        latitude: initialStoreData.latitude || null,
+        longitude: initialStoreData.longitude || null,
+        description: initialStoreData.description || formData.description,
+        phone: initialStoreData.phone || formData.phone,
+        website: initialStoreData.website || formData.website,
+        logoUrl: initialStoreData.logo_url || formData.logoUrl,
+        photoUrl: initialStoreData.photos && initialStoreData.photos.length > 0 ? 
+          initialStoreData.photos[0] : initialStoreData.photo_url || formData.photoUrl,
+        placeId: initialStoreData.placeId || '',
+        hasGoogleBusinessProfile: hasGoogleInfo,
+        openingHours: initialStoreData.openingHours
+      });
+
+      setIsAddressValid(true);
+      setHasSearched(true);
+    }
+  }, [initialStoreData]);
 
   // Check for duplicate stores
   useStoreDuplicateCheck(formData);
@@ -70,7 +104,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType }: 
       phone: store.phone || formData.phone,
       website: store.website || formData.website,
       logoUrl: store.logo_url || formData.logoUrl,
-      photoUrl: store.photo_url || (store.photos && store.photos.length > 0 ? store.photos[0] : formData.photoUrl),
+      photoUrl: store.photos && store.photos.length > 0 ? store.photos[0] : store.photo_url || formData.photoUrl,
       placeId: store.placeId || '',
       hasGoogleBusinessProfile: hasGoogleInfo,
       openingHours: store.openingHours

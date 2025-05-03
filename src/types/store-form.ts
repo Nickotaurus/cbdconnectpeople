@@ -27,6 +27,7 @@ export interface UseStoreFormProps {
   storeId?: string;
   onSuccess?: (store: Store) => Promise<void>;
   storeType?: string;
+  initialStoreData?: StoreData;
 }
 
 export interface StoreFormSubmitResult {

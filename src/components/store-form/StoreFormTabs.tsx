@@ -39,6 +39,7 @@ interface StoreFormTabsProps {
   navigate: (path: number | string) => void;
   handleSubmit: (e: React.FormEvent) => void;
   storeType?: string;
+  skipSearch?: boolean;
 }
 
 const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
@@ -53,21 +54,22 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
   isLoading,
   navigate,
   handleSubmit,
-  storeType
+  storeType,
+  skipSearch = false
 }) => {
   // Pour "CBD Histoire de Chanvre", on saute directement à l'onglet détails
   React.useEffect(() => {
-    if (formData.name === "CBD Histoire de Chanvre") {
+    if (formData.name === "CBD Histoire de Chanvre" || skipSearch) {
       setActiveTab('details');
       setHasSearched(true);
     }
-  }, [formData.name, setActiveTab, setHasSearched]);
+  }, [formData.name, setActiveTab, setHasSearched, skipSearch]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="search" disabled={isEdit}>Rechercher une boutique</TabsTrigger>
+          <TabsTrigger value="search" disabled={isEdit || skipSearch}>Rechercher une boutique</TabsTrigger>
           <TabsTrigger value="details">Détails de la boutique</TabsTrigger>
         </TabsList>
         
