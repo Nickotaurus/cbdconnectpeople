@@ -131,6 +131,15 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
     
     try {
       const storeData = createStoreDataFromForm(formData);
+      // Récupérer l'utilisateur actuellement connecté pour associer la boutique
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user?.id) {
+        // Ajouter l'ID utilisateur aux données de la boutique
+        storeData.user_id = session.user.id;
+      }
+      
+      console.log("Données de boutique à enregistrer:", storeData);
       
       if (isEdit && storeId) {
         const { error } = await supabase
@@ -152,7 +161,10 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
           .insert([storeData])
           .select();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Erreur Supabase:", error);
+          throw error;
+        }
         
         if (data && data.length > 0) {
           // Customize success message based on store type
@@ -173,6 +185,25 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
           
           // Convert to Store type for onSuccess callback
           const storeForCallback = convertToStore(data[0]);
+          
+          // Si l'utilisateur est connecté, associer la boutique à son profil
+          if (session?.user?.id) {
+            try {
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .update({ 
+                  store_id: data[0].id,
+                  store_type: 'physical' 
+                })
+                .eq('id', session.user.id);
+                
+              if (profileError) {
+                console.error("Erreur lors de la mise à jour du profil:", profileError);
+              }
+            } catch (profileUpdateError) {
+              console.error("Erreur lors de la mise à jour du profil:", profileUpdateError);
+            }
+          }
           
           if (onSuccess) {
             await onSuccess(storeForCallback);

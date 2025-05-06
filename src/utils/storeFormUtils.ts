@@ -1,4 +1,3 @@
-
 import { FormData } from '@/types/store-form';
 import { Store } from '@/types/store';
 import { StoreData, StoreDBType } from '@/types/store-types';
@@ -24,6 +23,8 @@ export const createStoreDataFromForm = (formData: FormData): {
   is_premium?: boolean;
   premium_until?: string;
   has_google_profile?: boolean;
+  opening_hours?: string[];
+  user_id?: string;
 } => {
   return {
     name: formData.name,
@@ -40,7 +41,8 @@ export const createStoreDataFromForm = (formData: FormData): {
     google_place_id: formData.placeId,
     is_ecommerce: formData.isEcommerce,
     ecommerce_url: formData.ecommerceUrl,
-    has_google_profile: formData.hasGoogleBusinessProfile
+    has_google_profile: formData.hasGoogleBusinessProfile,
+    opening_hours: formData.openingHours
   };
 };
 

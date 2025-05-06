@@ -114,7 +114,7 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
             />
             
             <FormActions 
-              isLoading={isLoading}
+              isSubmitting={isLoading}
               onCancel={() => navigate(-1)}
               storeType={storeType}
             />
