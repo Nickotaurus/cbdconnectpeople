@@ -41,6 +41,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
         await onSuccess(result.store);
       } else if (result.id) {
         console.log("Navigation vers la page de la boutique:", result.id);
+        // Correction: rediriger vers /store/:id au lieu de /store/:id/admin
         navigate(`/store/${result.id}`);
       }
     }

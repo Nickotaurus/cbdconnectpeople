@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface FormActionsProps {
   isSubmitting: boolean;
@@ -34,7 +35,7 @@ const FormActions: React.FC<FormActionsProps> = ({ isSubmitting, onCancel, store
       >
         {isSubmitting ? (
           <>
-            <span className="animate-spin mr-2">◌</span>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Enregistrement...
           </>
         ) : (
