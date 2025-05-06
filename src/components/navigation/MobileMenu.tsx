@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, LogOut, LucideIcon } from 'lucide-react';
+import { X, LogOut, LucideIcon, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -32,7 +32,20 @@ const MobileMenu = ({ links, currentPath, isLoggedIn, onLogout }: MobileMenuProp
     setIsSheetOpen(false);
   };
 
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) => {
+    // Exact match for root path
+    if (path === '/' && currentPath === '/') {
+      return true;
+    }
+    
+    // For other paths, check if currentPath starts with the path
+    // This allows active state for nested routes
+    if (path !== '/' && currentPath.startsWith(path)) {
+      return true;
+    }
+    
+    return false;
+  };
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

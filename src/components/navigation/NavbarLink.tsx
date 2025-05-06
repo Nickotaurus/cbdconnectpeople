@@ -17,7 +17,7 @@ const NavbarLink = ({ href, label, icon: Icon, isActive, onClick }: NavbarLinkPr
       to={href}
       className={cn(
         "flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary",
-        isActive ? "text-primary" : "text-muted-foreground"
+        isActive ? "text-primary font-bold" : "text-muted-foreground"
       )}
       onClick={onClick}
     >

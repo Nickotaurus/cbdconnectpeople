@@ -18,7 +18,7 @@ const MobileNavLink = ({ href, label, icon: Icon, isActive, onClick }: MobileNav
       className={cn(
         "flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-colors",
         isActive 
-          ? "bg-primary/10 text-primary" 
+          ? "bg-primary/10 text-primary font-bold" 
           : "hover:bg-secondary text-muted-foreground"
       )}
       onClick={onClick}
