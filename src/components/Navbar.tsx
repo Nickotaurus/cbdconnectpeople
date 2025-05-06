@@ -49,11 +49,18 @@ const Navbar = () => {
           {user ? (
             <UserMenu user={user} onLogout={handleLogout} />
           ) : (
-            <Button variant="default" size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link to="/register">
-                Référencer ma boutique
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="default" size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link to="/register">
+                  Référencer ma boutique
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="hidden md:flex">
+                <Link to="/login">
+                  Se connecter
+                </Link>
+              </Button>
+            </div>
           )}
           
           <MobileMenu 

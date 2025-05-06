@@ -14,6 +14,7 @@ import Partners from "./pages/Partners";
 import Ranking from "./pages/Ranking";
 import ClassifiedsPage from "./pages/ClassifiedsPage";
 import Register from "./pages/Register";
+import Login from "./pages/Login";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/classifieds" element={<ClassifiedsPage />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/add-store" element={<AddStore />} />
         <Route path="/store/:id" element={<StoreAdmin />} />
         <Route path="/store/:id/admin" element={<StoreAdmin />} />
