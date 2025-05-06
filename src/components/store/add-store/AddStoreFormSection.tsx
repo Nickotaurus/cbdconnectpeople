@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Info } from 'lucide-react';
 import { Store } from '@/types/store';
 import ManualStoreSearch from '../ManualStoreSearch';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import StoreForm from '@/components/StoreForm';
 
@@ -54,7 +53,7 @@ const AddStoreFormSection: React.FC<AddStoreFormSectionProps> = ({
       {!selectedStoreData ? (
         <div className="max-w-lg mx-auto">
           <Alert className="mb-6 bg-blue-50 border-blue-200">
-            <InfoCircle className="h-4 w-4 text-blue-600" />
+            <Info className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-700">Trouvez votre boutique</AlertTitle>
             <AlertDescription className="text-blue-600">
               Pour commencer, recherchez votre établissement par nom et localité. Cette étape vous permet de récupérer 
