@@ -30,7 +30,7 @@ const MapView = () => {
     maxDistance: null as number | null,
   });
 
-  // Fonction améliorée pour combiner et dédupliquer les boutiques avec un traitement spécifique pour "CBD Histoire de Chanvre"
+  // Fonction modifiée pour combiner et dédupliquer les boutiques sans traitement spécial pour "CBD Histoire de Chanvre"
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
     // Use an object instead of Map to store unique stores
     const storeMap: Record<string, Store> = {};
@@ -39,38 +39,20 @@ const MapView = () => {
     console.log(`Nombre de boutiques locales: ${localStores.length}`);
     console.log(`Nombre de boutiques depuis supabase: ${dbStores ? dbStores.length : 0}`);
     
-    let cbdHistoireCount = 0;
-    
-    // Ajouter les boutiques locales à l'objet
+    // Ajouter les boutiques locales à l'objet (sans traitement spécial)
     localStores.forEach(store => {
-      // Clé spéciale pour CBD Histoire de Chanvre
-      if (store.name.toLowerCase().includes("cbd histoire de chanvre")) {
-        cbdHistoireCount++;
-        storeMap["cbd_histoire_de_chanvre_special_key"] = store;
-      } else {
-        const key = getStoreKey(store);
-        storeMap[key] = store;
-      }
+      const key = getStoreKey(store);
+      storeMap[key] = store;
     });
     
     // Ajouter les boutiques de Supabase, en remplaçant les locales si même clé
     if (dbStores && dbStores.length > 0) {
       dbStores.forEach(store => {
-        // Clé spéciale pour CBD Histoire de Chanvre
-        if (store.name.toLowerCase().includes("cbd histoire de chanvre")) {
-          cbdHistoireCount++;
-          // Uniquement remplacer si on a un placeId (plus fiable)
-          if (store.placeId) {
-            storeMap["cbd_histoire_de_chanvre_special_key"] = store;
-          }
-        } else {
-          const key = getStoreKey(store);
-          storeMap[key] = store;
-        }
+        const key = getStoreKey(store);
+        storeMap[key] = store;
       });
     }
     
-    console.log(`Nombre d'instances "CBD Histoire de Chanvre" trouvées: ${cbdHistoireCount}`);
     console.log(`Nombre final de boutiques après déduplication: ${Object.keys(storeMap).length}`);
     
     // Convertir l'objet en tableau et trier par distance

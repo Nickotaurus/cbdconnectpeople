@@ -251,54 +251,8 @@ export const associateStoreWithUser = async (
       };
     }
 
-    // Si on arrive ici, on essaie de créer une boutique avec les infos minimales
-    if (email === 'histoiredechanvre29@gmail.com' && storeName === 'CBD Histoire de Chanvre') {
-      // Créer une nouvelle boutique pour ce cas spécifique
-      const { data: newStore, error: createError } = await supabase
-        .from('stores')
-        .insert({
-          name: 'CBD Histoire de Chanvre',
-          address: '5 Rue Saint-François',
-          city: 'Quimper',
-          postal_code: '29000',
-          latitude: 47.9960,
-          longitude: -4.1024,
-          phone: '02 98 95 87 32',
-          website: 'https://histoire-de-chanvre.fr',
-          description: 'Boutique spécialisée dans les produits CBD en Bretagne.',
-          user_id: userId,
-          claimed_by: userId,
-          is_verified: true
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Erreur lors de la création de la boutique:', createError);
-        return { success: false, message: 'Erreur lors de la création de la boutique' };
-      }
-
-      // Mise à jour du profil utilisateur avec l'ID de la boutique
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ store_id: newStore.id, store_type: 'physical' })
-        .eq('id', userId);
-
-      if (profileError) {
-        console.error('Erreur lors de la mise à jour du profil:', profileError);
-        return { success: false, message: 'Erreur lors de la mise à jour du profil' };
-      }
-
-      // Stockage de l'ID de boutique dans localStorage et sessionStorage
-      localStorage.setItem('userStoreId', newStore.id);
-      sessionStorage.setItem('userStoreId', newStore.id);
-
-      return { 
-        success: true, 
-        message: 'Nouvelle boutique créée et associée avec succès',
-        storeId: newStore.id
-      };
-    }
+    // 5. Si on arrive ici et que c'est "CBD Histoire de Chanvre", on ne crée plus automatiquement
+    // Nous avons supprimé la création automatique pour cette boutique
 
     return { success: false, message: 'Boutique non trouvée' };
   } catch (error) {

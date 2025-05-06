@@ -61,7 +61,7 @@ export const useStores = () => {
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);
       
-      // Supprimer tous les doublons, avec traitement spécial pour "CBD Histoire de Chanvre"
+      // Supprimer tous les doublons, sans traitement spécial pour "CBD Histoire de Chanvre"
       const uniqueStores = removeDuplicateStores(transformedStores);
       
       console.log(`Nombre total de boutiques après déduplication: ${uniqueStores.length}`);
@@ -80,25 +80,15 @@ export const useStores = () => {
     }
   }, [toast]);
 
-  // Fonction améliorée pour éliminer les doublons, spécialement pour "CBD Histoire de Chanvre"
+  // Fonction simplifiée pour éliminer les doublons, sans traitement spécial
   const removeDuplicateStores = (stores: Store[]): Store[] => {
     // Use a regular object to store unique stores
     const uniqueStoresMap: Record<string, Store> = {};
-    let cbdHistoireDeChanvreSeen = false;
     
-    // Première passe: traiter CBD Histoire de Chanvre de façon spéciale
     stores.forEach(store => {
-      if (store.name.toLowerCase().includes("cbd histoire de chanvre")) {
-        // Si c'est la première fois qu'on trouve cette boutique, ou si celle-ci a un placeId (plus fiable)
-        if (!cbdHistoireDeChanvreSeen || store.placeId) {
-          uniqueStoresMap["cbd_histoire_de_chanvre_special_key"] = store;
-          cbdHistoireDeChanvreSeen = true;
-        }
-      } else {
-        // Pour les autres boutiques, utiliser une clé de déduplication standard
-        const key = generateUniqueStoreKey(store);
-        uniqueStoresMap[key] = store;
-      }
+      // Utiliser une clé de déduplication standard pour toutes les boutiques
+      const key = generateUniqueStoreKey(store);
+      uniqueStoresMap[key] = store;
     });
     
     console.log(`Après déduplication: ${Object.keys(uniqueStoresMap).length} boutiques uniques`);
