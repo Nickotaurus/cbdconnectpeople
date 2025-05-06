@@ -9,6 +9,10 @@ import StoreAdmin from "./pages/StoreAdmin";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import Navbar from "./components/Navbar";
+import NewsPage from "./pages/NewsPage";
+import Partners from "./pages/Partners";
+import Ranking from "./pages/Ranking";
+import ClassifiedsPage from "./pages/ClassifiedsPage";
 
 function App() {
   return (
@@ -18,6 +22,10 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/home" element={<Home />} />
         <Route path="/map" element={<MapView />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/partners" element={<Partners />} />
+        <Route path="/ranking" element={<Ranking />} />
+        <Route path="/classifieds" element={<ClassifiedsPage />} />
         <Route path="/add-store" element={<AddStore />} />
         <Route path="/store/:id" element={<StoreAdmin />} />
         <Route path="/store/:id/admin" element={<StoreAdmin />} />
