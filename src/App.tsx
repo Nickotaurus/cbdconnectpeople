@@ -8,18 +8,22 @@ import AddStore from "./pages/AddStore";
 import StoreAdmin from "./pages/StoreAdmin";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/map" element={<MapView />} />
-      <Route path="/add-store" element={<AddStore />} />
-      <Route path="/store/:id" element={<StoreAdmin />} />
-      <Route path="/store/:id/admin" element={<StoreAdmin />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/map" element={<MapView />} />
+        <Route path="/add-store" element={<AddStore />} />
+        <Route path="/store/:id" element={<StoreAdmin />} />
+        <Route path="/store/:id/admin" element={<StoreAdmin />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 
