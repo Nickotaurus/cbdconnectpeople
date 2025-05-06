@@ -254,15 +254,22 @@ export type Database = {
           city: string
           claimed_by: string | null
           description: string | null
+          ecommerce_url: string | null
+          google_place_id: string | null
+          has_google_profile: boolean | null
           id: string
+          is_ecommerce: boolean | null
+          is_premium: boolean | null
           is_verified: boolean | null
           latitude: number
           logo_url: string | null
           longitude: number
           name: string
+          opening_hours: string[] | null
           phone: string | null
           photo_url: string | null
           postal_code: string
+          premium_until: string | null
           registration_date: string | null
           user_id: string | null
           website: string | null
@@ -272,15 +279,22 @@ export type Database = {
           city: string
           claimed_by?: string | null
           description?: string | null
+          ecommerce_url?: string | null
+          google_place_id?: string | null
+          has_google_profile?: boolean | null
           id?: string
+          is_ecommerce?: boolean | null
+          is_premium?: boolean | null
           is_verified?: boolean | null
           latitude: number
           logo_url?: string | null
           longitude: number
           name: string
+          opening_hours?: string[] | null
           phone?: string | null
           photo_url?: string | null
           postal_code: string
+          premium_until?: string | null
           registration_date?: string | null
           user_id?: string | null
           website?: string | null
@@ -290,15 +304,22 @@ export type Database = {
           city?: string
           claimed_by?: string | null
           description?: string | null
+          ecommerce_url?: string | null
+          google_place_id?: string | null
+          has_google_profile?: boolean | null
           id?: string
+          is_ecommerce?: boolean | null
+          is_premium?: boolean | null
           is_verified?: boolean | null
           latitude?: number
           logo_url?: string | null
           longitude?: number
           name?: string
+          opening_hours?: string[] | null
           phone?: string | null
           photo_url?: string | null
           postal_code?: string
+          premium_until?: string | null
           registration_date?: string | null
           user_id?: string | null
           website?: string | null

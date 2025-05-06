@@ -34,14 +34,14 @@ export const useStores = () => {
         longitude: store.longitude,
         phone: store.phone || '',
         website: store.website || '',
-        openingHours: [], // Données à implémenter ultérieurement
+        openingHours: store.opening_hours || [], // Maintenant utilise la nouvelle colonne
         description: store.description || '',
         imageUrl: store.photo_url || '',
         logo_url: store.logo_url || '',
         photo_url: store.photo_url || '',
         rating: 0, // Valeur par défaut
         reviewCount: 0, // Valeur par défaut
-        placeId: store.google_place_id || '', 
+        placeId: store.google_place_id || '', // Utilise la nouvelle colonne
         reviews: [], // Données à implémenter ultérieurement
         products: [], // Données à implémenter ultérieurement
         incentive: undefined,
@@ -53,10 +53,11 @@ export const useStores = () => {
           isAffiliate: false
         },
         lotteryPrize: undefined,
-        isPremium: store.is_premium || false,
-        premiumUntil: store.premium_until || undefined,
-        isEcommerce: store.is_ecommerce || false,
-        ecommerceUrl: store.ecommerce_url || undefined
+        isPremium: store.is_premium || false, // Utilise la nouvelle colonne
+        premiumUntil: store.premium_until || undefined, // Utilise la nouvelle colonne
+        isEcommerce: store.is_ecommerce || false, // Utilise la nouvelle colonne
+        ecommerceUrl: store.ecommerce_url || undefined, // Utilise la nouvelle colonne
+        hasGoogleBusinessProfile: store.has_google_profile || false // Utilise la nouvelle colonne
       }));
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);
