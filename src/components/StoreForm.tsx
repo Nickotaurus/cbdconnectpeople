@@ -31,12 +31,16 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Soumission du formulaire dans StoreForm");
     const result = await submitForm(e);
+    
+    console.log("Résultat de la soumission:", result);
     
     if (result.success) {
       if (result.store && onSuccess) {
         await onSuccess(result.store);
       } else if (result.id) {
+        console.log("Navigation vers la page de la boutique:", result.id);
         navigate(`/store/${result.id}`);
       }
     }

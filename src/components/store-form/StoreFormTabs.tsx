@@ -24,6 +24,8 @@ interface FormData {
   placeId: string;
   isEcommerce: boolean;
   ecommerceUrl: string;
+  hasGoogleBusinessProfile?: boolean;
+  openingHours?: string[];
 }
 
 interface StoreFormTabsProps {

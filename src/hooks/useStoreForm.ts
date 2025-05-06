@@ -117,6 +117,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
 
   const handleSubmit = async (e: React.FormEvent): Promise<StoreFormSubmitResult> => {
     e.preventDefault();
+    console.log("Formulaire soumis", formData);
     
     if (!isAddressValid && !isEdit) {
       toast({
@@ -131,23 +132,35 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
     
     try {
       const storeData = createStoreDataFromForm(formData);
+      
       // Récupérer l'utilisateur actuellement connecté pour associer la boutique
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Erreur lors de la récupération de la session:", sessionError);
+        // On continue sans user_id si on ne peut pas récupérer la session
+      }
       
       if (session?.user?.id) {
         // Ajouter l'ID utilisateur aux données de la boutique
         storeData.user_id = session.user.id;
+      } else {
+        console.warn("Aucun utilisateur connecté, la boutique sera créée sans propriétaire");
       }
       
       console.log("Données de boutique à enregistrer:", storeData);
       
       if (isEdit && storeId) {
-        const { error } = await supabase
+        const { data: updateData, error } = await supabase
           .from('stores')
           .update(storeData)
-          .eq('id', storeId);
+          .eq('id', storeId)
+          .select();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Erreur lors de la mise à jour:", error);
+          throw error;
+        }
         
         toast({
           title: "Boutique mise à jour",
@@ -156,15 +169,19 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
         
         return { success: true, id: storeId };
       } else {
+        console.log("Tentative d'insertion dans la table stores...");
+        
         const { data, error } = await supabase
           .from('stores')
           .insert([storeData])
           .select();
         
         if (error) {
-          console.error("Erreur Supabase:", error);
+          console.error("Erreur Supabase lors de l'insertion:", error);
           throw error;
         }
+        
+        console.log("Données insérées avec succès:", data);
         
         if (data && data.length > 0) {
           // Customize success message based on store type
@@ -199,6 +216,9 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
                 
               if (profileError) {
                 console.error("Erreur lors de la mise à jour du profil:", profileError);
+                // On continue même si la mise à jour du profil échoue
+              } else {
+                console.log("Profil mis à jour avec store_id:", data[0].id);
               }
             } catch (profileUpdateError) {
               console.error("Erreur lors de la mise à jour du profil:", profileUpdateError);
@@ -209,7 +229,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
             await onSuccess(storeForCallback);
           }
           
-          return { success: true, store: storeForCallback };
+          return { success: true, store: storeForCallback, id: data[0].id };
         }
       }
       
