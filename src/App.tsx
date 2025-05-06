@@ -13,6 +13,7 @@ import NewsPage from "./pages/NewsPage";
 import Partners from "./pages/Partners";
 import Ranking from "./pages/Ranking";
 import ClassifiedsPage from "./pages/ClassifiedsPage";
+import Register from "./pages/Register";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/partners" element={<Partners />} />
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/classifieds" element={<ClassifiedsPage />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/add-store" element={<AddStore />} />
         <Route path="/store/:id" element={<StoreAdmin />} />
         <Route path="/store/:id/admin" element={<StoreAdmin />} />

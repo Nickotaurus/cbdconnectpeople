@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { BookmarkCheck, Search, Ticket } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 export interface ProfileCardProps {
   icon: React.ReactNode;
@@ -59,8 +60,10 @@ const ProfileCard = ({
         )}
       </CardDescription>
       <div className="flex flex-col gap-2 mt-auto">
-        <Button className="w-full" onClick={primaryAction}>
-          {primaryLabel}
+        <Button className="w-full" onClick={primaryAction} asChild>
+          <Link to="/register">
+            {primaryLabel}
+          </Link>
         </Button>
         {secondaryAction && secondaryLabel && (
           <Button
