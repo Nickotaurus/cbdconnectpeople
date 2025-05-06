@@ -23,46 +23,58 @@ export const useStores = () => {
 
       if (error) throw new Error(error.message);
 
-      // Transformer les données de Supabase pour correspondre à l'interface Store
-      const transformedStores: Store[] = (data || []).map((store: StoreDBType) => ({
-        id: store.id,
-        name: store.name,
-        address: store.address,
-        city: store.city,
-        postalCode: store.postal_code || '',
-        latitude: store.latitude,
-        longitude: store.longitude,
-        phone: store.phone || '',
-        website: store.website || '',
-        openingHours: store.opening_hours || [], // Maintenant utilise la nouvelle colonne
-        description: store.description || '',
-        imageUrl: store.photo_url || '',
-        logo_url: store.logo_url || '',
-        photo_url: store.photo_url || '',
-        rating: 0, // Valeur par défaut
-        reviewCount: 0, // Valeur par défaut
-        placeId: store.google_place_id || '', // Utilise la nouvelle colonne
-        reviews: [], // Données à implémenter ultérieurement
-        products: [], // Données à implémenter ultérieurement
-        incentive: undefined,
-        coupon: {
-          code: '',
-          discount: '',
-          validUntil: new Date().toISOString(),
-          usageCount: 0,
-          isAffiliate: false
-        },
-        lotteryPrize: undefined,
-        isPremium: store.is_premium || false, // Utilise la nouvelle colonne
-        premiumUntil: store.premium_until || undefined, // Utilise la nouvelle colonne
-        isEcommerce: store.is_ecommerce || false, // Utilise la nouvelle colonne
-        ecommerceUrl: store.ecommerce_url || undefined, // Utilise la nouvelle colonne
-        hasGoogleBusinessProfile: store.has_google_profile || false // Utilise la nouvelle colonne
-      }));
+      // Transform Supabase data to match the Store interface
+      const transformedStores: Store[] = (data || []).map((store: StoreDBType) => {
+        // Convert string[] to array of objects with day and hours properties
+        const formattedOpeningHours = (store.opening_hours || []).map(hourString => {
+          // Assume format is "Day: hours" or similar
+          const parts = hourString.split(':');
+          return {
+            day: parts[0] || '',
+            hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
+          };
+        });
+
+        return {
+          id: store.id,
+          name: store.name,
+          address: store.address,
+          city: store.city,
+          postalCode: store.postal_code || '',
+          latitude: store.latitude,
+          longitude: store.longitude,
+          phone: store.phone || '',
+          website: store.website || '',
+          openingHours: formattedOpeningHours,
+          description: store.description || '',
+          imageUrl: store.photo_url || '',
+          logo_url: store.logo_url || '',
+          photo_url: store.photo_url || '',
+          rating: 0, // Default value
+          reviewCount: 0, // Default value
+          placeId: store.google_place_id || '',
+          reviews: [], // Data to be implemented later
+          products: [], // Data to be implemented later
+          incentive: undefined,
+          coupon: {
+            code: '',
+            discount: '',
+            validUntil: new Date().toISOString(),
+            usageCount: 0,
+            isAffiliate: false
+          },
+          lotteryPrize: undefined,
+          isPremium: store.is_premium || false,
+          premiumUntil: store.premium_until || undefined,
+          isEcommerce: store.is_ecommerce || false,
+          ecommerceUrl: store.ecommerce_url || undefined,
+          hasGoogleBusinessProfile: store.has_google_profile || false
+        };
+      });
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);
       
-      // Supprimer tous les doublons, sans traitement spécial pour "CBD Histoire de Chanvre"
+      // Remove duplicates, without special processing for "CBD Histoire de Chanvre"
       const uniqueStores = removeDuplicateStores(transformedStores);
       
       console.log(`Nombre total de boutiques après déduplication: ${uniqueStores.length}`);
@@ -81,13 +93,13 @@ export const useStores = () => {
     }
   }, [toast]);
 
-  // Fonction simplifiée pour éliminer les doublons, sans traitement spécial
+  // Simplified function to eliminate duplicates, without special treatment
   const removeDuplicateStores = (stores: Store[]): Store[] => {
     // Use a regular object to store unique stores
     const uniqueStoresMap: Record<string, Store> = {};
     
     stores.forEach(store => {
-      // Utiliser une clé de déduplication standard pour toutes les boutiques
+      // Use a standard deduplication key for all stores
       const key = generateUniqueStoreKey(store);
       uniqueStoresMap[key] = store;
     });
@@ -96,20 +108,20 @@ export const useStores = () => {
     return Object.values(uniqueStoresMap);
   };
   
-  // Fonction pour générer une clé unique pour chaque boutique
+  // Function to generate a unique key for each store
   const generateUniqueStoreKey = (store: Store): string => {
     if (store.placeId) {
       return `place_${store.placeId}`;
     }
     
     if (store.latitude && store.longitude) {
-      // Arrondir à 5 décimales pour éviter les petites différences
+      // Round to 5 decimals to avoid small differences
       const lat = Math.round(store.latitude * 100000) / 100000;
       const lng = Math.round(store.longitude * 100000) / 100000;
       return `geo_${lat}_${lng}`;
     }
     
-    // Dernière option: utiliser l'adresse et le nom normalisés
+    // Last option: use normalized address and name
     return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.city.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
   };
 
