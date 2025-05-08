@@ -199,6 +199,9 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
             description: successMsg,
           });
           
+          // Marquer la boutique comme nouvellement créée pour afficher le message de confirmation
+          sessionStorage.setItem('newlyRegisteredStore', 'true');
+          
           // Convert to Store type for onSuccess callback
           const storeForCallback = convertToStore(data[0]);
           

@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck, Store } from 'lucide-react';
+import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck, Store, MapPin, Check, Edit } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from "@/components/ui/skeleton"; 
 import StoreAssociationTool from '@/components/store/StoreAssociationTool';
+import { Store as StoreType } from '@/types/store';
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { findBusinessByPlaceId } from '@/services/googleBusinessService';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
@@ -19,19 +23,49 @@ const StoreDashboard = () => {
   const storeUser = user as StoreUser;
   
   const [storeId, setStoreId] = useState<string | null>(null);
+  const [storeData, setStoreData] = useState<StoreType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [showAssociationTool, setShowAssociationTool] = useState(false);
+  const [storeRegisteredAlert, setStoreRegisteredAlert] = useState(false);
   const maxRetries = 3;
   
   // Autres états
-  const profileCompleteness = 65;
+  const profileCompleteness = storeData ? Math.min(100, 40 + 
+    (storeData.description ? 15 : 0) + 
+    (storeData.phone ? 15 : 0) + 
+    (storeData.website ? 15 : 0) + 
+    (storeData.openingHours && storeData.openingHours.length > 0 ? 15 : 0)
+  ) : 40;
   const storeVerificationStatus = storeUser?.siretVerified ? "Vérifié" : "En attente";
   const partnerFavorites = storeUser?.partnerFavorites || [];
   
   // Vérifier si l'utilisateur est "histoiredechanvre29@gmail.com"
   const isHistoireDeChanvreUser = user?.email === "histoiredechanvre29@gmail.com";
+
+  // Rechercher les données Google supplémentaires si besoin
+  const fetchGoogleDetails = useCallback(async (placeId: string) => {
+    try {
+      if (!placeId) return;
+      
+      const details = await findBusinessByPlaceId(placeId);
+      if (details) {
+        setStoreData(prevData => {
+          if (!prevData) return null;
+          
+          return {
+            ...prevData,
+            rating: details.rating || prevData.rating,
+            reviewCount: details.totalReviews || prevData.reviewCount,
+            hasGoogleBusinessProfile: true
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Erreur lors de la récupération des détails Google:', err);
+    }
+  }, []);
 
   // Fonction pour recharger la page
   const refreshDashboard = useCallback(() => {
@@ -39,6 +73,97 @@ const StoreDashboard = () => {
     setRetryCount(0);
     fetchStoreId();
   }, []);
+
+  // Fonction pour vérifier si la boutique est visible sur la carte
+  const checkStoreVisibility = useCallback(async (store: StoreType) => {
+    try {
+      // Vérifier dans la table stores
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id, is_verified')
+        .eq('id', store.id)
+        .single();
+        
+      if (data && data.is_verified) {
+        // La boutique est vérifiée et visible sur la carte
+        return true;
+      }
+    } catch (err) {
+      console.error('Erreur lors de la vérification de visibilité:', err);
+    }
+    return false;
+  }, []);
+
+  // Récupérer les données complètes de la boutique
+  const fetchStoreData = useCallback(async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        // Convertir les données Supabase en type Store
+        const storeData: StoreType = {
+          id: data.id,
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          postalCode: data.postal_code || '',
+          latitude: data.latitude,
+          longitude: data.longitude,
+          phone: data.phone || '',
+          website: data.website || '',
+          openingHours: (data.opening_hours || []).map((hour: string) => {
+            const parts = hour.split(':');
+            return {
+              day: parts[0] || '',
+              hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
+            };
+          }),
+          description: data.description || '',
+          imageUrl: data.photo_url || '',
+          logo_url: data.logo_url || '',
+          photo_url: data.photo_url || '',
+          rating: 0,
+          reviewCount: 0,
+          placeId: data.google_place_id || '',
+          isPremium: data.is_premium || false,
+          premiumUntil: data.premium_until || undefined,
+          isEcommerce: data.is_ecommerce || false,
+          ecommerceUrl: data.ecommerce_url || undefined,
+          hasGoogleBusinessProfile: data.has_google_profile || false,
+          reviews: [],
+          products: []
+        };
+        
+        setStoreData(storeData);
+        
+        // Vérifie si la boutique est visible sur la carte
+        const isVisible = await checkStoreVisibility(storeData);
+        
+        // Afficher l'alerte de confirmation si la boutique est récemment créée et visible
+        const isNewlyRegistered = sessionStorage.getItem('newlyRegisteredStore') === 'true';
+        if (isNewlyRegistered) {
+          setStoreRegisteredAlert(true);
+          sessionStorage.removeItem('newlyRegisteredStore');
+        }
+        
+        // Si la boutique a un Google Place ID, chercher les détails supplémentaires
+        if (data.google_place_id) {
+          fetchGoogleDetails(data.google_place_id);
+        }
+      }
+    } catch (err) {
+      console.error('Erreur lors de la récupération des données de la boutique:', err);
+      setError('Impossible de récupérer les détails de votre boutique.');
+    }
+  }, [fetchGoogleDetails, checkStoreVisibility]);
 
   const fetchStoreId = useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +190,8 @@ const StoreDashboard = () => {
           // Stocker dans les deux stockages pour plus de fiabilité
           localStorage.setItem('userStoreId', foundStoreId);
           sessionStorage.setItem('userStoreId', foundStoreId);
+          // Récupérer les données complètes de la boutique
+          await fetchStoreData(foundStoreId);
           setIsLoading(false);
           setShowAssociationTool(false);
           return;
@@ -94,6 +221,8 @@ const StoreDashboard = () => {
           setStoreId(profileData.store_id);
           localStorage.setItem('userStoreId', profileData.store_id);
           sessionStorage.setItem('userStoreId', profileData.store_id);
+          // Récupérer les données complètes de la boutique
+          await fetchStoreData(profileData.store_id);
           setIsLoading(false);
           setShowAssociationTool(false);
           return;
@@ -127,6 +256,8 @@ const StoreDashboard = () => {
           setStoreId(storeData[0].id);
           localStorage.setItem('userStoreId', storeData[0].id);
           sessionStorage.setItem('userStoreId', storeData[0].id);
+          // Récupérer les données complètes de la boutique
+          await fetchStoreData(storeData[0].id);
           setIsLoading(false);
           setShowAssociationTool(false);
           return;
@@ -160,7 +291,7 @@ const StoreDashboard = () => {
         variant: "destructive",
       });
     }
-  }, [user, toast, retryCount, isHistoireDeChanvreUser, maxRetries]);
+  }, [user, toast, retryCount, isHistoireDeChanvreUser, maxRetries, fetchStoreData]);
 
   // Utilisation de useEffect pour déclencher la récupération du storeId
   useEffect(() => {
@@ -230,6 +361,26 @@ const StoreDashboard = () => {
   
   return (
     <div className="space-y-6">
+      {storeRegisteredAlert && (
+        <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+          <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <AlertTitle>Boutique enregistrée avec succès</AlertTitle>
+          <AlertDescription>
+            Votre boutique a été correctement enregistrée dans notre application et est désormais visible sur la carte. 
+            Vous pouvez modifier ses informations à tout moment depuis cette page.
+          </AlertDescription>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2" 
+            onClick={() => navigate('/map')}
+          >
+            <MapPin className="mr-2 h-4 w-4" />
+            Voir ma boutique sur la carte
+          </Button>
+        </Alert>
+      )}
+      
       <div className="flex flex-col md:flex-row gap-6">
         <Card className="w-full md:w-2/3">
           <CardHeader>
@@ -347,11 +498,145 @@ const StoreDashboard = () => {
                   <BarChart3 className="mr-2 h-4 w-4" />
                   Statistiques
                 </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={() => navigate('/map')}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Voir ma boutique sur la carte
+                </Button>
               </>
             )}
           </CardContent>
         </Card>
       </div>
+      
+      {storeData && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Informations de ma boutique</CardTitle>
+              <CardDescription>
+                Vérifiez et modifiez les informations de votre boutique
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={() => navigate(`/store/${storeId}/admin`)} 
+              variant="outline" 
+              size="sm"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium">Nom de la boutique</p>
+                    {storeData.hasGoogleBusinessProfile && (
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                        Google Business
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-base">{storeData.name}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Adresse</p>
+                  <p className="text-base">{storeData.address}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Ville</p>
+                  <p className="text-base">{storeData.city}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Code postal</p>
+                  <p className="text-base">{storeData.postalCode}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Téléphone</p>
+                  <p className="text-base">{storeData.phone || '-'}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Site web</p>
+                  <p className="text-base">
+                    {storeData.website ? (
+                      <a 
+                        href={storeData.website.startsWith('http') ? storeData.website : `https://${storeData.website}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {storeData.website}
+                      </a>
+                    ) : '-'}
+                  </p>
+                </div>
+                
+                {storeData.rating > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Note Google</p>
+                    <div className="flex items-center">
+                      <span className="font-medium text-amber-600">{storeData.rating.toFixed(1)}</span>
+                      <span className="text-muted-foreground text-sm ml-2">
+                        ({storeData.reviewCount} avis)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Description</p>
+                <p className="text-sm text-muted-foreground">
+                  {storeData.description || 'Aucune description ajoutée'}
+                </p>
+              </div>
+              
+              {storeData.openingHours && storeData.openingHours.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Horaires d'ouverture</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {storeData.openingHours.map((hour, index) => (
+                      <div key={index} className="flex justify-between">
+                        <span className="font-medium">{hour.day}</span>
+                        <span className="text-muted-foreground">{hour.hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-2 border-t pt-4">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 mr-1" />
+              Coordonnées: {storeData.latitude}, {storeData.longitude}
+            </div>
+            
+            <Button 
+              onClick={() => {
+                navigate(`/store/${storeId}/admin`);
+                sessionStorage.setItem('editStoreTab', 'details');
+              }} 
+              variant="default" 
+              size="sm"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier mes informations
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
