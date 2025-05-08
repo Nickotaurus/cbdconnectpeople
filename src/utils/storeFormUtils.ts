@@ -87,9 +87,16 @@ export const createFormDataFromStoreDB = (storeData: any): FormData => {
 
 export const createStoreDataFromForm = (formData: FormData) => {
   // Convertir les objets d'heures d'ouverture en tableau de chaînes
-  const formattedHours = formData.openingHours ? formData.openingHours.map(hour => 
-    `${hour.day}:${hour.hours}`
-  ) : [];
+  const formattedHours = formData.openingHours && Array.isArray(formData.openingHours) 
+    ? formData.openingHours.map(hour => {
+        if (typeof hour === 'string') {
+          return hour; // Keep string format if already formatted
+        } else if (hour && typeof hour === 'object' && 'day' in hour && 'hours' in hour) {
+          return `${hour.day}:${hour.hours}`; // Format object to string
+        }
+        return '';
+      }).filter(Boolean)
+    : [];
   
   return {
     name: formData.name,

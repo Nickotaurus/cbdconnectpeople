@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import StoreFormTabs from '@/components/store-form/StoreFormTabs';
-import { useStoreForm } from '@/hooks/useStoreForm';
+import { useStoreForm } from '@/hooks/store-form';
 import { Store } from '@/types/store';
 import { StoreData } from '@/types/store-types';
 
