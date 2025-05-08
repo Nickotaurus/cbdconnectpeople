@@ -22,5 +22,7 @@ export {
   deleteStore, 
   getStoresByDistance, 
   getStoreById, 
-  getReviewsByCategory 
+  getReviewsByCategory,
+  isStoreDuplicate,
+  associateStoreWithUser
 } from '@/utils/storeUtils';

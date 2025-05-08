@@ -88,7 +88,7 @@ export const createFormDataFromStoreDB = (storeData: any): FormData => {
 export const createStoreDataFromForm = (formData: FormData) => {
   // Convertir les objets d'heures d'ouverture en tableau de chaînes
   const formattedHours = formData.openingHours && Array.isArray(formData.openingHours) 
-    ? formData.openingHours.map(hour => {
+    ? formData.openingHours.map((hour: any) => {
         if (typeof hour === 'string') {
           return hour; // Keep string format if already formatted
         } else if (hour && typeof hour === 'object' && 'day' in hour && 'hours' in hour) {
@@ -98,7 +98,8 @@ export const createStoreDataFromForm = (formData: FormData) => {
       }).filter(Boolean)
     : [];
   
-  return {
+  // Create the store data object
+  const storeData = {
     name: formData.name,
     address: formData.address,
     city: formData.city,
@@ -117,4 +118,6 @@ export const createStoreDataFromForm = (formData: FormData) => {
     opening_hours: formattedHours,
     is_verified: true // Pour s'assurer que la boutique apparaît sur la carte
   };
+  
+  return storeData;
 };

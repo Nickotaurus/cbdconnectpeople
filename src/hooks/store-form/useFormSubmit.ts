@@ -50,8 +50,8 @@ export const useFormSubmit = ({
         // On continue sans user_id si on ne peut pas récupérer la session
       }
       
+      // Add user_id to storeData if a user is logged in
       if (session?.user?.id) {
-        // Ajouter l'ID utilisateur aux données de la boutique
         storeData.user_id = session.user.id;
       } else {
         console.warn("Aucun utilisateur connecté, la boutique sera créée sans propriétaire");
