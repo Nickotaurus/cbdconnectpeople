@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +43,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
           initialStoreData.photos[0] : initialStoreData.photo_url || formData.photoUrl,
         placeId: initialStoreData.placeId || '',
         hasGoogleBusinessProfile: hasGoogleInfo,
+        ecommerceUrl: initialStoreData.website || '',
         openingHours: initialStoreData.openingHours
       });
 
@@ -106,6 +108,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
       photoUrl: store.photos && store.photos.length > 0 ? store.photos[0] : store.photo_url || formData.photoUrl,
       placeId: store.placeId || '',
       hasGoogleBusinessProfile: hasGoogleInfo,
+      ecommerceUrl: store.website || formData.ecommerceUrl,
       openingHours: store.openingHours
     });
     

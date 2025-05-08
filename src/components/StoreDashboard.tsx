@@ -1,685 +1,292 @@
 
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/auth';
-import { Building, Users, BarChart3, ChevronRight, Gift, Leaf, BookmarkCheck, Store, MapPin, Check, Edit } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { StoreUser } from '@/types/auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from "@/components/ui/skeleton"; 
-import StoreAssociationTool from '@/components/store/StoreAssociationTool';
-import { Store as StoreType } from '@/types/store';
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { findBusinessByPlaceId } from '@/services/googleBusinessService';
+import { Store } from '@/types/store';
+import { convertToStore } from '@/utils/storeFormUtils';
+import { useStores } from '@/hooks/useStores';
+import Map from '@/components/Map';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { toast } = useToast();
-  const storeUser = user as StoreUser;
-  
-  const [storeId, setStoreId] = useState<string | null>(null);
-  const [storeData, setStoreData] = useState<StoreType | null>(null);
+  const [currentStore, setCurrentStore] = useState<Store | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [showAssociationTool, setShowAssociationTool] = useState(false);
-  const [storeRegisteredAlert, setStoreRegisteredAlert] = useState(false);
-  const maxRetries = 3;
-  
-  // Autres états
-  const profileCompleteness = storeData ? Math.min(100, 40 + 
-    (storeData.description ? 15 : 0) + 
-    (storeData.phone ? 15 : 0) + 
-    (storeData.website ? 15 : 0) + 
-    (storeData.openingHours && storeData.openingHours.length > 0 ? 15 : 0)
-  ) : 40;
-  const storeVerificationStatus = storeUser?.siretVerified ? "Vérifié" : "En attente";
-  const partnerFavorites = storeUser?.partnerFavorites || [];
-  
-  // Vérifier si l'utilisateur est "histoiredechanvre29@gmail.com"
-  const isHistoireDeChanvreUser = user?.email === "histoiredechanvre29@gmail.com";
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const { stores, refetch } = useStores();
 
-  // Rechercher les données Google supplémentaires si besoin
-  const fetchGoogleDetails = useCallback(async (placeId: string) => {
-    try {
-      if (!placeId) return;
-      
-      const details = await findBusinessByPlaceId(placeId);
-      if (details) {
-        setStoreData(prevData => {
-          if (!prevData) return null;
-          
-          return {
-            ...prevData,
-            rating: details.rating || prevData.rating,
-            reviewCount: details.totalReviews || prevData.reviewCount,
-            hasGoogleBusinessProfile: true
-          };
-        });
+  useEffect(() => {
+    const checkNewlyRegistered = () => {
+      const isNewlyRegistered = sessionStorage.getItem('newlyRegisteredStore');
+      if (isNewlyRegistered === 'true') {
+        setShowSuccessMessage(true);
+        sessionStorage.removeItem('newlyRegisteredStore');
       }
-    } catch (err) {
-      console.error('Erreur lors de la récupération des détails Google:', err);
-    }
-  }, []);
-
-  // Fonction pour recharger la page
-  const refreshDashboard = useCallback(() => {
-    setIsLoading(true);
-    setRetryCount(0);
-    fetchStoreId();
-  }, []);
-
-  // Fonction pour vérifier si la boutique est visible sur la carte
-  const checkStoreVisibility = useCallback(async (store: StoreType) => {
-    try {
-      // Vérifier dans la table stores
-      const { data, error } = await supabase
-        .from('stores')
-        .select('id, is_verified')
-        .eq('id', store.id)
-        .single();
-        
-      if (data && data.is_verified) {
-        // La boutique est vérifiée et visible sur la carte
-        return true;
-      }
-    } catch (err) {
-      console.error('Erreur lors de la vérification de visibilité:', err);
-    }
-    return false;
-  }, []);
-
-  // Récupérer les données complètes de la boutique
-  const fetchStoreData = useCallback(async (id: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', id)
-        .single();
-        
-      if (error) {
-        throw error;
-      }
-      
-      if (data) {
-        // Convertir les données Supabase en type Store
-        const storeData: StoreType = {
-          id: data.id,
-          name: data.name,
-          address: data.address,
-          city: data.city,
-          postalCode: data.postal_code || '',
-          latitude: data.latitude,
-          longitude: data.longitude,
-          phone: data.phone || '',
-          website: data.website || '',
-          openingHours: (data.opening_hours || []).map((hour: string) => {
-            const parts = hour.split(':');
-            return {
-              day: parts[0] || '',
-              hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
-            };
-          }),
-          description: data.description || '',
-          imageUrl: data.photo_url || '',
-          logo_url: data.logo_url || '',
-          photo_url: data.photo_url || '',
-          rating: 0,
-          reviewCount: 0,
-          placeId: data.google_place_id || '',
-          isPremium: data.is_premium || false,
-          premiumUntil: data.premium_until || undefined,
-          isEcommerce: data.is_ecommerce || false,
-          ecommerceUrl: data.ecommerce_url || undefined,
-          hasGoogleBusinessProfile: data.has_google_profile || false,
-          reviews: [],
-          products: []
-        };
-        
-        setStoreData(storeData);
-        
-        // Vérifie si la boutique est visible sur la carte
-        const isVisible = await checkStoreVisibility(storeData);
-        
-        // Afficher l'alerte de confirmation si la boutique est récemment créée et visible
-        const isNewlyRegistered = sessionStorage.getItem('newlyRegisteredStore') === 'true';
-        if (isNewlyRegistered) {
-          setStoreRegisteredAlert(true);
-          sessionStorage.removeItem('newlyRegisteredStore');
-        }
-        
-        // Si la boutique a un Google Place ID, chercher les détails supplémentaires
-        if (data.google_place_id) {
-          fetchGoogleDetails(data.google_place_id);
-        }
-      }
-    } catch (err) {
-      console.error('Erreur lors de la récupération des données de la boutique:', err);
-      setError('Impossible de récupérer les détails de votre boutique.');
-    }
-  }, [fetchGoogleDetails, checkStoreVisibility]);
-
-  const fetchStoreId = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+    };
     
-    try {
-      // Vérifier toutes les sources possibles du storeId
-      let foundStoreId = null;
-      
-      // 1. Vérifier d'abord le localStorage puis sessionStorage
-      foundStoreId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
-      
-      if (foundStoreId) {
-        console.log("StoreID trouvé dans le storage local:", foundStoreId);
-        // Vérifier que le storeId existe dans la base de données
-        const { data: storeData, error: storeCheckError } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('id', foundStoreId)
-          .single();
-          
-        if (!storeCheckError && storeData) {
-          setStoreId(foundStoreId);
-          // Stocker dans les deux stockages pour plus de fiabilité
-          localStorage.setItem('userStoreId', foundStoreId);
-          sessionStorage.setItem('userStoreId', foundStoreId);
-          // Récupérer les données complètes de la boutique
-          await fetchStoreData(foundStoreId);
-          setIsLoading(false);
-          setShowAssociationTool(false);
+    checkNewlyRegistered();
+    
+    const fetchUserStore = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get current user
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error fetching session:", sessionError);
           return;
-        } else {
-          console.warn("StoreID trouvé dans le stockage local mais non valide:", storeCheckError);
-          // Effacer les valeurs invalides
-          localStorage.removeItem('userStoreId');
-          sessionStorage.removeItem('userStoreId');
         }
-      }
-      
-      // 2. Si pas dans le storage local et qu'on a un utilisateur connecté, vérifier dans le profil
-      if (user && user.id) {
+        
+        if (!session?.user?.id) {
+          console.log("No user logged in");
+          return;
+        }
+        
+        // Get user profile with store_id
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('store_id')
-          .eq('id', user.id)
+          .eq('id', session.user.id)
           .single();
-          
-        if (profileError) {
-          console.error("Erreur lors de la récupération du profil:", profileError);
-          throw new Error("Impossible de récupérer votre profil.");
-        }
         
-        if (profileData && profileData.store_id) {
-          console.log("StoreID trouvé dans le profil:", profileData.store_id);
-          setStoreId(profileData.store_id);
-          localStorage.setItem('userStoreId', profileData.store_id);
-          sessionStorage.setItem('userStoreId', profileData.store_id);
-          // Récupérer les données complètes de la boutique
-          await fetchStoreData(profileData.store_id);
-          setIsLoading(false);
-          setShowAssociationTool(false);
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
           return;
         }
         
-        // 3. Si pas de store_id dans le profil, rechercher les boutiques créées par l'utilisateur
+        if (!profileData?.store_id) {
+          console.log("User has no associated store");
+          return;
+        }
+        
+        // Get store details
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('id')
-          .eq('user_id', user.id)
-          .order('registration_date', { ascending: false })
-          .limit(1);
-          
+          .select('*')
+          .eq('id', profileData.store_id)
+          .single();
+        
         if (storeError) {
-          console.error("Erreur lors de la recherche de boutique:", storeError);
-          throw new Error("Impossible de rechercher vos boutiques.");
-        }
-        
-        if (storeData && storeData.length > 0) {
-          console.log("StoreID trouvé dans les boutiques de l'utilisateur:", storeData[0].id);
-          // Mettre à jour le profil avec l'ID de la boutique trouvée
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ store_id: storeData[0].id })
-            .eq('id', user.id);
-            
-          if (updateError) {
-            console.error("Erreur lors de la mise à jour du profil:", updateError);
-          }
-          
-          setStoreId(storeData[0].id);
-          localStorage.setItem('userStoreId', storeData[0].id);
-          sessionStorage.setItem('userStoreId', storeData[0].id);
-          // Récupérer les données complètes de la boutique
-          await fetchStoreData(storeData[0].id);
-          setIsLoading(false);
-          setShowAssociationTool(false);
+          console.error("Error fetching store:", storeError);
           return;
         }
         
-        // 4. Pour Histoire de Chanvre spécifiquement, offrir l'outil d'association
-        if (isHistoireDeChanvreUser) {
-          setShowAssociationTool(true);
-          setIsLoading(false);
-          return;
+        if (storeData) {
+          const storeObject = convertToStore(storeData);
+          setCurrentStore(storeObject);
         }
+      } catch (error) {
+        console.error("Error in fetchUserStore:", error);
+      } finally {
+        setIsLoading(false);
       }
+    };
+    
+    fetchUserStore();
+  }, []);
 
-      // Si aucune boutique trouvée
-      if (retryCount < maxRetries) {
-        console.log(`Aucune boutique trouvée, nouvelle tentative dans 1s (${retryCount + 1}/${maxRetries})`);
-        setRetryCount(prevCount => prevCount + 1);
-        setTimeout(() => fetchStoreId(), 1000); // Réessayer dans 1 seconde
-      } else {
-        setIsLoading(false); // Terminer le chargement même sans boutique
-        console.log("Nombre maximal de tentatives atteint, aucune boutique trouvée");
-      }
-    } catch (err) {
-      console.error("Erreur lors de la récupération de l'ID de la boutique:", err);
-      setError("Impossible de récupérer les informations de votre boutique.");
-      setIsLoading(false);
-      
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Une erreur est survenue lors du chargement de votre boutique.",
-        variant: "destructive",
-      });
+  const handleEditStore = () => {
+    if (currentStore?.id) {
+      navigate(`/store/${currentStore.id}/admin`);
     }
-  }, [user, toast, retryCount, isHistoireDeChanvreUser, maxRetries, fetchStoreData]);
+  };
+  
+  const handleViewOnMap = () => {
+    navigate('/map');
+  };
 
-  // Utilisation de useEffect pour déclencher la récupération du storeId
-  useEffect(() => {
-    fetchStoreId();
-  }, [fetchStoreId]);
-  
-  // Rendre un état de chargement sur mobile et desktop
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <Card className="w-full md:w-2/3">
-            <CardHeader>
-              <Skeleton className="h-6 w-64 mb-2" />
-              <Skeleton className="h-4 w-48" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-2 w-full" />
-              </div>
-              
-              <div className="grid gap-4 md:grid-cols-2">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-20 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="w-full md:w-1/3">
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-  
-  // Montrer l'outil d'association pour Histoire de Chanvre
-  if (showAssociationTool) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Association de votre boutique</CardTitle>
-            <CardDescription>
-              Nous avons trouvé votre boutique "CBD Histoire de Chanvre" dans notre base de données. 
-              Veuillez confirmer l'association de cette boutique à votre profil.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StoreAssociationTool onSuccess={refreshDashboard} />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
+  const handleDismissSuccessMessage = () => {
+    setShowSuccessMessage(false);
+  };
+
   return (
-    <div className="space-y-6">
-      {storeRegisteredAlert && (
-        <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
-          <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-          <AlertTitle>Boutique enregistrée avec succès</AlertTitle>
-          <AlertDescription>
-            Votre boutique a été correctement enregistrée dans notre application et est désormais visible sur la carte. 
-            Vous pouvez modifier ses informations à tout moment depuis cette page.
-          </AlertDescription>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-2" 
-            onClick={() => navigate('/map')}
-          >
-            <MapPin className="mr-2 h-4 w-4" />
-            Voir ma boutique sur la carte
-          </Button>
-        </Alert>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Tableau de bord de votre boutique</h1>
+      
+      {showSuccessMessage && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-bold">Félicitations !</h3>
+              <p>Votre boutique a été enregistrée avec succès et est maintenant visible sur la carte.</p>
+              <Button 
+                variant="link" 
+                className="text-green-800 p-0 h-auto"
+                onClick={handleViewOnMap}
+              >
+                Voir sur la carte
+              </Button>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleDismissSuccessMessage}
+            >
+              ×
+            </Button>
+          </div>
+        </div>
       )}
       
-      <div className="flex flex-col md:flex-row gap-6">
-        <Card className="w-full md:w-2/3">
-          <CardHeader>
-            <CardTitle>Tableau de bord boutique</CardTitle>
-            <CardDescription>
-              Gérez votre boutique et améliorez votre visibilité
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm">Complétude du profil</span>
-                <span className="text-sm font-medium">{profileCompleteness}%</span>
-              </div>
-              <Progress value={profileCompleteness} className="h-2" />
-            </div>
-            
-            {error ? (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-md text-sm">
-                <p className="font-medium text-red-800 dark:text-red-300">Erreur de chargement</p>
-                <p className="text-muted-foreground mt-1">{error}</p>
-                <Button className="mt-2 w-full md:w-auto" variant="destructive" onClick={refreshDashboard}>
-                  Réessayer
-                </Button>
-              </div>
-            ) : !storeId ? (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-md text-sm">
-                <p className="font-medium text-yellow-800 dark:text-yellow-300">Votre fiche boutique n'est pas encore créée.</p>
-                <p className="text-muted-foreground mt-1">Complétez votre profil pour être visible sur notre plateforme.</p>
-                <div className="mt-2 space-y-2">
-                  <Button className="w-full" onClick={() => navigate('/add-store')}>
-                    <Store className="mr-2 h-4 w-4" />
-                    Créer ma fiche boutique
-                  </Button>
-                  {isHistoireDeChanvreUser && (
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={() => setShowAssociationTool(true)}
-                    >
-                      <Building className="mr-2 h-4 w-4" />
-                      Associer une boutique existante
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-center p-3 border rounded-md">
-                  <Building className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
-                  <div>
-                    <p className="text-sm font-medium">Statut SIRET</p>
-                    <p className={`text-sm ${storeUser?.siretVerified ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                      {storeVerificationStatus}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center p-3 border rounded-md">
-                  <Users className="h-9 w-9 p-1.5 rounded-md bg-primary/10 text-primary mr-3" />
-                  <div>
-                    <p className="text-sm font-medium">Accès partenaires</p>
-                    <p className="text-sm text-muted-foreground">
-                      {storeUser?.siretVerified ? 'Disponible' : 'Débloqué après vérification'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex-col items-start space-y-2">
-            {storeId && (
-              <Button 
-                variant="outline" 
-                className="w-full md:w-auto" 
-                onClick={() => navigate(`/store/${storeId}/admin`)}
-              >
-                Gérer ma boutique
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-        
-        <Card className="w-full md:w-1/3">
-          <CardHeader>
-            <CardTitle>Accès rapides</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={() => navigate('/partners')}
-            >
-              <Leaf className="mr-2 h-4 w-4" />
-              Annuaire des partenaires
-            </Button>
-            
-            {storeId && (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={() => navigate(`/store/${storeId}/admin?tab=coupons`)}
-                >
-                  <Gift className="mr-2 h-4 w-4" />
-                  Gérer mes coupons
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={() => navigate(`/store/${storeId}/admin?tab=stats`)}
-                >
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  Statistiques
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
-                  onClick={() => navigate('/map')}
-                >
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Voir ma boutique sur la carte
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      {storeData && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Informations de ma boutique</CardTitle>
-              <CardDescription>
-                Vérifiez et modifiez les informations de votre boutique
-              </CardDescription>
-            </div>
-            <Button 
-              onClick={() => navigate(`/store/${storeId}/admin`)} 
-              variant="outline" 
-              size="sm"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Modifier
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Nom de la boutique</p>
-                    {storeData.hasGoogleBusinessProfile && (
-                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                        Google Business
-                      </Badge>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-pulse">Chargement des informations de votre boutique...</div>
+        </div>
+      ) : currentStore ? (
+        <Tabs defaultValue="overview">
+          <TabsList className="mb-6">
+            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="details">Détails</TabsTrigger>
+            <TabsTrigger value="location">Localisation</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{currentStore.name}</CardTitle>
+                  <CardDescription>Informations générales</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {currentStore.photo_url && (
+                      <img 
+                        src={currentStore.photo_url} 
+                        alt={currentStore.name} 
+                        className="w-full h-40 object-cover rounded-md mb-4"
+                      />
+                    )}
+                    <p><strong>Adresse:</strong> {currentStore.address}, {currentStore.postalCode} {currentStore.city}</p>
+                    <p><strong>Téléphone:</strong> {currentStore.phone || 'Non renseigné'}</p>
+                    <p><strong>Site web:</strong> {currentStore.website || 'Non renseigné'}</p>
+                    {currentStore.hasGoogleBusinessProfile && (
+                      <div className="mt-4 bg-blue-50 p-3 rounded-md">
+                        <p className="text-blue-800 font-semibold">✓ Profil Google Business connecté</p>
+                      </div>
                     )}
                   </div>
-                  <p className="text-base">{storeData.name}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Adresse</p>
-                  <p className="text-base">{storeData.address}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Ville</p>
-                  <p className="text-base">{storeData.city}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Code postal</p>
-                  <p className="text-base">{storeData.postalCode}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Téléphone</p>
-                  <p className="text-base">{storeData.phone || '-'}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Site web</p>
-                  <p className="text-base">
-                    {storeData.website ? (
-                      <a 
-                        href={storeData.website.startsWith('http') ? storeData.website : `https://${storeData.website}`}
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {storeData.website}
-                      </a>
-                    ) : '-'}
-                  </p>
-                </div>
-                
-                {storeData.rating > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Note Google</p>
-                    <div className="flex items-center">
-                      <span className="font-medium text-amber-600">{storeData.rating.toFixed(1)}</span>
-                      <span className="text-muted-foreground text-sm ml-2">
-                        ({storeData.reviewCount} avis)
-                      </span>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={handleEditStore}>Modifier les informations</Button>
+                </CardFooter>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Visibilité sur la carte</CardTitle>
+                  <CardDescription>Prévisualisation de votre boutique</CardDescription>
+                </CardHeader>
+                <CardContent className="h-64">
+                  <Map 
+                    stores={[currentStore]} 
+                    selectedStoreId={currentStore.id}
+                  />
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" onClick={handleViewOnMap}>
+                    Voir sur la carte complète
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="details">
+            <Card>
+              <CardHeader>
+                <CardTitle>Détails de la boutique</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Description</h3>
+                    <p className="text-gray-600">{currentStore.description || 'Aucune description disponible.'}</p>
+                  </div>
+                  
+                  {currentStore.openingHours && currentStore.openingHours.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Horaires d'ouverture</h3>
+                      <ul className="space-y-1">
+                        {currentStore.openingHours.map((hours, index) => (
+                          <li key={index} className="text-sm">
+                            <span className="font-medium">{hours.day}:</span> {hours.hours}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
+                  )}
+                  
+                  {currentStore.isEcommerce && (
+                    <div className="bg-green-50 p-3 rounded-md">
+                      <h3 className="font-semibold text-green-800">Boutique E-commerce</h3>
+                      <p className="text-green-700">
+                        Url: {currentStore.ecommerceUrl || currentStore.website || 'Non renseignée'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleEditStore}>Modifier les détails</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="location">
+            <Card>
+              <CardHeader>
+                <CardTitle>Localisation</CardTitle>
+                <CardDescription>Adresse et coordonnées de votre boutique</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Adresse complète</h3>
+                    <p>{currentStore.address}</p>
+                    <p>{currentStore.postalCode} {currentStore.city}</p>
                   </div>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Description</p>
-                <p className="text-sm text-muted-foreground">
-                  {storeData.description || 'Aucune description ajoutée'}
-                </p>
-              </div>
-              
-              {storeData.openingHours && storeData.openingHours.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium">Horaires d'ouverture</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {storeData.openingHours.map((hour, index) => (
-                      <div key={index} className="flex justify-between">
-                        <span className="font-medium">{hour.day}</span>
-                        <span className="text-muted-foreground">{hour.hours}</span>
-                      </div>
-                    ))}
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2">Coordonnées</h3>
+                    <p>Latitude: {currentStore.latitude}</p>
+                    <p>Longitude: {currentStore.longitude}</p>
+                  </div>
+                  
+                  <div className="h-64 mt-4">
+                    <Map 
+                      stores={[currentStore]}
+                      selectedStoreId={currentStore.id}
+                      zoom={15}
+                    />
                   </div>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aucune boutique associée</CardTitle>
+            <CardDescription>
+              Vous n'avez pas encore de boutique associée à votre compte.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Pour ajouter une boutique, cliquez sur le bouton ci-dessous.</p>
           </CardContent>
-          <CardFooter className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-2 border-t pt-4">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-1" />
-              Coordonnées: {storeData.latitude}, {storeData.longitude}
-            </div>
-            
-            <Button 
-              onClick={() => {
-                navigate(`/store/${storeId}/admin`);
-                sessionStorage.setItem('editStoreTab', 'details');
-              }} 
-              variant="default" 
-              size="sm"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Modifier mes informations
+          <CardFooter>
+            <Button onClick={() => navigate('/add-store')}>
+              Ajouter une boutique
             </Button>
           </CardFooter>
         </Card>
       )}
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Mes partenaires favoris</CardTitle>
-            <CardDescription>Partenaires et producteurs avec qui vous collaborez</CardDescription>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/partners')} 
-            className="text-primary"
-          >
-            Voir tous
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {partnerFavorites && partnerFavorites.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="border rounded-lg p-4 flex items-center space-x-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Leaf className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Demo Producteur CBD</h4>
-                  <p className="text-sm text-muted-foreground">Producteur, Isère</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <BookmarkCheck className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <h4 className="text-lg font-medium">Aucun partenaire favori</h4>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Ajoutez des partenaires à vos favoris pour les retrouver facilement ici
-              </p>
-              <Button onClick={() => navigate('/partners')}>
-                Parcourir les partenaires
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };

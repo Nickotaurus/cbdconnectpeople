@@ -17,6 +17,7 @@ export const initialFormData: FormData = {
   photoUrl: '',
   placeId: '',
   isEcommerce: false,
+  ecommerceUrl: '',
   hasGoogleBusinessProfile: false,
   openingHours: []
 };
@@ -72,6 +73,7 @@ export const createFormDataFromStoreDB = (storeData: any): FormData => {
     photoUrl: storeData.photo_url || '',
     placeId: storeData.google_place_id || '',
     isEcommerce: storeData.is_ecommerce || false,
+    ecommerceUrl: storeData.website || '', // Default to website if not provided
     hasGoogleBusinessProfile: storeData.has_google_profile || false,
     openingHours: (storeData.opening_hours || []).map((hour: string) => {
       const parts = hour.split(':');
@@ -103,7 +105,7 @@ export const createStoreDataFromForm = (formData: FormData) => {
     photo_url: formData.photoUrl,
     google_place_id: formData.placeId,
     is_ecommerce: formData.isEcommerce,
-    ecommerce_url: formData.website, // Utiliser le même URL pour le moment
+    ecommerce_url: formData.ecommerceUrl || formData.website, // Use ecommerceUrl or fallback to website
     has_google_profile: formData.hasGoogleBusinessProfile,
     opening_hours: formattedHours,
     is_verified: true // Pour s'assurer que la boutique apparaît sur la carte

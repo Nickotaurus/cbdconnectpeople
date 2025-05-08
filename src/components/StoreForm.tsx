@@ -37,18 +37,15 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
     console.log("Résultat de la soumission:", result);
     
     if (result.success) {
+      // Set the newly registered store flag
+      sessionStorage.setItem('newlyRegisteredStore', 'true');
+      
       if (result.store && onSuccess) {
         await onSuccess(result.store);
       } else if (result.id) {
-        console.log("Navigation vers la page de la boutique:", result.id);
-        // Vérifier d'abord si la route admin existe
-        try {
-          navigate(`/store/${result.id}/admin`);
-        } catch (error) {
-          // Fallback à la route simple si la route admin n'existe pas
-          console.error("Erreur de navigation, redirection vers la page de base de la boutique:", error);
-          navigate(`/store/${result.id}`);
-        }
+        console.log("Navigation vers la page du tableau de bord");
+        // Navigate to store dashboard after successful submission
+        navigate('/store-dashboard');
       }
     }
   };

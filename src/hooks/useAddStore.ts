@@ -1,125 +1,127 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/contexts/auth';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 import { Store } from '@/types/store';
 
 export const useAddStore = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [existingStoreId, setExistingStoreId] = useState<string | null>(null);
   const [isCheckingExistingStore, setIsCheckingExistingStore] = useState(true);
+  const [existingStoreId, setExistingStoreId] = useState<string | null>(null);
   const [showAssociationTool, setShowAssociationTool] = useState(false);
-  
-  const { fromRegistration, storeType, requiresSubscription } = 
-    (location.state as { 
-      fromRegistration?: boolean; 
-      storeType?: string; 
-      requiresSubscription?: boolean;
-    }) || {};
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [fromRegistration, setFromRegistration] = useState(false);
+  const [storeType, setStoreType] = useState<string | null>(null);
+  const [requiresSubscription, setRequiresSubscription] = useState(false);
 
-  // Clean localStorage/sessionStorage and check for special case
   useEffect(() => {
-    if (user?.email === 'histoiredechanvre29@gmail.com') {
-      localStorage.removeItem('userStoreId');
-      sessionStorage.removeItem('userStoreId');
-      sessionStorage.removeItem('newlyAddedStore');
-      
-      // For this specific user, show the association tool directly
-      setShowAssociationTool(true);
-      setIsCheckingExistingStore(false);
-      return;
-    }
+    // Vérifier si l'utilisateur vient de s'inscrire
+    const params = new URLSearchParams(window.location.search);
+    const fromReg = params.get('from') === 'registration';
+    const type = params.get('type');
+    const needsSub = params.get('subscription') === 'true';
+    
+    setFromRegistration(fromReg);
+    setStoreType(type);
+    setRequiresSubscription(needsSub);
     
     const checkExistingStore = async () => {
-      if (!user) {
-        setIsCheckingExistingStore(false);
-        return;
-      }
-      
       try {
-        // Check if user has a store_id in their profile
+        // Vérifier si l'utilisateur est connecté
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log("L'utilisateur n'est pas connecté");
+          setIsCheckingExistingStore(false);
+          return;
+        }
+        
+        console.log("Vérification si l'utilisateur a déjà une boutique");
+        
+        // Vérifier si l'utilisateur a déjà une boutique dans son profil
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('store_id')
-          .eq('id', user.id)
+          .eq('id', session.user.id)
           .single();
-          
-        if (!profileError && profileData?.store_id) {
-          setExistingStoreId(profileData.store_id);
-          localStorage.setItem('userStoreId', profileData.store_id);
-          sessionStorage.setItem('userStoreId', profileData.store_id);
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Erreur lors de la vérification du profil:", profileError);
+          setIsCheckingExistingStore(false);
+          return;
         }
+        
+        if (profileData?.store_id) {
+          console.log("L'utilisateur a déjà une boutique associée:", profileData.store_id);
+          setExistingStoreId(profileData.store_id);
+          setIsCheckingExistingStore(false);
+          return;
+        }
+        
+        // Si l'utilisateur est un commerçant mais n'a pas de boutique associée
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (userData?.role === 'store' && !profileData?.store_id) {
+          console.log("L'utilisateur est un commerçant sans boutique associée");
+          setShowAssociationTool(true);
+        }
+        
+        setIsCheckingExistingStore(false);
       } catch (error) {
-        console.error("Error checking for existing store:", error);
-      } finally {
+        console.error("Erreur lors de la vérification des boutiques:", error);
         setIsCheckingExistingStore(false);
       }
     };
     
     checkExistingStore();
-  }, [user]);
+  }, []);
 
-  const handleStoreAdded = async (store: Store) => {
+  const handleStoreAdded = useCallback(async (store: Store) => {
     setIsTransitioning(true);
     
-    // Build a customized confirmation message based on store type
-    let confirmationMessage = "Votre boutique a été référencée dans l'annuaire.";
+    // Register the store to ensure it appears on the map
+    console.log("Enregistrement de la boutique pour affichage sur la carte");
     
-    if (store.isEcommerce && store.hasGoogleBusinessProfile) {
-      confirmationMessage = "Votre boutique physique et votre site e-commerce ont été référencés avec succès. Les informations de votre fiche Google Business ont été importées.";
-    } else if (store.isEcommerce) {
-      confirmationMessage = "Votre boutique physique et votre site e-commerce ont été référencés avec succès.";
-    } else if (store.hasGoogleBusinessProfile) {
-      confirmationMessage = "Votre boutique a été référencée avec succès. Les informations de votre fiche Google Business ont été importées.";
-    }
+    // Set the newly registered store flag
+    sessionStorage.setItem('newlyRegisteredStore', 'true');
     
+    // Store the store ID for quick access
+    localStorage.setItem('userStoreId', store.id);
+    
+    // Short delay to show success message
+    setTimeout(() => {
+      // Navigate to the store dashboard
+      navigate('/store-dashboard', { replace: true });
+    }, 1000);
+    
+    // Toast the success message
     toast({
-      title: "Boutique ajoutée avec succès",
-      description: confirmationMessage,
+      title: "Boutique ajoutée",
+      description: "Votre boutique a été enregistrée avec succès et est maintenant visible sur la carte.",
       duration: 5000,
     });
+  }, [navigate, toast]);
 
-    // Save store ID in localStorage and sessionStorage
-    localStorage.setItem('userStoreId', store.id);
-    sessionStorage.setItem('userStoreId', store.id);
-    sessionStorage.setItem('newlyAddedStore', store.id);
-
-    // Navigate based on registration flow and subscription requirements
-    if (fromRegistration && requiresSubscription) {
-      setTimeout(() => {
-        navigate('/partners/subscription', { 
-          state: { 
-            fromStoreRegistration: true,
-            storeId: store.id
-          },
-          replace: true
-        });
-        setIsTransitioning(false);
-      }, 1500);
-    } else {
-      // Navigate to store admin dashboard
-      setTimeout(() => {
-        navigate(`/store/${store.id}/admin`, { replace: true });
-        setIsTransitioning(false);
-      }, 1500);
-    }
-  };
-  
-  const handleAssociationSuccess = () => {
-    const storeId = localStorage.getItem('userStoreId') || sessionStorage.getItem('userStoreId');
-    if (storeId) {
+  const handleAssociationSuccess = useCallback((storeId: string) => {
+    setIsTransitioning(true);
+    
+    setExistingStoreId(storeId);
+    setTimeout(() => {
       navigate(`/store/${storeId}/admin`, { replace: true });
-    } else {
-      // If no store ID is found, reload the page
-      window.location.reload();
-    }
-  };
+    }, 1500);
+    
+    toast({
+      title: "Association réussie",
+      description: "Votre boutique a été associée à votre profil avec succès.",
+      duration: 5000,
+    });
+  }, [navigate, toast]);
 
   return {
     isTransitioning,
