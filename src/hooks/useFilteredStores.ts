@@ -4,6 +4,7 @@ import { Store } from '@/types/store';
 import { getStoresByDistance } from '@/utils/data';
 import { useStores } from '@/hooks/useStores';
 import { combineAndDeduplicateStores } from '@/utils/storeUtils/deduplication';
+import { preloadStorePhotos } from '@/services/googlePhotosService';
 
 interface FilterConfig {
   categories: string[];
@@ -36,6 +37,11 @@ export const useFilteredStores = (
     );
     
     setCombinedStores(sortedByDistance);
+    
+    // Précharger les photos Google
+    if (sortedByDistance.length > 0) {
+      preloadStorePhotos(sortedByDistance);
+    }
     
     if (isInitialLoad && !isLoading) {
       setIsInitialLoad(false);

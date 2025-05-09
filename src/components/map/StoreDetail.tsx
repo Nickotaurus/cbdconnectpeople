@@ -13,6 +13,19 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
   return (
     <div className="animate-[fade-in_0.3s_ease-out,scale-in_0.3s_ease-out]">
       <div className="bg-background rounded-lg shadow-sm p-4 transition-all duration-300 hover:shadow-md">
+        {store.imageUrl && (
+          <div className="w-full h-40 mb-3 rounded-md overflow-hidden">
+            <img 
+              src={store.imageUrl} 
+              alt={store.name} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x200?text=CBD";
+              }}
+            />
+          </div>
+        )}
+        
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3 className="font-semibold text-lg">{store.name}</h3>

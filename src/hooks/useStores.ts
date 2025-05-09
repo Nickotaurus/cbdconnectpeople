@@ -34,6 +34,12 @@ export const useStores = () => {
           };
         });
 
+        // Utiliser photo_url, ou créer une URL par défaut si non disponible
+        const storeImageUrl = store.photo_url || 
+                             (store.google_place_id ? 
+                             `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${store.google_place_id}&key=YOUR_API_KEY` : 
+                             'https://via.placeholder.com/400x200?text=CBD');
+
         return {
           id: store.id,
           name: store.name,
@@ -46,14 +52,17 @@ export const useStores = () => {
           website: store.website || '',
           openingHours: formattedOpeningHours,
           description: store.description || '',
-          imageUrl: store.photo_url || '',
+          imageUrl: storeImageUrl,
           logo_url: store.logo_url || '',
           photo_url: store.photo_url || '',
           rating: 0, // Default value
           reviewCount: 0, // Default value
           placeId: store.google_place_id || '',
           reviews: [], // Data to be implemented later
-          products: [], // Data to be implemented later
+          products: store.products?.length > 0 ? store.products : [
+            { category: "Fleurs CBD", origin: "France", quality: "Premium" },
+            { category: "Huiles CBD", origin: "France", quality: "Bio" }
+          ],
           incentive: undefined,
           coupon: {
             code: '',

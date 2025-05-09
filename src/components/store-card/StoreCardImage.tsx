@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +15,16 @@ interface StoreCardImageProps {
 
 const StoreCardImage = ({ imageUrl, storeName, rating, storeId }: StoreCardImageProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { user } = useAuth();
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     handleImageLoad(e);
+    setImageLoaded(true);
+  };
+  
+  const onImageError = () => {
+    setImageError(true);
     setImageLoaded(true);
   };
 
@@ -26,12 +33,21 @@ const StoreCardImage = ({ imageUrl, storeName, rating, storeId }: StoreCardImage
       <div 
         className={`absolute inset-0 bg-sage-200 animate-pulse ${imageLoaded ? 'hidden' : 'block'}`}
       />
-      <img 
-        src={imageUrl} 
-        alt={storeName} 
-        className="w-full h-full object-cover img-loading transition-transform duration-500 group-hover:scale-105"
-        onLoad={onImageLoad}
-      />
+      
+      {!imageError ? (
+        <img 
+          src={imageUrl} 
+          alt={storeName} 
+          className="w-full h-full object-cover img-loading transition-transform duration-500 group-hover:scale-105"
+          onLoad={onImageLoad}
+          onError={onImageError}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary/70 font-bold text-4xl">
+          {storeName.charAt(0)}
+        </div>
+      )}
+      
       <div className="absolute top-2 right-2 flex gap-2">
         <Badge className="bg-primary text-primary-foreground font-medium">
           <Star className="h-3 w-3 mr-1 fill-primary-foreground" /> 
