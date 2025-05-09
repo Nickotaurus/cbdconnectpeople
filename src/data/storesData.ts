@@ -25,6 +25,7 @@ let storesData: Store[] = [
     imageUrl: "https://images.unsplash.com/photo-1603726623530-8a99ef1f1d93?q=80&w=1000",
     rating: 4.7,
     reviewCount: 124,
+    placeId: "ChIJxxxMaraisParis1", // Added placeId
     coupon: {
       code: "CBDMARAIS15",
       discount: "15% sur votre première commande",
@@ -97,6 +98,7 @@ let storesData: Store[] = [
     imageUrl: "https://images.unsplash.com/photo-1585143894744-a722b5e55615?q=80&w=1000",
     rating: 4.5,
     reviewCount: 89,
+    placeId: "ChIJxxxLyonCentre2", // Added placeId
     coupon: {
       code: "LYONCBD10",
       discount: "10% sur tout le magasin",
@@ -165,6 +167,7 @@ let storesData: Store[] = [
     imageUrl: "https://images.unsplash.com/photo-1594304558786-3850b5018ca9?q=80&w=1000",
     rating: 4.8,
     reviewCount: 156,
+    placeId: "ChIJxxxBordeauxCBD3", // Added placeId
     coupon: {
       code: "BORDEAUXCBD20",
       discount: "20% sur les huiles CBD",

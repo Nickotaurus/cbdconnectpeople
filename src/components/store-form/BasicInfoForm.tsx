@@ -89,12 +89,14 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           name="isEcommerce"
           checked={formData.isEcommerce}
           onCheckedChange={(checked) => {
-            const event = { 
+            // Fix: Create a partial event object that matches what handleInputChange expects
+            // Cast as unknown first, then to the expected type
+            const event = {
               target: { 
                 name: 'isEcommerce', 
                 value: checked 
-              } 
-            } as React.ChangeEvent<HTMLInputElement>;
+              }
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
             handleInputChange(event);
           }}
         />

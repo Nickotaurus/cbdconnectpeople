@@ -56,6 +56,7 @@ export const convertToStoreFormat = (
     imageUrl,
     rating: placeDetails.rating || 0,
     reviewCount: placeDetails.user_ratings_total || 0,
+    placeId: placeDetails.place_id || "", // Setting placeId from the place_id property
     coupon: {
       code: `${placeDetails.name.substring(0, 5).toUpperCase()}10`,
       discount: "10% sur votre première commande",

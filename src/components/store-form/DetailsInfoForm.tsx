@@ -21,12 +21,13 @@ const DetailsInfoForm: React.FC<DetailsInfoFormProps> = ({ formData, handleInput
           name="hasGoogleBusinessProfile"
           checked={formData.hasGoogleBusinessProfile || false}
           onCheckedChange={(checked) => {
+            // Fix: Cast as unknown first, then to the expected type
             const event = { 
               target: { 
                 name: 'hasGoogleBusinessProfile', 
                 value: checked 
               } 
-            } as React.ChangeEvent<HTMLInputElement>;
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
             handleInputChange(event);
           }}
         />
