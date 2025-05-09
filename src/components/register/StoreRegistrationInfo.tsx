@@ -7,8 +7,7 @@ const StoreRegistrationInfo = () => {
   return (
     <TabsContent value="store" className="mt-2 space-y-4">
       <p className="text-sm text-muted-foreground">
-        Référencez votre boutique CBD, gérez votre présence en ligne, offrez des réductions pour 
-        attirer plus de clients et connectez-vous avec des producteurs.
+        Référencez votre boutique CBD, gérez votre présence en ligne et connectez-vous avec des producteurs.
       </p>
       
       <Alert className="bg-primary/5 border-primary/20">
@@ -16,8 +15,8 @@ const StoreRegistrationInfo = () => {
         <AlertDescription className="text-sm mt-1">
           <span className="font-medium">Processus d'inscription :</span>
           <ul className="list-disc pl-5 mt-1 space-y-1">
-            <li>L'inscription est <strong>entièrement gratuite</strong>, que vous ayez une boutique physique ou un site e-commerce.</li>
-            <li>Tous les services de base sont disponibles gratuitement pour développer votre activité.</li>
+            <li>Inscrivez votre boutique, qu'elle soit physique ou en ligne.</li>
+            <li>Tous les services sont disponibles pour développer votre activité.</li>
           </ul>
         </AlertDescription>
       </Alert>
@@ -27,14 +26,14 @@ const StoreRegistrationInfo = () => {
           <Store className="h-5 w-5 text-primary mt-0.5" />
           <div>
             <h4 className="text-sm font-medium">Boutique Physique</h4>
-            <p className="text-xs text-muted-foreground">Référencement gratuit et illimité</p>
+            <p className="text-xs text-muted-foreground">Référencement complet</p>
           </div>
         </div>
         <div className="border rounded-lg p-3 flex items-start space-x-3">
           <Globe className="h-5 w-5 text-primary mt-0.5" />
           <div>
             <h4 className="text-sm font-medium">E-commerce</h4>
-            <p className="text-xs text-muted-foreground">Référencement gratuit et illimité</p>
+            <p className="text-xs text-muted-foreground">Référencement complet</p>
           </div>
         </div>
       </div>

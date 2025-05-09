@@ -10,6 +10,5 @@ export const subscriptionPlans = [
       "Participation aux discussions et entraide professionnelle",
       "Accès aux ressources et formations spécialisées"
     ],
-    isPopular: true,
   }
 ];

@@ -14,7 +14,7 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
   const handleSelectPlan = (planId: string) => {
     toast({
       title: "Plan sélectionné",
-      description: "Vous avez rejoint notre réseau professionnel gratuit.",
+      description: "Vous avez rejoint notre réseau professionnel.",
     });
     
     if (onSelectPlan) {
@@ -27,20 +27,8 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
       {subscriptionPlans.map((plan) => (
         <Card 
           key={plan.id}
-          className={`flex flex-col relative ${
-            plan.isPopular 
-              ? "border-primary shadow-md shadow-primary/10" 
-              : ""
-          }`}
+          className="flex flex-col relative"
         >
-          {plan.isPopular && (
-            <div className="absolute top-0 right-0">
-              <div className="bg-primary text-primary-foreground text-xs font-medium py-1 px-2 rounded-bl-md rounded-tr-md">
-                Gratuit
-              </div>
-            </div>
-          )}
-          
           <CardHeader>
             <CardTitle className="text-xl">{plan.name}</CardTitle>
             <CardDescription>
@@ -59,7 +47,6 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
           </CardContent>
           <CardFooter className="pt-3">
             <Button 
-              variant={plan.isPopular ? "default" : "outline"}
               className="w-full"
               onClick={() => handleSelectPlan(plan.id)}
             >
