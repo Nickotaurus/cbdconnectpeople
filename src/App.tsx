@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import Navbar from "./components/Navbar";
 import NewsPage from "./pages/NewsPage";
 import Partners from "./pages/Partners";
-import Ranking from "./pages/Ranking";
 import ClassifiedsPage from "./pages/ClassifiedsPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -28,7 +27,6 @@ function App() {
         <Route path="/map" element={<MapView />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/partners" element={<Partners />} />
-        <Route path="/ranking" element={<Ranking />} />
         <Route path="/classifieds" element={<ClassifiedsPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
