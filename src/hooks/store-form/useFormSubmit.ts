@@ -6,15 +6,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
 
-export const useFormSubmit = (onSuccess?: (storeId: string) => void) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+interface UseFormSubmitProps {
+  onSuccess?: (storeId: string) => void;
+}
+
+interface SubmitResult {
+  success: boolean;
+  message: string;
+  storeId?: string;
+}
+
+export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const submitForm = async (formData: FormData): Promise<{ success: boolean; message: string; storeId?: string }> => {
+  const handleSubmit = async (formData: FormData): Promise<SubmitResult> => {
     setError('');
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
       if (!user) {
@@ -95,9 +105,9 @@ export const useFormSubmit = (onSuccess?: (storeId: string) => void) => {
       
       return { success: false, message: errorMessage };
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  return { submitForm, isSubmitting, error };
+  return { handleSubmit, isLoading, error };
 };

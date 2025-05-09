@@ -27,18 +27,18 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
   const { formData: fetchedFormData, isLoading: isLoadingData } = useStoreDataFetcher({ isEdit, storeId });
   
   // Form submission
-  const { isLoading: isSubmitting, handleSubmit } = useFormSubmit({
-    formData,
-    isEdit,
-    storeId,
-    isAddressValid,
-    onSuccess
-  });
+  const formSubmitHandler = onSuccess ? { onSuccess } : {};
+  const { handleSubmit, isLoading: isSubmitting, error } = useFormSubmit(formSubmitHandler);
   
   // Update form data when fetched data is available
   if (fetchedFormData && !formData.id) {
     setFormData(fetchedFormData);
   }
+  
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    return await handleSubmit(formData);
+  };
   
   return {
     activeTab,
@@ -50,7 +50,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
     setHasSearched,
     handleInputChange,
     handleStoreSelect,
-    handleSubmit
+    handleSubmit: handleFormSubmit
   };
 };
 

@@ -56,10 +56,17 @@ const AddStore: React.FC = () => {
     return <ExistingStoreSection />;
   }
 
+  // Adapting handleStoreAdded to match expected function signature
+  const handleStoreSuccess = () => {
+    if (handleStoreAdded) {
+      handleStoreAdded();
+    }
+  };
+
   return (
     <AddStoreFormSection
       onBackClick={() => navigate('/map')}
-      onStoreAdded={handleStoreAdded}
+      onStoreAdded={handleStoreSuccess}
       storeType={storeType}
       fromRegistration={fromRegistration}
       requiresSubscription={false}
