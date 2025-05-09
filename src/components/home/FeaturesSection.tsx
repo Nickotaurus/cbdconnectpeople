@@ -1,38 +1,32 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Award, Globe, MapPin, MessageCircle } from "lucide-react";
-import FeatureCard from "../cards/FeatureCard";
+import React from 'react';
+import { MapPin, Users, Book } from 'lucide-react';
+import FeatureCard from '../cards/FeatureCard';
 
 const FeaturesSection = () => {
-  const navigate = useNavigate();
-  
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-      <FeatureCard
-        icon={<MapPin className="h-8 w-8 text-primary" />}
-        title="Boutiques"
-        description="Trouvez les boutiques CBD près de chez vous"
-        onClick={() => navigate("/map")}
-      />
-      <FeatureCard
-        icon={<Globe className="h-8 w-8 text-primary" />}
-        title="E-commerce"
-        description="Découvrez les meilleurs sites CBD"
-        onClick={() => navigate("/e-commerce")}
-      />
-      <FeatureCard
-        icon={<MessageCircle className="h-8 w-8 text-primary" />}
-        title="Annonces"
-        description="Achetez, vendez et échangez"
-        onClick={() => navigate("/classifieds")}
-      />
-      <FeatureCard
-        icon={<Award className="h-8 w-8 text-primary" />}
-        title="Classements"
-        description="Top boutiques et produits"
-        onClick={() => navigate("/ranking")}
-      />
+    <div className="py-12">
+      <h2 className="text-3xl font-bold text-center mb-12">Pourquoi nous rejoindre ?</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <FeatureCard 
+          icon={<MapPin className="h-10 w-10 text-primary" />}
+          title="Cartographie professionnelle"
+          description="Accédez à une carte complète des acteurs du CBD en France et faites-vous connaître dans votre région"
+        />
+        
+        <FeatureCard 
+          icon={<Users className="h-10 w-10 text-primary" />}
+          title="Réseau d'entraide"
+          description="Connectez-vous avec d'autres professionnels du CBD pour partager des conseils et des opportunités de collaboration"
+        />
+        
+        <FeatureCard 
+          icon={<Book className="h-10 w-10 text-primary" />}
+          title="Ressources et formations"
+          description="Accédez à des guides et formations spécialisées pour développer votre activité dans le secteur du CBD"
+        />
+      </div>
     </div>
   );
 };

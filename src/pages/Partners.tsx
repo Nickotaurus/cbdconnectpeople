@@ -9,7 +9,6 @@ import { usePartners } from '@/hooks/usePartners';
 // Components
 import PartnersHeader from '@/components/partners/PartnersHeader';
 import PartnerSearchFilters from '@/components/partners/PartnerSearchFilters';
-import PremiumAccessBanner from '@/components/partners/PremiumAccessBanner';
 import PartnersContent from '@/components/partners/PartnersContent';
 
 // Utilities
@@ -27,7 +26,6 @@ const Partners = () => {
   const { partnerProfiles, filteredPartners, isLoading, error, useTestData } = usePartners(searchTerm, categoryFilter);
   
   const isProfessional = user?.role === "store" || user?.role === "partner";
-  const hasPremium = user?.role === "store" && user.isVerified;
   
   // Handle search filter
   const handleSearch = (term: string) => {
@@ -40,11 +38,12 @@ const Partners = () => {
   };
   
   const handleContactClick = (partnerId: string) => {
-    if (hasPremium) {
+    if (isProfessional) {
       console.log(`Showing contact info for partner ${partnerId}`);
       setSelectedPartnerId(partnerId);
     } else {
-      console.log('User needs premium to view contact info');
+      console.log('Login required to view contact info');
+      navigate('/login');
     }
   };
   
@@ -65,18 +64,13 @@ const Partners = () => {
           getCategoryLabel={getCategoryLabel}
         />
         
-        <PremiumAccessBanner 
-          isProfessional={isProfessional} 
-          hasPremium={hasPremium} 
-        />
-        
         <PartnersContent 
           isLoading={isLoading}
           error={error}
           filteredPartners={filteredPartners}
           partnerProfilesCount={partnerProfiles.length}
           isProfessional={isProfessional}
-          hasPremium={hasPremium}
+          hasPremium={isProfessional}
           onContactClick={handleContactClick}
           useTestData={useTestData}
         />

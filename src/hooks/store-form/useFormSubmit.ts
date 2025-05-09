@@ -1,166 +1,103 @@
 
 import { useState } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { FormData } from '@/types/store-form';
+import { createStoreDataFromForm } from '@/utils/storeFormUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { FormData, StoreFormSubmitResult } from '@/types/store-form';
-import { Store } from '@/types/store';
-import { createStoreDataFromForm, convertToStore } from '@/utils/storeFormUtils';
+import { useAuth } from '@/contexts/auth';
+import { useToast } from '@/hooks/use-toast';
 
-interface UseFormSubmitProps {
-  formData: FormData;
-  isEdit: boolean;
-  storeId?: string;
-  isAddressValid: boolean;
-  onSuccess?: (store: Store) => Promise<void>;
-}
-
-export const useFormSubmit = ({ 
-  formData, 
-  isEdit, 
-  storeId, 
-  isAddressValid,
-  onSuccess 
-}: UseFormSubmitProps) => {
+export const useFormSubmit = (onSuccess?: (storeId: string) => void) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent): Promise<StoreFormSubmitResult> => {
-    e.preventDefault();
-    console.log("Formulaire soumis", formData);
-    
-    if (!isAddressValid && !isEdit) {
-      toast({
-        title: "Adresse requise",
-        description: "Veuillez sélectionner une adresse valide",
-        variant: "destructive"
-      });
-      return { success: false };
-    }
-    
-    setIsLoading(true);
-    
+  const submitForm = async (formData: FormData): Promise<{ success: boolean; message: string; storeId?: string }> => {
+    setError('');
+    setIsSubmitting(true);
+
     try {
+      if (!user) {
+        throw new Error("Vous devez être connecté pour ajouter une boutique");
+      }
+
+      // Create the store data object from form data
       const storeData = createStoreDataFromForm(formData);
       
-      // Récupérer l'utilisateur actuellement connecté pour associer la boutique
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Erreur lors de la récupération de la session:", sessionError);
-        // On continue sans user_id si on ne peut pas récupérer la session
+      // Add user_id to the store data
+      const storeDataWithUserId = {
+        ...storeData,
+        user_id: user.id
+      };
+
+      console.log('Store data to submit:', storeDataWithUserId);
+
+      // Insert the store into the database
+      const { data: newStore, error: insertError } = await supabase
+        .from('stores')
+        .insert(storeDataWithUserId)
+        .select('*')
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting store:', insertError);
+        throw new Error(`Erreur lors de l'ajout de la boutique: ${insertError.message}`);
       }
-      
-      // Add user_id to storeData if a user is logged in
-      if (session?.user?.id) {
-        storeData.user_id = session.user.id;
-      } else {
-        console.warn("Aucun utilisateur connecté, la boutique sera créée sans propriétaire");
+
+      console.log('Store added successfully:', newStore);
+
+      // Update the user profile with the store ID
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          store_id: newStore.id, 
+          store_type: formData.isEcommerce ? 'ecommerce' : 'physical' 
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        // We still consider this a success since the store was added
       }
+
+      // Save store ID to session and local storage
+      sessionStorage.setItem('userStoreId', newStore.id);
+      localStorage.setItem('userStoreId', newStore.id);
       
-      console.log("Données de boutique à enregistrer:", storeData);
-      
-      if (isEdit && storeId) {
-        const { data: updateData, error } = await supabase
-          .from('stores')
-          .update(storeData)
-          .eq('id', storeId)
-          .select();
-        
-        if (error) {
-          console.error("Erreur lors de la mise à jour:", error);
-          throw error;
-        }
-        
-        toast({
-          title: "Boutique mise à jour",
-          description: "Les informations de votre boutique ont été mises à jour avec succès.",
-        });
-        
-        return { success: true, id: storeId };
-      } else {
-        console.log("Tentative d'insertion dans la table stores...");
-        
-        const { data, error } = await supabase
-          .from('stores')
-          .insert([storeData])
-          .select();
-        
-        if (error) {
-          console.error("Erreur Supabase lors de l'insertion:", error);
-          throw error;
-        }
-        
-        console.log("Données insérées avec succès:", data);
-        
-        if (data && data.length > 0) {
-          // Customize success message based on store type
-          let successMsg = "Votre boutique a été ajoutée avec succès.";
-          
-          if (formData.isEcommerce && formData.hasGoogleBusinessProfile) {
-            successMsg = "Votre boutique physique et votre site e-commerce ont été ajoutés avec succès. Les informations Google ont été importées.";
-          } else if (formData.isEcommerce) {
-            successMsg = "Votre boutique physique et votre site e-commerce ont été ajoutés avec succès.";
-          } else if (formData.hasGoogleBusinessProfile) {
-            successMsg = "Votre boutique a été ajoutée avec succès. Les informations Google ont été importées.";
-          }
-          
-          toast({
-            title: "Boutique ajoutée",
-            description: successMsg,
-          });
-          
-          // Marquer la boutique comme nouvellement créée pour afficher le message de confirmation
-          sessionStorage.setItem('newlyRegisteredStore', 'true');
-          
-          // Convert to Store type for onSuccess callback
-          const storeForCallback = convertToStore(data[0]);
-          
-          // Si l'utilisateur est connecté, associer la boutique à son profil
-          if (session?.user?.id) {
-            try {
-              const { error: profileError } = await supabase
-                .from('profiles')
-                .update({ 
-                  store_id: data[0].id,
-                  store_type: 'physical' 
-                })
-                .eq('id', session.user.id);
-                
-              if (profileError) {
-                console.error("Erreur lors de la mise à jour du profil:", profileError);
-                // On continue même si la mise à jour du profil échoue
-              } else {
-                console.log("Profil mis à jour avec store_id:", data[0].id);
-              }
-            } catch (profileUpdateError) {
-              console.error("Erreur lors de la mise à jour du profil:", profileUpdateError);
-            }
-          }
-          
-          if (onSuccess) {
-            await onSuccess(storeForCallback);
-          }
-          
-          return { success: true, store: storeForCallback, id: data[0].id };
-        }
-      }
-      
-      return { success: false };
-    } catch (error) {
-      console.error("Error submitting form:", error);
+      // Also save in session that this store was just added
+      sessionStorage.setItem('newlyAddedStore', newStore.id);
+
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement de la boutique.",
-        variant: "destructive"
+        title: 'Boutique ajoutée avec succès',
+        description: 'Votre boutique a été enregistrée avec succès.'
       });
-      return { success: false, error };
+
+      if (onSuccess) {
+        onSuccess(newStore.id);
+      }
+
+      return { 
+        success: true, 
+        message: 'Boutique ajoutée avec succès', 
+        storeId: newStore.id 
+      };
+
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(errorMessage);
+      
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive'
+      });
+      
+      return { success: false, message: errorMessage };
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return {
-    isLoading,
-    handleSubmit
-  };
+  return { submitForm, isSubmitting, error };
 };

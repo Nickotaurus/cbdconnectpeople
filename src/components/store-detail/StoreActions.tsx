@@ -1,4 +1,5 @@
-import { Heart, MapPin, Phone, Star } from 'lucide-react';
+
+import { MapPin, Phone, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Store } from '@/types/store';
 import { useAuth } from '@/contexts/auth';
@@ -19,19 +20,10 @@ const StoreActions = ({ store, isFavorite, toggleFavorite }: StoreActionsProps) 
     if (!user) {
       toast({
         title: "Connexion requise",
-        description: "Vous devez être connecté en tant que client pour noter cette boutique.",
+        description: "Vous devez être connecté pour laisser un avis.",
         variant: "destructive",
       });
       navigate('/login');
-      return;
-    }
-    
-    if (user.role !== 'client') {
-      toast({
-        title: "Action non disponible",
-        description: "Seuls les clients peuvent laisser des avis.",
-        variant: "destructive",
-      });
       return;
     }
     
@@ -43,22 +35,12 @@ const StoreActions = ({ store, isFavorite, toggleFavorite }: StoreActionsProps) 
     
     toast({
       title: "Action enregistrée",
-      description: "Merci de contribuer. Cette action compte pour vos quêtes !",
+      description: "Merci de contribuer à la communauté professionnelle du CBD.",
     });
   };
 
   return (
     <div className="flex flex-col gap-2 mt-4 md:mt-0">
-      {user && user.role === 'client' && (
-        <Button 
-          variant={isFavorite ? "outline" : "default"}
-          onClick={toggleFavorite}
-          className={`w-full md:w-auto ${isFavorite ? 'border-destructive text-destructive' : ''}`}
-        >
-          <Heart className={`mr-2 h-4 w-4 ${isFavorite ? 'fill-destructive' : ''}`} />
-          {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-        </Button>
-      )}
       <Button className="w-full md:w-auto">
         <MapPin className="mr-2 h-4 w-4" />
         Itinéraire

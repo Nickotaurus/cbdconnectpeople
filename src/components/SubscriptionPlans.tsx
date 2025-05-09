@@ -13,8 +13,8 @@ interface SubscriptionPlansProps {
 const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) => {
   const handleSelectPlan = (planId: string) => {
     toast({
-      title: "Abonnement sélectionné",
-      description: "Dans une version en production, vous seriez redirigé vers la page de paiement.",
+      title: "Plan sélectionné",
+      description: "Vous avez rejoint notre réseau professionnel gratuit.",
     });
     
     if (onSelectPlan) {
@@ -23,7 +23,7 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
   };
 
   return (
-    <div className={`grid gap-6 md:grid-cols-3 ${className}`}>
+    <div className={`grid ${className}`}>
       {subscriptionPlans.map((plan) => (
         <Card 
           key={plan.id}
@@ -36,7 +36,7 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
           {plan.isPopular && (
             <div className="absolute top-0 right-0">
               <div className="bg-primary text-primary-foreground text-xs font-medium py-1 px-2 rounded-bl-md rounded-tr-md">
-                Recommandé
+                Gratuit
               </div>
             </div>
           )}
@@ -44,9 +44,7 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
           <CardHeader>
             <CardTitle className="text-xl">{plan.name}</CardTitle>
             <CardDescription>
-              {plan.price > 0 
-                ? `${plan.price.toFixed(2)}€ / mois` 
-                : "Gratuit"}
+              Réseau d'entraide pour professionnels du CBD
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 flex-1">
@@ -65,7 +63,7 @@ const SubscriptionPlans = ({ onSelectPlan, className }: SubscriptionPlansProps) 
               className="w-full"
               onClick={() => handleSelectPlan(plan.id)}
             >
-              {plan.price > 0 ? "S'abonner" : "Sélectionner"}
+              Rejoindre le réseau
             </Button>
           </CardFooter>
         </Card>
