@@ -36,7 +36,7 @@ const AssociationToolSection: React.FC<AssociationToolSectionProps> = ({
         </p>
       </div>
       
-      <StoreAssociationTool onSuccess={onAssociationSuccess} />
+      <StoreAssociationTool onSuccess={(storeId) => onAssociationSuccess(storeId)} />
     </div>
   );
 };

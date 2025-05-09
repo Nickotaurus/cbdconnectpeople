@@ -10,5 +10,5 @@ export interface AssociationResult {
 export interface StoreAssociationToolProps {
   defaultEmail?: string;
   defaultStoreName?: string;
-  onSuccess?: () => void;
+  onSuccess?: (storeId: string) => void;
 }
