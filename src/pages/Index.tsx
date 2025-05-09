@@ -32,7 +32,7 @@ const Index = () => {
       <div className="max-w-4xl mx-auto">
         <HeroSection 
           logoSrc="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png"
-          tagline="La plateforme qui connecte tous les acteurs professionnels de l'écosystème CBD"
+          tagline="Rejoignez la première communauté dédiée aux professionnels du CBD : trouvez des partenaires fiables, accédez à des ressources exclusives et développez votre activité plus vite — inscription gratuite !"
         />
         
         <ProfilesSection />

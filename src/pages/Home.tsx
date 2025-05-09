@@ -13,7 +13,7 @@ const Home = () => {
     <div className="container mx-auto px-4 py-8">
       <HeroSection 
         logoSrc="/lovable-uploads/553fc45c-9d08-41b8-abd8-7cceb445942c.png"
-        tagline="Connectez-vous avec l'écosystème CBD"
+        tagline="Rejoignez la première communauté dédiée aux professionnels du CBD : trouvez des partenaires fiables, accédez à des ressources exclusives et développez votre activité plus vite — inscription gratuite !"
       />
       <FeaturesSection />
       <NewsSection />
