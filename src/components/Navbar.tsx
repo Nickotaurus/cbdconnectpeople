@@ -1,5 +1,6 @@
+
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Globe, Newspaper, MessageCircle, Briefcase, Home } from 'lucide-react';
+import { MapPin, Globe, Newspaper, MessageCircle, Briefcase, Home, Award } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/auth';
 import NavLinks from './navigation/NavLinks';
@@ -22,6 +23,7 @@ const Navbar = () => {
     { href: '/news', label: 'Actualité CBD', icon: Newspaper },
     { href: '/partners', label: 'Partenaires CBD', icon: Briefcase },
     { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
+    { href: '/ranking', label: 'Classement', icon: Award },
   ];
   
   return (

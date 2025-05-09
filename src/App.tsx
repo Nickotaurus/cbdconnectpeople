@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import StoreDashboard from "./pages/StoreDashboard";
+import Ranking from "./pages/Ranking";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/add-store" element={<AddStore />} />
         <Route path="/store/:id" element={<StoreAdmin />} />
         <Route path="/store/:id/admin" element={<StoreAdmin />} />
+        <Route path="/ranking" element={<Ranking />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
