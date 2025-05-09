@@ -9,7 +9,7 @@ interface MapProps {
   zoom?: number; // Added zoom property
 }
 
-const Map = ({ stores, onSelectStore, selectedStoreId, zoom }: MapProps = {}) => {
+const MapComponent = ({ stores, onSelectStore, selectedStoreId, zoom }: MapProps = {}) => {
   return <BasicMap 
     stores={stores} 
     onSelectStore={onSelectStore} 
@@ -18,4 +18,4 @@ const Map = ({ stores, onSelectStore, selectedStoreId, zoom }: MapProps = {}) =>
   />;
 };
 
-export default Map;
+export default MapComponent;

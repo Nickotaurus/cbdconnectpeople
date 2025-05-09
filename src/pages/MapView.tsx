@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Map from '@/components/Map';
+import MapComponent from '@/components/Map';
 import { Store } from '@/types/store';
 import { getStoresByDistance, filterUserLocation } from '@/utils/data';
 import { useAuth } from '@/contexts/auth';
@@ -36,8 +35,8 @@ const MapView = () => {
 
   // Fonction optimisée pour combiner et dédupliquer les boutiques
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Utiliser un Map standard (sans génériques) pour le suivi des boutiques uniques
-    const storeMap = new Map();
+    // Utiliser un objet standard pour stocker les boutiques uniques au lieu de Map
+    const storeMap = new Object() as Record<string, Store>;
     
     // Tracer les compteurs pour le débogage
     console.log(`Nombre de boutiques locales: ${localStores.length}`);
@@ -82,8 +81,8 @@ const MapView = () => {
       }
       
       // Stocker la boutique dans notre map avec la priorité appropriée
-      if (!storeMap.has(key) || (priority > (storeMap.get(key)?.id.includes('-') ? 2 : 1))) {
-        storeMap.set(key, store);
+      if (!storeMap[key] || (priority > (storeMap[key]?.id.includes('-') ? 2 : 1))) {
+        storeMap[key] = store;
       }
     };
     
@@ -95,10 +94,10 @@ const MapView = () => {
     // Puis traiter les boutiques locales (priorité plus basse)
     localStores.forEach(store => processStore(store, 1));
     
-    console.log(`Nombre final de boutiques après déduplication: ${storeMap.size}`);
+    console.log(`Nombre final de boutiques après déduplication: ${Object.keys(storeMap).length}`);
     
-    // Convertir le Map en tableau et trier par distance
-    const uniqueStores = Array.from(storeMap.values()) as Store[];
+    // Convertir notre objet en tableau et trier par distance
+    const uniqueStores = Object.values(storeMap) as Store[];
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
   
@@ -229,7 +228,7 @@ const MapView = () => {
       
       <div className="flex-1 flex flex-col md:flex-row">
         <div className="w-full md:w-3/5 h-1/2 md:h-full order-2 md:order-1 p-4">
-          <Map 
+          <MapComponent 
             stores={combinedStores} 
             onSelectStore={handleSelectStore} 
             selectedStoreId={selectedStore?.id}
