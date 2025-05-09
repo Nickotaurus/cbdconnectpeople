@@ -1,20 +1,12 @@
 
 import { useState } from 'react';
-import { FormData } from '@/types/store-form';
+import { FormData, UseFormSubmitProps } from '@/types/store-form';
 import { createStoreDataFromForm } from '@/utils/storeFormUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
-
-interface UseFormSubmitProps {
-  onSuccess?: (storeId: string) => void;
-}
-
-interface SubmitResult {
-  success: boolean;
-  message: string;
-  storeId?: string;
-}
+import { Store } from '@/types/store';
+import { convertToStore } from '@/utils/storeFormUtils';
 
 export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +14,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (formData: FormData): Promise<SubmitResult> => {
+  const handleSubmit = async (formData: FormData) => {
     setError('');
     setIsLoading(true);
 
@@ -82,14 +74,18 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         description: 'Votre boutique a été enregistrée avec succès.'
       });
 
+      // Convert the DB store to a Store object
+      const storeObject = convertToStore(newStore);
+
       if (onSuccess) {
-        onSuccess(newStore.id);
+        await onSuccess(storeObject);
       }
 
       return { 
         success: true, 
         message: 'Boutique ajoutée avec succès', 
-        storeId: newStore.id 
+        storeId: newStore.id,
+        store: storeObject
       };
 
     } catch (err) {

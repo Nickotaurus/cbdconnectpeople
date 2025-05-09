@@ -49,3 +49,8 @@ export interface UseStoreFormReturn {
   handleStoreSelect: (store: StoreData) => void;
   handleSubmit: (e: React.FormEvent) => Promise<StoreFormSubmitResult>;
 }
+
+// Adding this interface to ensure type consistency across files
+export interface UseFormSubmitProps {
+  onSuccess?: (store: Store) => Promise<void>;
+}

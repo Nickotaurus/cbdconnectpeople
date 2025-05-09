@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Store } from '@/types/store';
 
 export const useAddStore = () => {
@@ -92,7 +92,9 @@ export const useAddStore = () => {
     sessionStorage.setItem('newlyRegisteredStore', 'true');
     
     // Store the store ID for quick access
-    localStorage.setItem('userStoreId', store.id);
+    if (store.id) {
+      localStorage.setItem('userStoreId', store.id);
+    }
     
     // Short delay to show success message
     setTimeout(() => {

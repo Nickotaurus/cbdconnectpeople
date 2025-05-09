@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { useAddStore } from '@/hooks/useAddStore';
+import { Store } from '@/types/store';
 import LoadingState from '@/components/store/add-store/LoadingState';
 import AssociationToolSection from '@/components/store/add-store/AssociationToolSection';
 import ExistingStoreSection from '@/components/store/add-store/ExistingStoreSection';
@@ -56,10 +57,10 @@ const AddStore: React.FC = () => {
     return <ExistingStoreSection />;
   }
 
-  // Adapting handleStoreAdded to match expected function signature
-  const handleStoreSuccess = () => {
+  // Create a wrapper for the onStoreAdded callback to match the expected type
+  const handleStoreSuccess = async (store: Store) => {
     if (handleStoreAdded) {
-      handleStoreAdded();
+      await handleStoreAdded(store);
     }
   };
 

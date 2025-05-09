@@ -4,7 +4,7 @@ import { useFormData } from './useFormData';
 import { useFormSubmit } from './useFormSubmit';
 import { useStoreDuplicateCheck } from '../useStoreDuplicateCheck';
 import { useStoreDataFetcher } from '../useStoreDataFetcher';
-import { UseStoreFormProps, UseStoreFormReturn } from '@/types/store-form';
+import { UseStoreFormProps, UseStoreFormReturn, UseFormSubmitProps } from '@/types/store-form';
 
 export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStoreData }: UseStoreFormProps): UseStoreFormReturn => {
   const [activeTab, setActiveTab] = useState(initialStoreData ? 'details' : 'search');
@@ -27,8 +27,8 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
   const { formData: fetchedFormData, isLoading: isLoadingData } = useStoreDataFetcher({ isEdit, storeId });
   
   // Form submission
-  const formSubmitHandler = onSuccess ? { onSuccess } : {};
-  const { handleSubmit, isLoading: isSubmitting, error } = useFormSubmit(formSubmitHandler);
+  const formSubmitProps: UseFormSubmitProps = onSuccess ? { onSuccess } : {};
+  const { handleSubmit, isLoading: isSubmitting, error } = useFormSubmit(formSubmitProps);
   
   // Update form data when fetched data is available
   if (fetchedFormData && !formData.id) {
