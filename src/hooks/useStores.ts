@@ -18,8 +18,7 @@ export const useStores = () => {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
-        .eq('is_verified', true);
+        .select('*');
 
       if (error) throw new Error(error.message);
 

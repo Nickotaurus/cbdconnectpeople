@@ -1,9 +1,11 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import { Store } from '@/types/store';
 import { getStoresByDistance, filterUserLocation } from '@/utils/data';
 import { useAuth } from '@/contexts/auth';
+import { useToast } from "@/components/ui/use-toast";
 
 // Import new components
 import SearchBar from '@/components/map/SearchBar';
@@ -16,12 +18,14 @@ import { useStores } from '@/hooks/useStores';
 const MapView = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [userLocation, setUserLocation] = useState(filterUserLocation());
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const { stores: supabaseStores, isLoading: isLoadingStores } = useStores();
+  const { stores: supabaseStores, isLoading: isLoadingStores, refetch } = useStores();
   const [combinedStores, setCombinedStores] = useState<Store[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
   
   // Filter states
   const [activeFilters, setActiveFilters] = useState({
@@ -30,7 +34,7 @@ const MapView = () => {
     maxDistance: null as number | null,
   });
 
-  // Fonction modifiée pour combiner et dédupliquer les boutiques sans traitement spécial pour "CBD Histoire de Chanvre"
+  // Fonction modifiée pour combiner et dédupliquer les boutiques
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
     // Use an object instead of Map to store unique stores
     const storeMap: Record<string, Store> = {};
@@ -39,7 +43,7 @@ const MapView = () => {
     console.log(`Nombre de boutiques locales: ${localStores.length}`);
     console.log(`Nombre de boutiques depuis supabase: ${dbStores ? dbStores.length : 0}`);
     
-    // Ajouter les boutiques locales à l'objet (sans traitement spécial)
+    // Ajouter les boutiques locales à l'objet
     localStores.forEach(store => {
       const key = getStoreKey(store);
       storeMap[key] = store;
@@ -87,12 +91,24 @@ const MapView = () => {
     
     // Puis combiner avec les boutiques de Supabase et assurer une bonne déduplication
     const combined = combineAndDeduplicateStores(localStores, supabaseStores);
+    
+    // Debug mode: ajouter des logs détaillés
+    if (debugMode) {
+      console.log("--- DEBUG: BOUTIQUES COMBINÉES ---");
+      combined.forEach((store, index) => {
+        console.log(`Boutique #${index + 1}: ${store.name} (${store.id})`);
+        console.log(`- Source: ${store.id.includes('-') ? 'Supabase' : 'Local'}`);
+        console.log(`- Position: ${store.latitude}, ${store.longitude}`);
+        console.log(`- Adresse: ${store.address}, ${store.city}`);
+      });
+    }
+    
     setCombinedStores(combined);
     
     if (isInitialLoad && !isLoadingStores) {
       setIsInitialLoad(false);
     }
-  }, [userLocation, supabaseStores, isLoadingStores, combineAndDeduplicateStores, isInitialLoad]);
+  }, [userLocation, supabaseStores, isLoadingStores, combineAndDeduplicateStores, isInitialLoad, debugMode]);
   
   // Obtenir la position de l'utilisateur
   useEffect(() => {
@@ -129,6 +145,15 @@ const MapView = () => {
       window.removeEventListener('reset-filters', handleResetFilters);
     };
   }, []);
+
+  // Ajouter un effet pour recharger les boutiques toutes les 30 secondes
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refetch();
+    }, 30000); // 30 secondes
+    
+    return () => clearInterval(intervalId);
+  }, [refetch]);
     
   const handleSelectStore = (store: Store) => {
     setSelectedStore(store);
@@ -151,6 +176,19 @@ const MapView = () => {
     // Clear selected store when applying new filters
     setSelectedStore(null);
   };
+  
+  // Fonction pour activer/désactiver le mode debug
+  const toggleDebugMode = () => {
+    setDebugMode(prev => !prev);
+    if (!debugMode) {
+      toast({
+        title: "Mode debug activé",
+        description: "Les détails des boutiques sont affichés dans la console",
+      });
+      // Force refresh pour afficher les logs
+      refetch();
+    }
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
@@ -159,6 +197,14 @@ const MapView = () => {
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           <MapActions />
           <FiltersSheet onApplyFilters={handleApplyFilters} />
+          {user && (
+            <button 
+              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded ml-auto"
+              onClick={toggleDebugMode}
+            >
+              {debugMode ? "Debug: ON" : "Debug: OFF"}
+            </button>
+          )}
         </div>
       </div>
       
@@ -210,6 +256,21 @@ const MapView = () => {
               </div>
             )}
           </div>
+          
+          {debugMode && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-xs font-semibold">Mode Debug</p>
+              <p className="text-xs">Boutiques Supabase: {supabaseStores.length}</p>
+              <p className="text-xs">Boutiques locales: {getStoresByDistance(userLocation.latitude, userLocation.longitude).length}</p>
+              <p className="text-xs">Boutiques combinées: {combinedStores.length}</p>
+              <button 
+                className="text-xs text-blue-600 mt-1"
+                onClick={refetch}
+              >
+                Rafraîchir les données
+              </button>
+            </div>
+          )}
           
           {selectedStore ? (
             <StoreDetail 
