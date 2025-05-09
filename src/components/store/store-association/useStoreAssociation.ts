@@ -9,7 +9,7 @@ import { AssociationResult } from './types';
 export const useStoreAssociation = (
   defaultEmail: string,
   defaultStoreName: string,
-  onSuccess?: () => void
+  onSuccess?: (storeId: string) => void
 ) => {
   const [email, setEmail] = useState(defaultEmail);
   const [storeName, setStoreName] = useState(defaultStoreName);
@@ -55,8 +55,8 @@ export const useStoreAssociation = (
             storeId: userData.store_id
           });
           
-          if (onSuccess) {
-            onSuccess();
+          if (onSuccess && userData.store_id) {
+            onSuccess(userData.store_id);
           }
         }
       } catch (err) {
@@ -125,8 +125,8 @@ export const useStoreAssociation = (
         
         // If association succeeded, reload page after 1.5 seconds
         setTimeout(() => {
-          if (onSuccess) {
-            onSuccess();
+          if (onSuccess && response.storeId) {
+            onSuccess(response.storeId);
           } else {
             navigate(`/store/${response.storeId}/admin`);
           }
