@@ -73,7 +73,7 @@ export const useStores = () => {
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);
       
-      // Improved deduplication strategy with more reliable keys
+      // Stratégie de déduplication améliorée
       const uniqueStores = removeDuplicateStores(transformedStores);
       
       console.log(`Nombre total de boutiques après déduplication: ${uniqueStores.length}`);
@@ -92,67 +92,60 @@ export const useStores = () => {
     }
   }, [toast]);
 
-  // Enhanced deduplication function with more reliable strategy
+  // Fonction de déduplication améliorée avec une stratégie plus stricte
   const removeDuplicateStores = (stores: Store[]): Store[] => {
-    const uniqueStoresMap: Record<string, Store> = {};
+    if (!stores || stores.length === 0) return [];
     
-    // First pass: stores with Google Place IDs (highest priority)
+    const uniqueStoresMap: Record<string, Store> = {};
+    const processedIds = new Set<string>();
+    const processedPlaceIds = new Set<string>();
+    const processedCoordinates = new Set<string>();
+    
+    // Parcourir toutes les boutiques et les dédupliquer
     stores.forEach(store => {
-      if (store.placeId) {
-        const key = `place_${store.placeId}`;
+      // Ne pas traiter deux fois la même boutique
+      if (processedIds.has(store.id)) return;
+      processedIds.add(store.id);
+      
+      // Création d'une clé de déduplication basée sur plusieurs critères
+      let key: string;
+      
+      // Critère 1: Google Place ID (priorité la plus élevée)
+      if (store.placeId && store.placeId.trim() !== '') {
+        key = `place_${store.placeId}`;
+        
+        // Si on a déjà traité cette boutique via son Place ID, on l'ignore
+        if (processedPlaceIds.has(store.placeId)) return;
+        processedPlaceIds.add(store.placeId);
+      }
+      // Critère 2: Coordonnées géographiques (priorité moyenne)
+      else if (store.latitude && store.longitude) {
+        // Arrondir à 5 décimales pour éviter les petites différences
+        const lat = Math.round(store.latitude * 100000) / 100000;
+        const lng = Math.round(store.longitude * 100000) / 100000;
+        key = `geo_${lat}_${lng}`;
+        
+        const coordKey = `${lat}_${lng}`;
+        if (processedCoordinates.has(coordKey)) return;
+        processedCoordinates.add(coordKey);
+      }
+      // Critère 3: Nom + adresse normalisés (priorité la plus basse)
+      else {
+        const normalizedName = store.name.toLowerCase().replace(/\s+/g, '');
+        const normalizedAddress = store.address.toLowerCase().replace(/\s+/g, '');
+        const normalizedCity = store.city.toLowerCase().replace(/\s+/g, '');
+        key = `name_${normalizedName}_addr_${normalizedAddress}_${normalizedCity}`;
+      }
+      
+      // Stocker la boutique dans notre map avec la clé générée
+      if (!uniqueStoresMap[key] || (store.id.includes('-') && !uniqueStoresMap[key].id.includes('-'))) {
+        // On privilégie les boutiques de Supabase (avec UUID) par rapport aux boutiques locales
         uniqueStoresMap[key] = store;
       }
     });
     
-    // Second pass: stores with coordinates but no Place ID
-    stores.forEach(store => {
-      if (!store.placeId && store.latitude && store.longitude) {
-        // Round to 5 decimals to account for small differences
-        const lat = Math.round(store.latitude * 100000) / 100000;
-        const lng = Math.round(store.longitude * 100000) / 100000;
-        const key = `geo_${lat}_${lng}`;
-        
-        // Only add if no store with this key exists yet
-        if (!uniqueStoresMap[key]) {
-          uniqueStoresMap[key] = store;
-        }
-      }
-    });
-    
-    // Third pass: stores with only address/name (lowest priority)
-    stores.forEach(store => {
-      if (!store.placeId && (!store.latitude || !store.longitude)) {
-        const normalizedAddress = store.address.toLowerCase().replace(/\s+/g, '');
-        const normalizedCity = store.city.toLowerCase().replace(/\s+/g, '');
-        const normalizedName = store.name.toLowerCase().replace(/\s+/g, '');
-        const key = `addr_${normalizedAddress}_${normalizedCity}_${normalizedName}`;
-        
-        // Only add if no store with this key exists yet
-        if (!uniqueStoresMap[key]) {
-          uniqueStoresMap[key] = store;
-        }
-      }
-    });
-    
-    console.log(`Après déduplication: ${Object.keys(uniqueStoresMap).length} boutiques uniques`);
+    // Convertir notre map en tableau
     return Object.values(uniqueStoresMap);
-  };
-  
-  // Simplified function to generate a unique key for each store
-  const generateUniqueStoreKey = (store: Store): string => {
-    if (store.placeId) {
-      return `place_${store.placeId}`;
-    }
-    
-    if (store.latitude && store.longitude) {
-      // Round to 5 decimals to avoid small differences
-      const lat = Math.round(store.latitude * 100000) / 100000;
-      const lng = Math.round(store.longitude * 100000) / 100000;
-      return `geo_${lat}_${lng}`;
-    }
-    
-    // Last option: use normalized address and name
-    return `addr_${store.address.toLowerCase().replace(/\s+/g, '')}_${store.city.toLowerCase().replace(/\s+/g, '')}_${store.name.toLowerCase().replace(/\s+/g, '')}`;
   };
 
   useEffect(() => {
