@@ -13,7 +13,7 @@ interface AddStoreFormSectionProps {
   onStoreAdded: (store: Store) => Promise<void>;
   storeType?: string;
   fromRegistration?: boolean;
-  requiresSubscription?: boolean;
+  requiresSubscription?: boolean; // We keep this prop for backward compatibility
   isTransitioning: boolean;
 }
 
@@ -44,9 +44,7 @@ const AddStoreFormSection: React.FC<AddStoreFormSectionProps> = ({
       <div className="mb-8 max-w-2xl mx-auto text-center">
         <h1 className="text-3xl font-bold mb-2">Ajouter votre boutique CBD</h1>
         <p className="text-muted-foreground">
-          {fromRegistration && requiresSubscription 
-            ? "Enregistrez d'abord votre boutique physique. Vous pourrez ensuite configurer votre e-commerce."
-            : "Recherchez et associez votre boutique à votre profil en quelques étapes simples."}
+          Recherchez et associez votre boutique à votre profil en quelques étapes simples.
         </p>
       </div>
       

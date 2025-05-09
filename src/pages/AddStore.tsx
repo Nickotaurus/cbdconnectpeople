@@ -19,7 +19,6 @@ const AddStore: React.FC = () => {
     showAssociationTool,
     fromRegistration,
     storeType,
-    requiresSubscription,
     handleStoreAdded,
     handleAssociationSuccess
   } = useAddStore();
@@ -70,7 +69,7 @@ const AddStore: React.FC = () => {
       onStoreAdded={handleStoreSuccess}
       storeType={storeType}
       fromRegistration={fromRegistration}
-      requiresSubscription={false}
+      requiresSubscription={false} // We always set this to false since all registrations are free now
       isTransitioning={isTransitioning}
     />
   );
