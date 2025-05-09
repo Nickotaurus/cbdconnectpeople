@@ -1,7 +1,7 @@
 
 import { TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BadgeEuro, Store, Globe } from "lucide-react";
+import { BadgeInfo, Store, Globe } from "lucide-react";
 
 const StoreRegistrationInfo = () => {
   return (
@@ -12,12 +12,12 @@ const StoreRegistrationInfo = () => {
       </p>
       
       <Alert className="bg-primary/5 border-primary/20">
-        <BadgeEuro className="h-4 w-4 text-primary" />
+        <BadgeInfo className="h-4 w-4 text-primary" />
         <AlertDescription className="text-sm mt-1">
           <span className="font-medium">Processus d'inscription :</span>
           <ul className="list-disc pl-5 mt-1 space-y-1">
-            <li>L'inscription de votre boutique physique est <strong>gratuite</strong>.</li>
-            <li>Pour les sites e-commerce, vous créerez d'abord votre boutique physique, puis vous serez dirigé vers les options d'abonnement.</li>
+            <li>L'inscription est <strong>entièrement gratuite</strong>, que vous ayez une boutique physique ou un site e-commerce.</li>
+            <li>Tous les services de base sont disponibles gratuitement pour développer votre activité.</li>
           </ul>
         </AlertDescription>
       </Alert>
@@ -34,7 +34,7 @@ const StoreRegistrationInfo = () => {
           <Globe className="h-5 w-5 text-primary mt-0.5" />
           <div>
             <h4 className="text-sm font-medium">E-commerce</h4>
-            <p className="text-xs text-muted-foreground">Abonnement requis après inscription</p>
+            <p className="text-xs text-muted-foreground">Référencement gratuit et illimité</p>
           </div>
         </div>
       </div>

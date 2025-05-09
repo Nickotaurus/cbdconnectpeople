@@ -57,11 +57,11 @@ const RoleSelector = ({
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="ecommerce" id="ecommerce" />
-              <Label htmlFor="ecommerce" className="cursor-pointer">E-commerce uniquement (payant)</Label>
+              <Label htmlFor="ecommerce" className="cursor-pointer">E-commerce uniquement</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="both" id="both" />
-              <Label htmlFor="both" className="cursor-pointer">Boutique physique et E-commerce (payant pour l'e-commerce)</Label>
+              <Label htmlFor="both" className="cursor-pointer">Boutique physique et E-commerce</Label>
             </div>
           </RadioGroup>
         </div>

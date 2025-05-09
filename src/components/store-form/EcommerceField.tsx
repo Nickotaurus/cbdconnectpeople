@@ -50,7 +50,7 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceU
           disabled={!isEcommerce}
         />
         <p className="text-sm text-muted-foreground">
-          Vous pourrez configurer plus de détails sur votre e-commerce après avoir souscrit à un abonnement.
+          Ajoutez l'adresse de votre site e-commerce pour plus de visibilité.
         </p>
       </div>
     </div>

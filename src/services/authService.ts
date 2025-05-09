@@ -105,7 +105,7 @@ export const authService = {
           .update({ 
             store_type: roleSpecificData.storeType,
             siret_verified: false,
-            needs_subscription: roleSpecificData.storeType === 'ecommerce' || roleSpecificData.storeType === 'both',
+            needs_subscription: false, // Tous les types de boutiques sont maintenant gratuits
             is_verified: false
           })
           .eq('id', data.user.id);

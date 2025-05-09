@@ -48,12 +48,13 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
 
       console.log('Store added successfully:', newStore);
 
-      // Update the user profile with the store ID
+      // Update the user profile with the store ID - all stores are now free
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           store_id: newStore.id, 
-          store_type: formData.isEcommerce ? 'ecommerce' : 'physical' 
+          store_type: formData.isEcommerce ? 'ecommerce' : 'physical',
+          needs_subscription: false // Tous les inscriptions sont maintenant gratuites
         })
         .eq('id', user.id);
 

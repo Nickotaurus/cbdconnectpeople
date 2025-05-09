@@ -14,18 +14,15 @@ export const useAddStore = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [fromRegistration, setFromRegistration] = useState(false);
   const [storeType, setStoreType] = useState<string | null>(null);
-  const [requiresSubscription, setRequiresSubscription] = useState(false);
 
   useEffect(() => {
     // Vérifier si l'utilisateur vient de s'inscrire
     const params = new URLSearchParams(window.location.search);
     const fromReg = params.get('from') === 'registration';
     const type = params.get('type');
-    const needsSub = params.get('subscription') === 'true';
     
     setFromRegistration(fromReg);
     setStoreType(type);
-    setRequiresSubscription(needsSub);
     
     const checkExistingStore = async () => {
       try {
@@ -132,7 +129,6 @@ export const useAddStore = () => {
     showAssociationTool,
     fromRegistration,
     storeType,
-    requiresSubscription,
     handleStoreAdded,
     handleAssociationSuccess
   };

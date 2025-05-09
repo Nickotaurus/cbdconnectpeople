@@ -76,11 +76,11 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
       if (role === 'store') {
         console.log("Navigating to add-store after registration");
         setTimeout(() => {
+          // Removed requiresSubscription parameter since all registrations are now free
           navigate('/add-store', { 
             state: { 
               fromRegistration: true,
-              storeType: storeType,
-              requiresSubscription: storeType === 'ecommerce' || storeType === 'both'
+              storeType: storeType
             }
           });
         }, 1000);
