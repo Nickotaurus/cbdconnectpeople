@@ -1,51 +1,42 @@
-
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import BasicInfoFields from './BasicInfoFields';
-import EcommerceField from './EcommerceField';
-import FormActions from './FormActions';
-import { StoreData } from '@/types/store-types';
-import StoreSearch from '../store/StoreSearch';
-
-interface FormData {
-  id?: string;
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  latitude: number | null;
-  longitude: number | null;
-  description: string;
-  phone: string;
-  website: string;
-  logoUrl: string;
-  photoUrl: string;
-  placeId: string;
-  isEcommerce: boolean;
-  ecommerceUrl: string;
-  hasGoogleBusinessProfile?: boolean;
-  openingHours?: string[];
-}
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
+import { StoreSearch } from './StoreSearch';
+import { BasicInfoForm } from './BasicInfoForm';
+import { ContactInfoForm } from './ContactInfoForm';
+import { DetailsInfoForm } from './DetailsInfoForm';
+import { FormData } from '@/types/store-form';
+import { Store } from '@/types/store';
+import { FormActions } from './FormActions';
+import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface StoreFormTabsProps {
-  isEdit: boolean;
+  isEdit?: boolean;
   activeTab: string;
-  setActiveTab: (value: string) => void;
+  setActiveTab: (tab: string) => void;
   formData: FormData;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleStoreSelect: (store: StoreData) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  handleStoreSelect: (store: Store | null) => void;
   setHasSearched: (value: boolean) => void;
   hasSearched: boolean;
   isLoading: boolean;
-  navigate: (path: number | string) => void;
   handleSubmit: (e: React.FormEvent) => void;
+  navigate: (path: string) => void;
   storeType?: string;
   skipSearch?: boolean;
+  isDuplicate?: boolean; // Nouvelle prop
 }
 
-const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
-  isEdit,
+const StoreFormTabs = ({
+  isEdit = false,
   activeTab,
   setActiveTab,
   formData,
@@ -54,76 +45,88 @@ const StoreFormTabs: React.FC<StoreFormTabsProps> = ({
   setHasSearched,
   hasSearched,
   isLoading,
-  navigate,
   handleSubmit,
-  storeType,
-  skipSearch = false
-}) => {
-  // Pour "CBD Histoire de Chanvre", on saute directement à l'onglet détails
-  React.useEffect(() => {
-    if (formData.name === "CBD Histoire de Chanvre" || skipSearch) {
-      setActiveTab('details');
-      setHasSearched(true);
-    }
-  }, [formData.name, setActiveTab, setHasSearched, skipSearch]);
+  navigate,
+  storeType = 'physical',
+  skipSearch = false,
+  isDuplicate = false // Valeur par défaut
+}: StoreFormTabsProps) => {
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="search" disabled={isEdit || skipSearch}>Rechercher une boutique</TabsTrigger>
-          <TabsTrigger value="details">Détails de la boutique</TabsTrigger>
+    <div className="space-y-8">
+      <Tabs defaultValue={activeTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="search" disabled={skipSearch}>Rechercher</TabsTrigger>
+          <TabsTrigger value="basic">Infos générales</TabsTrigger>
+          <TabsTrigger value="contact">Contact</TabsTrigger>
+          <TabsTrigger value="details">Détails</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="search" className="space-y-6">
-          <div className="bg-card p-6 rounded-lg shadow-sm space-y-6">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-medium">Recherchez votre boutique</h3>
-              <p className="text-muted-foreground text-sm">
-                Trouvez votre boutique pour importer automatiquement les informations de Google Business
-              </p>
-            </div>
-            <StoreSearch 
-              onStoreSelect={handleStoreSelect} 
-              isRegistration={true}
-            />
-            <div className="text-center pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setActiveTab('details');
-                  setHasSearched(true);
-                }}
-              >
-                Passer cette étape
-              </Button>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="details" className="space-y-6">
-          <div className="rounded-lg bg-card p-6 shadow-sm space-y-6">
-            <BasicInfoFields 
-              formData={formData} 
-              handleChange={handleInputChange}
-            />
-            
-            <EcommerceField 
-              ecommerceUrl={formData.ecommerceUrl}
-              isEcommerce={formData.isEcommerce}
-              onChange={handleInputChange}
-            />
-            
-            <FormActions 
-              isSubmitting={isLoading}
-              onCancel={() => navigate(-1)}
-              storeType={storeType}
-            />
-          </div>
-        </TabsContent>
       </Tabs>
-    </form>
+      
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardContent className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              
+              <TabsContent value="search" className="space-y-6">
+                <StoreSearch
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  handleStoreSelect={handleStoreSelect}
+                  setHasSearched={setHasSearched}
+                  hasSearched={hasSearched}
+                  isLoading={isLoading}
+                  skipSearch={skipSearch}
+                />
+              </TabsContent>
+              
+              <TabsContent value="basic" className="space-y-6">
+                <BasicInfoForm
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  storeType={storeType}
+                />
+                
+                {isDuplicate && (
+                  <Alert variant="destructive" className="mt-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Boutique déjà enregistrée</AlertTitle>
+                    <AlertDescription>
+                      Cette boutique semble déjà être présente dans notre base de données. 
+                      Merci de vérifier les informations ou de contacter le support.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="contact" className="space-y-6">
+                <ContactInfoForm
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                />
+              </TabsContent>
+              
+              <TabsContent value="details" className="space-y-6">
+                <DetailsInfoForm
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                />
+              </TabsContent>
+              
+            </Tabs>
+          </CardContent>
+          
+          <FormActions
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            navigate={navigate}
+            isLoading={isLoading}
+            isEdit={isEdit}
+            isDisabled={isDuplicate} // Désactiver le bouton si doublon détecté
+          />
+        </Card>
+      </form>
+    </div>
   );
 };
 

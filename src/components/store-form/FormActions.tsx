@@ -1,48 +1,83 @@
 
-import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { CardFooter } from "@/components/ui/card";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface FormActionsProps {
-  isSubmitting: boolean;
-  onCancel: () => void;
-  storeType?: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  navigate: (path: string) => void;
+  isLoading?: boolean;
+  isEdit?: boolean;
+  isDisabled?: boolean; // Nouvelle prop
 }
 
-const FormActions: React.FC<FormActionsProps> = ({ isSubmitting, onCancel, storeType }) => {
-  // Déterminer le texte du bouton en fonction du type de boutique
-  let submitButtonText = "Enregistrer ma boutique";
+const FormActions = ({ 
+  activeTab, 
+  setActiveTab, 
+  navigate, 
+  isLoading = false,
+  isEdit = false,
+  isDisabled = false // Nouvelle propriété avec valeur par défaut
+}: FormActionsProps) => {
+  // Définition de l'ordre des onglets
+  const tabOrder = ['search', 'basic', 'contact', 'details'];
   
-  if (storeType === "ecommerce") {
-    submitButtonText = "Ajouter mon site e-commerce";
-  } else if (storeType === "both") {
-    submitButtonText = "Ajouter ma boutique et mon site e-commerce";
-  }
+  // Trouver l'index de l'onglet actuel
+  const currentTabIndex = tabOrder.indexOf(activeTab);
+  
+  // Déterminer les onglets précédent et suivant
+  const prevTab = currentTabIndex > 0 ? tabOrder[currentTabIndex - 1] : null;
+  const nextTab = currentTabIndex < tabOrder.length - 1 ? tabOrder[currentTabIndex + 1] : null;
+  
+  // Naviguer vers l'onglet précédent
+  const handleBack = () => {
+    if (activeTab === 'search') {
+      navigate('/map');
+    } else if (prevTab) {
+      setActiveTab(prevTab);
+    }
+  };
+  
+  // Naviguer vers l'onglet suivant
+  const handleNext = () => {
+    if (nextTab) {
+      setActiveTab(nextTab);
+    }
+  };
+  
+  const isLastTab = currentTabIndex === tabOrder.length - 1;
   
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-end">
+    <CardFooter className="flex justify-between border-t p-6 bg-secondary/10">
       <Button
-        type="button"
         variant="outline"
-        onClick={onCancel}
-        disabled={isSubmitting}
+        onClick={handleBack}
+        disabled={isLoading}
       >
-        Annuler
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        {activeTab === 'search' ? 'Annuler' : 'Précédent'}
       </Button>
-      <Button 
-        type="submit" 
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Enregistrement...
-          </>
-        ) : (
-          submitButtonText
-        )}
-      </Button>
-    </div>
+      
+      {nextTab ? (
+        <Button
+          type="button"
+          onClick={handleNext}
+          disabled={isLoading}
+        >
+          Suivant
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          disabled={isLoading || isDisabled} // Désactiver le bouton si nécessaire
+          className={isDisabled ? "opacity-50 cursor-not-allowed" : ""} // Ajouter un style visuel
+        >
+          {isLoading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Enregistrer'}
+        </Button>
+      )}
+    </CardFooter>
   );
 };
 

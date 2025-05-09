@@ -48,6 +48,12 @@ export const associateStoreWithUser = async (
           message: `Ce profil est déjà associé à la boutique ${storeData.name}`,
           storeId: userData.store_id
         };
+      } else {
+        // Si la boutique n'existe plus, réinitialiser l'association
+        await supabase
+          .from('profiles')
+          .update({ store_id: null })
+          .eq('id', userId);
       }
     }
 
@@ -117,7 +123,55 @@ export const associateStoreWithUser = async (
     if (localStore) {
       console.log('Boutique trouvée dans les données locales:', localStore.name);
       
-      // Si trouvée dans les données locales, l'ajouter à Supabase puis l'associer
+      // Vérifier si cette boutique locale existe déjà sous un autre nom dans Supabase
+      const { data: existingStores } = await supabase
+        .from('stores')
+        .select('id, name, address, latitude, longitude')
+        .eq('latitude', localStore.latitude)
+        .eq('longitude', localStore.longitude);
+      
+      if (existingStores && existingStores.length > 0) {
+        // Une boutique avec les mêmes coordonnées existe déjà
+        const existingStore = existingStores[0];
+        
+        console.log('Boutique similaire déjà existante:', existingStore.name);
+        
+        // Vérifier si elle est déjà réclamée
+        if (existingStore.claimed_by && existingStore.claimed_by !== userId) {
+          return { 
+            success: false, 
+            message: `Une boutique similaire "${existingStore.name}" à cette adresse a déjà été réclamée par un autre utilisateur` 
+          };
+        }
+        
+        // Associer cette boutique existante à l'utilisateur
+        const { error: updateError } = await supabase
+          .from('stores')
+          .update({ user_id: userId, claimed_by: userId })
+          .eq('id', existingStore.id);
+        
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour de la boutique:', updateError);
+          return { success: false, message: 'Erreur lors de l\'association de la boutique' };
+        }
+        
+        // Mise à jour du profil utilisateur
+        await supabase
+          .from('profiles')
+          .update({ store_id: existingStore.id, store_type: 'physical' })
+          .eq('id', userId);
+          
+        localStorage.setItem('userStoreId', existingStore.id);
+        sessionStorage.setItem('userStoreId', existingStore.id);
+        
+        return { 
+          success: true, 
+          message: `Boutique "${existingStore.name}" associée avec succès au profil`,
+          storeId: existingStore.id
+        };
+      }
+      
+      // Si trouvée dans les données locales et pas de doublon, l'ajouter à Supabase puis l'associer
       const { data: newStore, error: insertError } = await supabase
         .from('stores')
         .insert({

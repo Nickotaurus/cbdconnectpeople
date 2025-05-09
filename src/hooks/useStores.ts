@@ -73,7 +73,7 @@ export const useStores = () => {
 
       console.log(`Nombre total de boutiques avant déduplication: ${transformedStores.length}`);
       
-      // Remove duplicates, without special processing for "CBD Histoire de Chanvre"
+      // Improved deduplication strategy with more reliable keys
       const uniqueStores = removeDuplicateStores(transformedStores);
       
       console.log(`Nombre total de boutiques après déduplication: ${uniqueStores.length}`);
@@ -92,22 +92,53 @@ export const useStores = () => {
     }
   }, [toast]);
 
-  // Simplified function to eliminate duplicates, without special treatment
+  // Enhanced deduplication function with more reliable strategy
   const removeDuplicateStores = (stores: Store[]): Store[] => {
-    // Use a regular object to store unique stores
     const uniqueStoresMap: Record<string, Store> = {};
     
+    // First pass: stores with Google Place IDs (highest priority)
     stores.forEach(store => {
-      // Use a standard deduplication key for all stores
-      const key = generateUniqueStoreKey(store);
-      uniqueStoresMap[key] = store;
+      if (store.placeId) {
+        const key = `place_${store.placeId}`;
+        uniqueStoresMap[key] = store;
+      }
+    });
+    
+    // Second pass: stores with coordinates but no Place ID
+    stores.forEach(store => {
+      if (!store.placeId && store.latitude && store.longitude) {
+        // Round to 5 decimals to account for small differences
+        const lat = Math.round(store.latitude * 100000) / 100000;
+        const lng = Math.round(store.longitude * 100000) / 100000;
+        const key = `geo_${lat}_${lng}`;
+        
+        // Only add if no store with this key exists yet
+        if (!uniqueStoresMap[key]) {
+          uniqueStoresMap[key] = store;
+        }
+      }
+    });
+    
+    // Third pass: stores with only address/name (lowest priority)
+    stores.forEach(store => {
+      if (!store.placeId && (!store.latitude || !store.longitude)) {
+        const normalizedAddress = store.address.toLowerCase().replace(/\s+/g, '');
+        const normalizedCity = store.city.toLowerCase().replace(/\s+/g, '');
+        const normalizedName = store.name.toLowerCase().replace(/\s+/g, '');
+        const key = `addr_${normalizedAddress}_${normalizedCity}_${normalizedName}`;
+        
+        // Only add if no store with this key exists yet
+        if (!uniqueStoresMap[key]) {
+          uniqueStoresMap[key] = store;
+        }
+      }
     });
     
     console.log(`Après déduplication: ${Object.keys(uniqueStoresMap).length} boutiques uniques`);
     return Object.values(uniqueStoresMap);
   };
   
-  // Function to generate a unique key for each store
+  // Simplified function to generate a unique key for each store
   const generateUniqueStoreKey = (store: Store): string => {
     if (store.placeId) {
       return `place_${store.placeId}`;

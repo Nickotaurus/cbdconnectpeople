@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Store } from '@/types/store';
 
 export const useAddStore = () => {
@@ -53,6 +53,30 @@ export const useAddStore = () => {
         if (profileData?.store_id) {
           console.log("L'utilisateur a déjà une boutique associée:", profileData.store_id);
           setExistingStoreId(profileData.store_id);
+          
+          // Vérifier si la boutique existe toujours dans la table stores
+          const { data: storeData, error: storeError } = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('id', profileData.store_id)
+            .single();
+            
+          if (storeError || !storeData) {
+            console.log("La boutique associée n'existe plus, permettre d'en créer une nouvelle");
+            toast({
+              title: "Information",
+              description: "Votre boutique précédente n'existe plus. Vous pouvez en créer une nouvelle.",
+            });
+            
+            // Réinitialiser le store_id dans le profil
+            await supabase
+              .from('profiles')
+              .update({ store_id: null })
+              .eq('id', session.user.id);
+              
+            setExistingStoreId(null);
+          }
+          
           setIsCheckingExistingStore(false);
           return;
         }
@@ -77,7 +101,7 @@ export const useAddStore = () => {
     };
     
     checkExistingStore();
-  }, []);
+  }, [toast]);
 
   const handleStoreAdded = useCallback(async (store: Store) => {
     setIsTransitioning(true);
