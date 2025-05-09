@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Store } from '@/types/store';
-import { fetchStores } from '@/utils/storeUtils';
+import { stores as staticStores } from '@/utils/storeUtils';
 
 interface StoreDBType {
   id: string;
@@ -49,9 +49,10 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     isEcommerce: dbStore.is_ecommerce || false,
     ecommerceUrl: dbStore.ecommerce_url || null,
     hasGoogleBusinessProfile: dbStore.has_google_business_profile || false,
-    isFavorite: false,
     distance: null,
     products: [],  // Initialize with empty array as it doesn't exist in StoreDBType
+    openingHours: [], // Add default empty openingHours array
+    reviews: [], // Add default empty reviews array
   };
 };
 
@@ -59,14 +60,13 @@ export const useStores = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const supabase = createClient();
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
       
       // Fetch from local static data
-      const localStores = fetchStores();
+      const localStores = staticStores;
       
       // Fetch from Supabase
       const { data, error } = await supabase.from('stores').select('*');
