@@ -6,7 +6,7 @@ import StoreAssociationTool from '@/components/store/store-association/StoreAsso
 
 interface AssociationToolSectionProps {
   onBackClick: () => void;
-  onAssociationSuccess: () => void;
+  onAssociationSuccess: (storeId: string) => void;
   isTransitioning: boolean;
 }
 

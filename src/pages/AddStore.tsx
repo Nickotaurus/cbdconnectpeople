@@ -47,7 +47,7 @@ const AddStore: React.FC = () => {
     return (
       <AssociationToolSection 
         onBackClick={() => navigate('/map')}
-        onAssociationSuccess={(storeId) => handleAssociationSuccess(storeId)}
+        onAssociationSuccess={handleAssociationSuccess}
         isTransitioning={isTransitioning}
       />
     );
