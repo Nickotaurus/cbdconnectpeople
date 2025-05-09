@@ -8,13 +8,13 @@ import RegisterForm from '@/components/register/RegisterForm';
 
 const Register = () => {
   const location = useLocation();
-  const [initialRole, setInitialRole] = useState<UserRole>('client');
+  const [initialRole, setInitialRole] = useState<UserRole>('store');
   
   useEffect(() => {
     // Extract role from URL if present
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role') as UserRole | null;
-    if (roleParam && ['client', 'store', 'producer', 'partner'].includes(roleParam)) {
+    if (roleParam && ['store', 'producer', 'partner'].includes(roleParam)) {
       setInitialRole(roleParam);
     }
   }, [location]);

@@ -3,7 +3,6 @@ import { UserRole, StoreType } from '@/types/auth';
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import ClientRegistrationInfo from './ClientRegistrationInfo';
 import StoreRegistrationInfo from './StoreRegistrationInfo';
 import PartnerRegistrationInfo from './PartnerRegistrationInfo';
 
@@ -29,13 +28,11 @@ const RoleSelector = ({
       <div className="grid gap-2">
         <Label>Type de compte</Label>
         <Tabs defaultValue={role} onValueChange={(value) => setRole(value as UserRole)}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="client">Client</TabsTrigger>
+          <TabsList className="grid grid-cols-2">
             <TabsTrigger value="store">Boutique</TabsTrigger>
             <TabsTrigger value="partner">Partenaire</TabsTrigger>
           </TabsList>
           
-          <ClientRegistrationInfo />
           <StoreRegistrationInfo />
           <PartnerRegistrationInfo
             partnerCategory={partnerCategory as '' | import('@/types/auth').PartnerCategory}

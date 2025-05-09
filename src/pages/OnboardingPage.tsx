@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { UserRole } from "@/types/auth";
-import { ArrowRight, Store, Users, Briefcase, Sprout } from 'lucide-react';
+import { ArrowRight, Store, Briefcase, Sprout } from 'lucide-react';
 
 interface ProfileContent {
   title: string;
@@ -10,17 +10,7 @@ interface ProfileContent {
   icon: React.ReactNode;
 }
 
-const profileContents: Record<UserRole, ProfileContent> = {
-  client: {
-    title: "Trouvez facilement votre CBD et échangez avec la communauté !",
-    points: [
-      "Accédez aux meilleures boutiques près de chez vous",
-      "Découvrez les sites e-commerce les plus fiables",
-      "Consultez les avis d'autres utilisateurs",
-      "Trouvez des professionnels du CBD"
-    ],
-    icon: <Users className="h-12 w-12" />
-  },
+const profileContents: Record<Exclude<UserRole, 'client'>, ProfileContent> = {
   store: {
     title: "Augmentez votre visibilité et fidélisez vos clients !",
     points: [
@@ -58,11 +48,11 @@ const profileContents: Record<UserRole, ProfileContent> = {
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [profileType, setProfileType] = useState<UserRole>('client');
+  const [profileType, setProfileType] = useState<Exclude<UserRole, 'client'>>('store');
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const role = params.get('role') as UserRole;
+    const role = params.get('role') as Exclude<UserRole, 'client'>;
     if (role && Object.keys(profileContents).includes(role)) {
       setProfileType(role);
     }

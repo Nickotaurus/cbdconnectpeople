@@ -23,7 +23,8 @@ const RegisterForm = ({ initialRole }: RegisterFormProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState<UserRole>(initialRole);
+  // Default to 'store' instead of initialRole to remove 'client' option
+  const [role, setRole] = useState<UserRole>(initialRole === 'client' ? 'store' : initialRole);
   const [partnerCategory, setPartnerCategory] = useState<PartnerCategory | ''>('');
   const [storeType, setStoreType] = useState<StoreType>('physical');
   const [isLoading, setIsLoading] = useState(false);
