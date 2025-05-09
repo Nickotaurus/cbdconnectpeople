@@ -92,7 +92,7 @@ export const useStores = () => {
     }
   }, [toast]);
 
-  // Fonction de déduplication améliorée avec une stratégie plus stricte
+  // Function de déduplication améliorée avec une stratégie plus stricte
   const removeDuplicateStores = (stores: Store[]): Store[] => {
     if (!stores || stores.length === 0) return [];
     

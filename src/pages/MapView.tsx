@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -35,8 +36,8 @@ const MapView = () => {
 
   // Fonction optimisée pour combiner et dédupliquer les boutiques
   const combineAndDeduplicateStores = useCallback((localStores: Store[], dbStores: Store[]) => {
-    // Utiliser un objet Map pour le suivi des boutiques uniques
-    const storeMap = new Map<string, Store>();
+    // Utiliser un Map standard (sans génériques) pour le suivi des boutiques uniques
+    const storeMap = new Map();
     
     // Tracer les compteurs pour le débogage
     console.log(`Nombre de boutiques locales: ${localStores.length}`);
@@ -97,7 +98,7 @@ const MapView = () => {
     console.log(`Nombre final de boutiques après déduplication: ${storeMap.size}`);
     
     // Convertir le Map en tableau et trier par distance
-    const uniqueStores = Array.from(storeMap.values());
+    const uniqueStores = Array.from(storeMap.values()) as Store[];
     return getStoresByDistance(userLocation.latitude, userLocation.longitude, uniqueStores);
   }, [userLocation]);
   
