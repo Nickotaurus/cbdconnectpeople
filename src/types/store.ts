@@ -19,7 +19,7 @@ export interface Store {
   photo_url?: string;
   rating: number;
   reviewCount: number;
-  placeId?: string;
+  placeId: string; // Changed from optional to required to match StoreData
   incentive?: {
     title: string;
     description: string;

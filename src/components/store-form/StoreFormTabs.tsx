@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Tabs,
@@ -9,14 +10,15 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { StoreSearch } from './StoreSearch';
-import { BasicInfoForm } from './BasicInfoForm';
-import { ContactInfoForm } from './ContactInfoForm';
-import { DetailsInfoForm } from './DetailsInfoForm';
+import StoreSearch from './StoreSearch';
+import BasicInfoForm from './BasicInfoForm';
+import ContactInfoForm from './ContactInfoForm';
+import DetailsInfoForm from './DetailsInfoForm';
 import { FormData } from '@/types/store-form';
 import { Store } from '@/types/store';
-import { FormActions } from './FormActions';
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import FormActions from './FormActions';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface StoreFormTabsProps {
   isEdit?: boolean;
@@ -32,7 +34,7 @@ interface StoreFormTabsProps {
   navigate: (path: string) => void;
   storeType?: string;
   skipSearch?: boolean;
-  isDuplicate?: boolean; // Nouvelle prop
+  isDuplicate?: boolean;
 }
 
 const StoreFormTabs = ({
@@ -49,7 +51,7 @@ const StoreFormTabs = ({
   navigate,
   storeType = 'physical',
   skipSearch = false,
-  isDuplicate = false // Valeur par défaut
+  isDuplicate = false
 }: StoreFormTabsProps) => {
 
   return (
@@ -122,7 +124,7 @@ const StoreFormTabs = ({
             navigate={navigate}
             isLoading={isLoading}
             isEdit={isEdit}
-            isDisabled={isDuplicate} // Désactiver le bouton si doublon détecté
+            isDisabled={isDuplicate}
           />
         </Card>
       </form>

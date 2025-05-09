@@ -126,7 +126,7 @@ export const associateStoreWithUser = async (
       // Vérifier si cette boutique locale existe déjà sous un autre nom dans Supabase
       const { data: existingStores } = await supabase
         .from('stores')
-        .select('id, name, address, latitude, longitude')
+        .select('id, name, address, latitude, longitude, claimed_by')
         .eq('latitude', localStore.latitude)
         .eq('longitude', localStore.longitude);
       

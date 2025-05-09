@@ -29,9 +29,40 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
     hasSearched,
     setHasSearched,
     handleInputChange,
-    handleStoreSelect,
+    handleStoreSelect: originalHandleStoreSelect,
     handleSubmit: submitForm
   } = useStoreForm({ isEdit, storeId, onSuccess, storeType, initialStoreData });
+  
+  // Convert StoreData to Store for handling store selection
+  const handleStoreSelect = (store: Store | null) => {
+    if (!store) {
+      originalHandleStoreSelect(null);
+      return;
+    }
+    
+    // Create a compatible object for StoreData
+    const convertedStore: StoreData = {
+      name: store.name,
+      address: store.address,
+      city: store.city,
+      postalCode: store.postalCode,
+      latitude: store.latitude,
+      longitude: store.longitude,
+      placeId: store.placeId,
+      phone: store.phone,
+      website: store.website,
+      rating: store.rating,
+      totalReviews: store.reviewCount,
+      description: store.description,
+      logo_url: store.logo_url,
+      photo_url: store.photo_url,
+      is_ecommerce: store.isEcommerce,
+      ecommerce_url: store.ecommerceUrl,
+      has_google_profile: store.hasGoogleBusinessProfile
+    };
+    
+    originalHandleStoreSelect(convertedStore);
+  };
   
   // Utiliser notre hook de vérification des doublons
   const { isDuplicate } = useStoreDuplicateCheck(formData);
