@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Partner } from '@/types/partners/partner';
 import { testPartnerData } from '@/data/testPartnersData';
 import { toast } from '@/components/ui/use-toast';
+import { PartnerCategory } from '@/types/auth';
 
 export async function fetchPartners(): Promise<{
   partners: Partner[];
@@ -70,7 +71,7 @@ export async function fetchPartners(): Promise<{
       const formattedProfiles = data.map(profile => ({
         id: profile.id,
         name: profile.name || 'Partenaire sans nom',
-        category: profile.partner_category || 'other',
+        category: (profile.partner_category || 'other') as PartnerCategory, // Cast to PartnerCategory type
         location: profile.partner_favorites?.[3] || 'France',
         description: profile.partner_favorites?.[6] || 'Aucune description',
         certifications: profile.certifications || [],

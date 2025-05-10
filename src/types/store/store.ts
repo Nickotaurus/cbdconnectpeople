@@ -34,3 +34,6 @@ export interface Store extends BaseStore {
   products: StoreProduct[];
   favoritePartnersCount?: number;
 }
+
+// Re-export StoreOpeningHours from base-types to make it available
+export { StoreOpeningHours };
