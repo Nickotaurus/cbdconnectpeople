@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 import NewsPage from "./pages/NewsPage";
 import Partners from "./pages/Partners";
 import ClassifiedsPage from "./pages/ClassifiedsPage";
+import PublishClassifiedPage from "./pages/PublishClassifiedPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/partners" element={<Partners />} />
         <Route path="/ecommerce" element={<EcommercePage />} />
         <Route path="/classifieds" element={<ClassifiedsPage />} />
+        <Route path="/classifieds/publish" element={<PublishClassifiedPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<Profile />} />
