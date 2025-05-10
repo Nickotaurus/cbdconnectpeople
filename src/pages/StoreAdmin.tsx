@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +12,16 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { CalendarIcon, ChevronDown, ShoppingBag, Ticket, BarChart4, CreditCard } from "lucide-react";
+import { CalendarIcon, ChevronDown, ShoppingBag, Ticket, BarChart4, CreditCard, Pencil, Save } from "lucide-react";
 import CouponCard from "@/components/CouponCard";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
 import { getStoreById } from "@/utils/data";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
+import StoreForm from "@/components/StoreForm";
+import { Store } from "@/types/store";
+import { StoreData } from "@/types/store-types";
 
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +34,7 @@ const StoreAdmin = () => {
   const [store, setStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   const [couponForm, setCouponForm] = useState({
     code: "",
@@ -131,7 +135,12 @@ const StoreAdmin = () => {
           photo_url: storeData.photo_url || '',
           rating: 0,
           reviewCount: 0,
-          isPremium: false,
+          placeId: storeData.google_place_id || '',
+          isPremium: storeData.is_premium || false,
+          premiumUntil: storeData.premium_until,
+          isEcommerce: storeData.is_ecommerce || false,
+          ecommerceUrl: storeData.ecommerce_url || '',
+          hasGoogleBusinessProfile: storeData.has_google_profile || false,
           coupon: {
             code: `WELCOME${Math.floor(Math.random() * 1000)}`,
             discount: "10% sur tout le magasin",
@@ -140,7 +149,7 @@ const StoreAdmin = () => {
             isAffiliate: false
           },
           reviews: [],
-          openingHours: []
+          openingHours: storeData.opening_hours || []
         };
         
         setStore(adaptedStore);
@@ -154,6 +163,76 @@ const StoreAdmin = () => {
     
     loadStore();
   }, [id, user, navigate]);
+  
+  // Conversion de la boutique au format StoreData pour le formulaire d'édition
+  const convertStoreToStoreData = (): StoreData => {
+    return {
+      name: store.name,
+      address: store.address,
+      city: store.city,
+      postalCode: store.postalCode,
+      latitude: store.latitude,
+      longitude: store.longitude,
+      placeId: store.placeId || '',
+      phone: store.phone || '',
+      website: store.website || '',
+      rating: store.rating || 0,
+      totalReviews: store.reviewCount || 0,
+      description: store.description || '',
+      logo_url: store.logo_url || '',
+      photo_url: store.photo_url || '',
+      is_ecommerce: store.isEcommerce || false,
+      ecommerce_url: store.ecommerceUrl || '',
+      has_google_profile: store.hasGoogleBusinessProfile || false,
+      openingHours: store.openingHours || []
+    };
+  };
+
+  const handleStoreUpdate = async (updatedStore: Store) => {
+    try {
+      // Mise à jour de la boutique dans Supabase
+      const { error: updateError } = await supabase
+        .from('stores')
+        .update({
+          name: updatedStore.name,
+          address: updatedStore.address,
+          city: updatedStore.city,
+          postal_code: updatedStore.postalCode,
+          latitude: updatedStore.latitude,
+          longitude: updatedStore.longitude,
+          phone: updatedStore.phone,
+          website: updatedStore.website,
+          description: updatedStore.description,
+          logo_url: updatedStore.logo_url,
+          photo_url: updatedStore.photo_url,
+          google_place_id: updatedStore.placeId,
+          is_ecommerce: updatedStore.isEcommerce,
+          ecommerce_url: updatedStore.ecommerceUrl,
+          has_google_profile: updatedStore.hasGoogleBusinessProfile
+        })
+        .eq('id', id);
+        
+      if (updateError) {
+        throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`);
+      }
+      
+      // Mise à jour du store local
+      setStore({...store, ...updatedStore});
+      setIsEditMode(false);
+      
+      toast({
+        title: "Succès",
+        description: "Les informations de la boutique ont été mises à jour avec succès.",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la boutique:", error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la mise à jour",
+        variant: "destructive"
+      });
+    }
+  };
   
   const handleCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +286,36 @@ const StoreAdmin = () => {
     );
   }
   
+  // Si on est en mode édition, afficher le formulaire StoreForm
+  if (isEditMode) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Modifier votre boutique</CardTitle>
+              <CardDescription>Modifiez les informations de votre boutique</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditMode(false)}
+            >
+              Annuler
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <StoreForm 
+              isEdit={true} 
+              storeId={id}
+              onSuccess={handleStoreUpdate}
+              initialStoreData={convertStoreToStoreData()}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-2">Espace boutique</h1>
@@ -234,26 +343,117 @@ const StoreAdmin = () => {
         
         <TabsContent value="dashboard" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Bienvenue dans votre espace boutique</CardTitle>
-              <CardDescription>
-                Gérez vos informations, créez des coupons et accédez à nos offres premium.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Informations de votre boutique</CardTitle>
+                <CardDescription>
+                  Gérez les informations principales de votre boutique
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsEditMode(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Modifier
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="bg-secondary rounded-lg p-4">
-                  <h3 className="font-medium mb-2">Visites ce mois</h3>
-                  <p className="text-2xl font-bold">238</p>
+              <div className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="bg-secondary rounded-lg p-4">
+                    <h3 className="font-medium mb-2">Visites ce mois</h3>
+                    <p className="text-2xl font-bold">238</p>
+                  </div>
+                  <div className="bg-secondary rounded-lg p-4">
+                    <h3 className="font-medium mb-2">Utilisation des coupons</h3>
+                    <p className="text-2xl font-bold">{store.coupon?.usageCount || 0}</p>
+                  </div>
+                  <div className="bg-secondary rounded-lg p-4">
+                    <h3 className="font-medium mb-2">Statut</h3>
+                    <p className="text-2xl font-bold">{store.isPremium ? "Premium" : "Basique"}</p>
+                  </div>
                 </div>
-                <div className="bg-secondary rounded-lg p-4">
-                  <h3 className="font-medium mb-2">Utilisation des coupons</h3>
-                  <p className="text-2xl font-bold">{store.coupon.usageCount || 0}</p>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Informations générales</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-muted-foreground text-sm">Nom</p>
+                        <p className="font-medium">{store.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-sm">Adresse</p>
+                        <p className="font-medium">{store.address}</p>
+                        <p className="font-medium">{store.postalCode} {store.city}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-sm">Téléphone</p>
+                        <p className="font-medium">{store.phone || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-sm">Site web</p>
+                        <p className="font-medium">{store.website || "Non renseigné"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Intégration Google</h3>
+                    {store.hasGoogleBusinessProfile ? (
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center mb-2">
+                          <svg className="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="font-medium text-green-800">Profil Google Business connecté</p>
+                        </div>
+                        <p className="text-green-700 text-sm">Vos clients peuvent voir votre boutique sur Google Maps et Google Search.</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-3"
+                          onClick={() => setIsEditMode(true)}
+                        >
+                          Mettre à jour les informations
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                        <div className="flex items-center mb-2">
+                          <svg className="h-5 w-5 text-amber-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="font-medium text-amber-800">Profil Google Business non connecté</p>
+                        </div>
+                        <p className="text-amber-700 text-sm">Connectez votre profil Google Business pour améliorer votre visibilité.</p>
+                        <Button 
+                          className="mt-3"
+                          onClick={() => setIsEditMode(true)}
+                        >
+                          Connecter Google Business
+                        </Button>
+                      </div>
+                    )}
+
+                    {store.isEcommerce ? (
+                      <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center mb-2">
+                          <svg className="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                          </svg>
+                          <p className="font-medium text-blue-800">Boutique E-commerce activée</p>
+                        </div>
+                        <p className="text-blue-700 text-sm">URL: {store.ecommerceUrl || "Non renseignée"}</p>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="bg-secondary rounded-lg p-4">
-                  <h3 className="font-medium mb-2">Statut</h3>
-                  <p className="text-2xl font-bold">{store.isPremium ? "Premium" : "Basique"}</p>
-                </div>
+                
+                {store.description && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Description</h3>
+                    <p className="text-gray-700">{store.description}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -272,12 +472,12 @@ const StoreAdmin = () => {
                 <div>
                   <h3 className="text-lg font-medium mb-4">Coupon actif</h3>
                   <CouponCard 
-                    code={store.coupon.code}
-                    discount={store.coupon.discount}
-                    validUntil={store.coupon.validUntil}
+                    code={store.coupon?.code || "WELCOME123"}
+                    discount={store.coupon?.discount || "10% sur tout le magasin"}
+                    validUntil={store.coupon?.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
                     storeName={store.name}
-                    usageCount={store.coupon.usageCount}
-                    isAffiliate={store.coupon.isAffiliate}
+                    usageCount={store.coupon?.usageCount || 0}
+                    isAffiliate={store.coupon?.isAffiliate || false}
                     showStats={true}
                   />
                 </div>
@@ -471,3 +671,4 @@ const StoreAdmin = () => {
 };
 
 export default StoreAdmin;
+
