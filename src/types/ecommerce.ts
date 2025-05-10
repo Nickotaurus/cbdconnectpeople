@@ -8,9 +8,10 @@ export interface EcommerceStore {
   specialties: string[];
   rating: number;
   reviewCount: number;
-  isPremium: boolean;
-  paymentMethods: string[];
+  isPremium?: boolean;
+  paymentMethods?: string[];
   shippingCountries: string[];
   userId?: string;
   isPhysicalStore?: boolean;
+  googlePlaceId?: string; // Ajout du Google Place ID
 }

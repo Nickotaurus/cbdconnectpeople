@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
 import { ClientUser } from '@/types/auth';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Globe, ExternalLink, Star, Heart } from 'lucide-react';
+import { fetchReviewsData } from '@/services/googleBusinessService';
 
 interface EcommerceCardProps {
   store: EcommerceStore;
@@ -19,6 +20,27 @@ const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardPro
   const { user } = useAuth();
   const { toast } = useToast();
   const [isToggling, setIsToggling] = useState(false);
+  const [reviewData, setReviewData] = useState<{ rating?: number, totalReviews?: number } | null>(null);
+  
+  // Récupérer les avis Google si la boutique e-commerce a un placeId
+  useEffect(() => {
+    const loadReviewData = async () => {
+      // Pour les boutiques physiques avec un e-commerce, elles peuvent avoir un place_id
+      if (store.googlePlaceId) {
+        const data = await fetchReviewsData(store.googlePlaceId);
+        if (data) {
+          setReviewData(data);
+        }
+      }
+    };
+    
+    if (store.isPhysicalStore && store.googlePlaceId) {
+      loadReviewData();
+    }
+  }, [store.googlePlaceId, store.isPhysicalStore]);
+
+  const displayRating = reviewData?.rating !== undefined ? reviewData.rating : store.rating;
+  const displayReviewCount = reviewData?.totalReviews !== undefined ? reviewData.totalReviews : store.reviewCount;
   
   const renderStars = (rating: number) => {
     return (
@@ -113,9 +135,9 @@ const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardPro
       
       <CardContent className="pb-2">
         <div className="mb-3">
-          {renderStars(store.rating)}
+          {renderStars(displayRating)}
           <p className="text-xs text-muted-foreground mt-1">
-            {store.reviewCount} avis clients
+            {displayReviewCount} avis {store.isPhysicalStore && reviewData ? 'Google' : 'clients'}
           </p>
         </div>
         

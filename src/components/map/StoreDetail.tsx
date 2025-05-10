@@ -1,8 +1,10 @@
 
+import { useState, useEffect } from 'react';
 import { ChevronRight, Star, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Store } from '@/types/store';
+import { fetchReviewsData } from '@/services/googleBusinessService';
 
 interface StoreDetailProps {
   store: Store;
@@ -11,6 +13,24 @@ interface StoreDetailProps {
 }
 
 const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProps) => {
+  const [reviewData, setReviewData] = useState<{ rating?: number, totalReviews?: number } | null>(null);
+  
+  useEffect(() => {
+    const loadReviewData = async () => {
+      if (store.placeId) {
+        const data = await fetchReviewsData(store.placeId);
+        if (data) {
+          setReviewData(data);
+        }
+      }
+    };
+    
+    loadReviewData();
+  }, [store.placeId]);
+
+  const displayRating = reviewData?.rating !== undefined ? reviewData.rating : store.rating;
+  const displayReviewCount = reviewData?.totalReviews !== undefined ? reviewData.totalReviews : store.reviewCount;
+
   return (
     <div className="animate-[fade-in_0.3s_ease-out,scale-in_0.3s_ease-out]">
       <div className="bg-background rounded-lg shadow-sm p-4 transition-all duration-300 hover:shadow-md">
@@ -60,10 +80,10 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
         <div className="flex items-center gap-2 mb-3">
           <div className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs font-medium flex items-center">
             <Star className="h-3 w-3 mr-1 fill-primary" />
-            {store.rating}
+            {displayRating}
           </div>
           <span className="text-xs text-muted-foreground">
-            {store.reviewCount} avis
+            {displayReviewCount} avis Google
           </span>
           
           {store.isEcommerce && (

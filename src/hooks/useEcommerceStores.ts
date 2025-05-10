@@ -64,7 +64,8 @@ export const useEcommerceStores = () => {
           paymentMethods: ['Carte bancaire', 'PayPal'].sort(() => Math.random() - 0.5),
           shippingCountries: ['France', 'Europe', 'Monde entier'].sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2)),
           userId: store.user_id,
-          isPhysicalStore: true
+          isPhysicalStore: true,
+          googlePlaceId: store.google_place_id // Ajouter le Google Place ID aux données du magasin
         })),
         ...(ecommerceUsers || []).filter(user => !ecommerceStores?.some(store => store.user_id === user.id)).map(user => ({
           id: `ec-${user.id}`,

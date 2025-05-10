@@ -106,20 +106,23 @@ export const renderInfoWindowContent = (
     '<div class="store-type">Boutique CBD</div>' : 
     '';
 
+  // Affichage des avis Google, si disponibles
+  const ratingSection = place.rating ? `
+    <div class="store-rating">
+      <span class="rating-value">${place.rating.toFixed(1)}</span>
+      <span class="rating-stars">★</span>
+      ${place.user_ratings_total ? `
+        <span class="rating-count">(${place.user_ratings_total} avis Google)</span>
+      ` : ''}
+    </div>
+  ` : '';
+
   return `
     ${styles}
     <div class="${storeContainerClass}">
       <h3 class="store-name">${name}${cbdBadge}</h3>
       ${storeType}
-      ${place.rating ? `
-        <div class="store-rating">
-          <span class="rating-value">${place.rating.toFixed(1)}</span>
-          <span class="rating-stars">★</span>
-          ${place.user_ratings_total ? `
-            <span class="rating-count">(${place.user_ratings_total} avis)</span>
-          ` : ''}
-        </div>
-      ` : ''}
+      ${ratingSection}
       <p class="store-address">${address}</p>
       <button class="select-store-btn" onclick="window.selectStore('${place.place_id}')">
         Sélectionner cette boutique

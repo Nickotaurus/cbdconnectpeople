@@ -1,3 +1,4 @@
+
 import { getPlacesService } from './googleMapsService';
 import { BusinessDetails } from '@/types/store/store-data';
 
@@ -21,7 +22,7 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
         fields: [
           'name', 'formatted_address', 'place_id', 'geometry', 
           'website', 'formatted_phone_number', 'rating',
-          'user_ratings_total', 'photos'
+          'user_ratings_total', 'photos', 'reviews'
         ]
       }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
@@ -29,8 +30,20 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
           const photos = place.photos ? 
             place.photos.slice(0, 5).map(photo => photo.getUrl({ maxWidth: 500, maxHeight: 500 })) : 
             [];
+          
+          // Process reviews if available
+          const reviews = place.reviews ? 
+            place.reviews.map(review => ({
+              author_name: review.author_name,
+              rating: review.rating,
+              text: review.text,
+              time: review.time,
+              relative_time_description: review.relative_time_description,
+              profile_photo_url: review.profile_photo_url
+            })) : 
+            [];
             
-          // Return formatted business info
+          // Return formatted business info with reviews
           resolve({
             name: place.name || '',
             address: place.formatted_address || '',
@@ -39,6 +52,7 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
             rating: place.rating,
             totalReviews: place.user_ratings_total,
             photos,
+            reviews,
             placeId: place.place_id || '',
             latitude: place.geometry?.location.lat() || 0,
             longitude: place.geometry?.location.lng() || 0
@@ -51,6 +65,39 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
     });
   } catch (error) {
     console.error("Error fetching business details:", error);
+    return null;
+  }
+};
+
+// Nouvelle fonction pour récupérer uniquement les informations d'avis
+export const fetchReviewsData = async (placeId: string): Promise<{ rating?: number, totalReviews?: number } | null> => {
+  try {
+    if (!window.google?.maps?.places || !placeId) {
+      return null;
+    }
+    
+    const service = getPlacesService();
+    if (!service) {
+      return null;
+    }
+    
+    return new Promise((resolve) => {
+      service.getDetails({
+        placeId,
+        fields: ['rating', 'user_ratings_total']
+      }, (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          resolve({
+            rating: place.rating,
+            totalReviews: place.user_ratings_total
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error fetching review data:", error);
     return null;
   }
 };
