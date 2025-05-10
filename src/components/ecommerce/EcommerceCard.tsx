@@ -1,15 +1,12 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/auth';
-import { useToast } from '@/hooks/use-toast';
-import { ClientUser } from '@/types/auth';
 import { EcommerceStore } from '@/types/ecommerce';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Globe, ExternalLink, Star, Heart } from 'lucide-react';
-import { fetchReviewsData } from '@/services/googleBusinessService';
-import { loadGoogleMapsAPI } from '@/services/googleMapsService';
+import EcommerceHeader from './EcommerceHeader';
+import EcommerceRating from './EcommerceRating';
+import EcommerceSpecialties from './EcommerceSpecialties';
+import EcommerceShipping from './EcommerceShipping';
+import EcommerceFooter from './EcommerceFooter';
+import { useReviewData } from './useReviewData';
 
 interface EcommerceCardProps {
   store: EcommerceStore;
@@ -18,87 +15,7 @@ interface EcommerceCardProps {
 }
 
 const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardProps) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [isToggling, setIsToggling] = useState(false);
-  const [reviewData, setReviewData] = useState<{ rating?: number, totalReviews?: number } | null>(null);
-  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-  
-  // Charger l'API Google Maps avant de récupérer les avis
-  useEffect(() => {
-    const initGoogleMaps = async () => {
-      if (store.isPhysicalStore && store.googlePlaceId) {
-        try {
-          await loadGoogleMapsAPI();
-          loadReviewData();
-        } catch (error) {
-          console.error("Failed to load Google Maps API:", error);
-        }
-      }
-    };
-    
-    initGoogleMaps();
-  }, [store.googlePlaceId, store.isPhysicalStore]);
-  
-  // Récupérer les avis Google si la boutique e-commerce a un placeId
-  const loadReviewData = async () => {
-    if (!store.googlePlaceId) return;
-    
-    setIsLoadingReviews(true);
-    try {
-      const data = await fetchReviewsData(store.googlePlaceId);
-      console.log("Review data for", store.name, ":", data);
-      if (data) {
-        setReviewData(data);
-      }
-    } catch (error) {
-      console.error("Error loading review data:", error);
-    } finally {
-      setIsLoadingReviews(false);
-    }
-  };
-
-  const displayRating = reviewData?.rating !== undefined ? reviewData.rating : store.rating;
-  const displayReviewCount = reviewData?.totalReviews !== undefined ? reviewData.totalReviews : store.reviewCount;
-  
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-          <Star 
-            key={i} 
-            className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} 
-          />
-        ))}
-        <span className="ml-2 text-sm font-medium">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
-
-  const handleFavoriteClick = async () => {
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Veuillez vous connecter pour ajouter des favoris.",
-      });
-      return;
-    }
-    
-    if (user.role !== 'client') {
-      toast({
-        title: "Action non disponible",
-        description: "Seuls les clients peuvent ajouter des favoris.",
-      });
-      return;
-    }
-
-    setIsToggling(true);
-    try {
-      await onToggleFavorite(store);
-    } finally {
-      setIsToggling(false);
-    }
-  };
+  const { displayRating, displayReviewCount, isLoadingReviews, isGoogleReview } = useReviewData(store);
 
   return (
     <Card className={`overflow-hidden ${store.isPremium ? 'border-2 border-primary' : ''}`}>
@@ -111,93 +28,32 @@ const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardPro
       </div>
       
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-xl">{store.name}</CardTitle>
-          <div className="flex items-center gap-2">
-            {store.isPremium && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                Premium
-              </Badge>
-            )}
-            
-            {store.isPhysicalStore && (
-              <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
-                Boutique physique
-              </Badge>
-            )}
-            
-            {user && user.role === 'client' && (
-              <Button 
-                size="icon" 
-                variant="outline" 
-                className={`h-8 w-8 p-1 ${isFavorite ? 'border-destructive' : ''}`} 
-                onClick={handleFavoriteClick}
-                disabled={isToggling}
-              >
-                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-destructive text-destructive' : ''}`} />
-              </Button>
-            )}
-          </div>
-        </div>
-        <CardDescription className="flex items-center">
-          <Globe className="h-3.5 w-3.5 mr-1" />
-          <a 
-            href={store.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hover:underline text-primary"
-          >
-            {store.url.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, '')}
-          </a>
-        </CardDescription>
+        <EcommerceHeader
+          store={store}
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+        />
       </CardHeader>
       
       <CardContent className="pb-2">
-        <div className="mb-3">
-          {isLoadingReviews ? (
-            <div className="flex items-center space-x-2">
-              <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
-              <span className="text-xs text-muted-foreground">Chargement...</span>
-            </div>
-          ) : (
-            <>
-              {renderStars(displayRating)}
-              <p className="text-xs text-muted-foreground mt-1">
-                {displayReviewCount} avis {store.isPhysicalStore && store.googlePlaceId && reviewData ? 'Google' : 'clients'}
-              </p>
-            </>
-          )}
-        </div>
+        <EcommerceRating
+          rating={displayRating}
+          reviewCount={displayReviewCount}
+          isLoadingReviews={isLoadingReviews}
+          isGoogleReview={isGoogleReview}
+        />
         
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
           {store.description}
         </p>
         
-        <div className="mb-3">
-          <h4 className="text-xs font-medium mb-1">Spécialités:</h4>
-          <div className="flex flex-wrap gap-1">
-            {store.specialties.map(specialty => (
-              <Badge key={specialty} variant="outline" className="text-xs">
-                {specialty}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        <EcommerceSpecialties specialties={store.specialties} />
         
-        <div>
-          <h4 className="text-xs font-medium mb-1">Livraison:</h4>
-          <p className="text-xs text-muted-foreground">
-            {store.shippingCountries.join(', ')}
-          </p>
-        </div>
+        <EcommerceShipping shippingCountries={store.shippingCountries} />
       </CardContent>
       
       <CardFooter className="pt-2">
-        <Button className="w-full gap-2" asChild>
-          <a href={store.url} target="_blank" rel="noopener noreferrer">
-            Visiter le site <ExternalLink className="h-4 w-4" />
-          </a>
-        </Button>
+        <EcommerceFooter url={store.url} />
       </CardFooter>
     </Card>
   );
