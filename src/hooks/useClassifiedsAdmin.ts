@@ -3,26 +3,39 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { classifiedService } from "@/services/classified";
 import { Classified, ClassifiedStatus } from "@/types/classified";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Hook for admin operations on classifieds
+ * Provides functions to filter, approve, and reject classifieds
+ */
 export const useClassifiedsAdmin = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<ClassifiedStatus | 'all'>('pending');
   
-  // Récupérer les annonces filtrées par statut
-  const { data: classifieds, isLoading, error } = useQuery({
+  // Get classifieds based on status filter
+  const { 
+    data: classifieds, 
+    isLoading, 
+    error 
+  } = useQuery({
     queryKey: ['classifieds', statusFilter],
     queryFn: async () => {
-      if (statusFilter === 'all') {
-        return await classifiedService.getClassifiedsByStatus();
-      } else {
-        return await classifiedService.getClassifiedsByStatus(statusFilter);
+      try {
+        if (statusFilter === 'all') {
+          return await classifiedService.getClassifiedsByStatus();
+        } else {
+          return await classifiedService.getClassifiedsByStatus(statusFilter);
+        }
+      } catch (error) {
+        console.error("Error fetching classifieds:", error);
+        throw new Error("Failed to load classifieds. Please try again later.");
       }
     }
   });
   
-  // Mutation pour approuver une annonce
+  // Mutation to update classified status to 'approved'
   const { mutate: approveClassified } = useMutation({
     mutationFn: (classifiedId: string) => 
       classifiedService.updateClassifiedStatus(classifiedId, 'approved'),
@@ -43,7 +56,7 @@ export const useClassifiedsAdmin = () => {
     }
   });
   
-  // Mutation pour rejeter une annonce
+  // Mutation to update classified status to 'rejected'
   const { mutate: rejectClassified } = useMutation({
     mutationFn: (classifiedId: string) => 
       classifiedService.updateClassifiedStatus(classifiedId, 'rejected'),
@@ -63,14 +76,39 @@ export const useClassifiedsAdmin = () => {
       console.error("Erreur lors du rejet de l'annonce:", error);
     }
   });
+
+  // Delete a classified
+  const { mutate: deleteClassified } = useMutation({
+    mutationFn: (classifiedId: string) => 
+      classifiedService.deleteClassified(classifiedId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classifieds'] });
+      toast({
+        title: "Annonce supprimée",
+        description: "L'annonce a été supprimée avec succès."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'annonce.",
+        variant: "destructive"
+      });
+      console.error("Erreur lors de la suppression de l'annonce:", error);
+    }
+  });
   
-  // Fonction pour détecter si une annonce est une offre ou recherche d'emploi
+  /**
+   * Check if classified is a job posting
+   */
   const isJobClassified = (classified: Classified): boolean => {
     return classified.type === 'service' && 
            (classified.category === 'employer' || classified.category === 'employee');
   };
   
-  // Fonction pour extraire les informations d'emploi de la description
+  /**
+   * Extract job related information from classified description
+   */
   const extractJobInfo = (classified: Classified) => {
     if (!isJobClassified(classified)) return null;
     
@@ -85,7 +123,7 @@ export const useClassifiedsAdmin = () => {
     
     const description = classified.description;
     
-    // Chercher les informations d'emploi dans la description
+    // Extract job information from description using regex
     const typeMatch = description.match(/Type de poste\s*:\s*([^\n]+)/);
     if (typeMatch) jobInfo.jobType = typeMatch[1].trim();
     
@@ -115,6 +153,7 @@ export const useClassifiedsAdmin = () => {
     setStatusFilter,
     approveClassified,
     rejectClassified,
+    deleteClassified,
     isJobClassified,
     extractJobInfo
   };

@@ -18,6 +18,8 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import StoreDashboard from "./pages/StoreDashboard";
 import EcommercePage from "./pages/EcommercePage";
+import AdminClassifiedsPage from "./pages/AdminClassifiedsPage";
+import PartnersAdmin from "./pages/PartnersAdmin";
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
         <Route path="/add-store" element={<AddStore />} />
         <Route path="/store/:id" element={<StoreAdmin />} />
         <Route path="/store/:id/admin" element={<StoreAdmin />} />
+        <Route path="/admin/classifieds" element={<AdminClassifiedsPage />} />
+        <Route path="/admin/partners" element={<PartnersAdmin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

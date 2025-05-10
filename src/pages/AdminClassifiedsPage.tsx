@@ -17,22 +17,33 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   CheckCircle2, 
   XCircle, 
   Filter, 
   Image, 
   Search,
-  Eye
+  Eye,
+  Trash2
 } from "lucide-react";
 import { useState } from 'react';
 import { useClassifiedsAdmin } from "@/hooks/useClassifiedsAdmin";
 import { ClassifiedStatus, Classified } from '@/types/classified';
-import { useToast } from '@/components/ui/use-toast';
 
 const AdminClassifiedsPage = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [classifiedToDelete, setClassifiedToDelete] = useState<string | null>(null);
   
   const {
     classifieds,
@@ -41,7 +52,8 @@ const AdminClassifiedsPage = () => {
     statusFilter,
     setStatusFilter,
     approveClassified,
-    rejectClassified
+    rejectClassified,
+    deleteClassified
   } = useClassifiedsAdmin();
   
   // Filtrer les annonces par recherche
@@ -79,6 +91,14 @@ const AdminClassifiedsPage = () => {
         return <Badge className="bg-purple-100 text-purple-800">Service</Badge>;
       default:
         return null;
+    }
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (classifiedToDelete) {
+      deleteClassified(classifiedToDelete);
+      setClassifiedToDelete(null);
     }
   };
   
@@ -208,6 +228,7 @@ const AdminClassifiedsPage = () => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        
                         {classified.status === 'pending' && (
                           <>
                             <Button 
@@ -228,6 +249,35 @@ const AdminClassifiedsPage = () => {
                             </Button>
                           </>
                         )}
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => setClassifiedToDelete(classified.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setClassifiedToDelete(null)}>
+                                Annuler
+                              </AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
