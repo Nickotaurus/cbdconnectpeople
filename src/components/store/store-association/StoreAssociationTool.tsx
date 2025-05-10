@@ -8,7 +8,7 @@ import AssociateButton from './AssociateButton';
 
 const StoreAssociationTool = ({ 
   defaultEmail = "histoiredechanvre29@gmail.com",
-  defaultStoreName = "CBD Histoire de Chanvre",
+  defaultStoreName = "Histoire de Chanvre",
   onSuccess
 }: StoreAssociationToolProps) => {
   const {
