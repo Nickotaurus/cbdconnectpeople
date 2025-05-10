@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, MapPin, Lock } from "lucide-react";
 import { PartnerCategory } from "@/types/auth";
-import { useNavigate } from "react-router-dom";
-import { PartnerIcon } from "./PartnerIcon";
 import { getCategoryLabel } from "@/utils/partnerUtils";
+import { PartnerIcon } from "./PartnerIcon";
 import { Partner } from "@/types/partners/partner";
 
 interface PartnerCardProps {
@@ -22,17 +21,8 @@ const PartnerCard = ({
   hasPremium,
   onContactClick
 }: PartnerCardProps) => {
-  const navigate = useNavigate();
-
   const handleContactClick = () => {
-    if (isProfessional) {
-      if (hasPremium) {
-        onContactClick(partner.id);
-      } else {
-        // Redirect to subscription page for non-premium users
-        navigate('/partners/subscription');
-      }
-    }
+    onContactClick(partner.id);
   };
 
   return (
@@ -71,17 +61,14 @@ const PartnerCard = ({
         </div>
       </CardContent>
       <CardFooter className="pt-2">
-        {isProfessional ? (
-          <Button 
-            className="w-full gap-2"
-            onClick={handleContactClick}
-          >
-            {!hasPremium && <Lock className="h-4 w-4 mr-1" />}
-            {hasPremium ? "Voir les coordonnées" : "Voir les coordonnées"}
-          </Button>
-        ) : (
-          <Button variant="outline" className="w-full">Voir les coordonnées</Button>
-        )}
+        <Button 
+          className="w-full gap-2"
+          onClick={handleContactClick}
+          variant={hasPremium ? "default" : "secondary"}
+        >
+          {!hasPremium && <Lock className="h-4 w-4" />}
+          {hasPremium ? "Voir les coordonnées" : "Se connecter pour voir"}
+        </Button>
       </CardFooter>
     </Card>
   );

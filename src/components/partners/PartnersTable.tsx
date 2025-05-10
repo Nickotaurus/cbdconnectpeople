@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useNavigate } from "react-router-dom";
+import { Lock } from "lucide-react";
 import { PartnerIcon } from "@/components/partners/PartnerIcon";
 import { PartnerCategory } from "@/types/auth";
 
@@ -27,15 +27,9 @@ const PartnersTable = ({
   onViewContact,
   getCategoryName 
 }: PartnersTableProps) => {
-  const navigate = useNavigate();
-
+  
   const handleContactClick = (partnerId: string) => {
-    if (hasPremium) {
-      onViewContact(partnerId);
-    } else {
-      // Redirect non-premium users to subscription page
-      navigate('/partners/subscription');
-    }
+    onViewContact(partnerId);
   };
 
   return (
@@ -74,11 +68,13 @@ const PartnersTable = ({
                 <TableCell className="hidden md:table-cell">{partner.description}</TableCell>
                 <TableCell>
                   <Button 
-                    variant={hasPremium ? "default" : "outline"} 
+                    variant={hasPremium ? "default" : "secondary"} 
                     size="sm" 
                     onClick={() => handleContactClick(partner.id)}
+                    className="gap-1"
                   >
-                    {hasPremium ? "Voir contact" : "Contact premium"}
+                    {!hasPremium && <Lock className="h-3 w-3" />}
+                    {hasPremium ? "Voir contact" : "Se connecter"}
                   </Button>
                 </TableCell>
               </TableRow>
