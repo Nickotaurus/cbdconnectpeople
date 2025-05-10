@@ -7,7 +7,8 @@ import { useStoreDataFetcher } from '../useStoreDataFetcher';
 import { UseStoreFormProps, UseStoreFormReturn, UseFormSubmitProps } from '@/types/store-form';
 
 export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStoreData }: UseStoreFormProps): UseStoreFormReturn => {
-  const [activeTab, setActiveTab] = useState(initialStoreData ? 'details' : 'search');
+  // Si initialStoreData est fourni, on commence par l'onglet "basic" plutôt que "search"
+  const [activeTab, setActiveTab] = useState(initialStoreData ? 'basic' : 'search');
   
   // Handle form data
   const {
@@ -37,6 +38,7 @@ export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, in
   
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("handleFormSubmit appelé dans useStoreForm");
     return await handleSubmit(formData);
   };
   

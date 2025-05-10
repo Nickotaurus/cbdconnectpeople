@@ -69,9 +69,11 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Soumission du formulaire dans StoreForm");
     
     // Empêcher la soumission si un doublon est détecté
     if (isDuplicate) {
+      console.log("Erreur: Boutique en doublon détectée");
       toast({
         title: "Boutique déjà enregistrée",
         description: "Cette boutique semble déjà être enregistrée dans notre base de données.",
@@ -81,7 +83,10 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
     }
     
     // Empêcher les clics multiples
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      console.log("Déjà en cours de soumission, ignoré");
+      return;
+    }
     
     setIsSubmitting(true);
     console.log("Soumission du formulaire dans StoreForm");
@@ -92,17 +97,23 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
       console.log("Résultat de la soumission:", result);
       
       if (result.success) {
+        console.log("Soumission réussie");
         // Set the newly registered store flag
         sessionStorage.setItem('newlyRegisteredStore', 'true');
         
         if (result.store && onSuccess) {
+          console.log("Appel de la fonction onSuccess");
           await onSuccess(result.store);
         } else if (result.id) {
           console.log("Navigation vers la page du tableau de bord");
           // Navigate to store dashboard after successful submission
           navigate('/store-dashboard');
         }
+      } else {
+        console.log("Échec de la soumission:", result.message);
       }
+    } catch (err) {
+      console.error("Erreur lors de la soumission:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +130,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
         handleStoreSelect={handleStoreSelect}
         setHasSearched={setHasSearched}
         hasSearched={hasSearched}
-        isLoading={isLoading}
+        isLoading={isLoading || isSubmitting}
         navigate={navigate}
         handleSubmit={handleSubmit}
         storeType={storeType}

@@ -15,13 +15,18 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
   const { toast } = useToast();
 
   const handleSubmit = async (formData: FormData) => {
+    console.log("Début de handleSubmit dans useFormSubmit");
     setError('');
     setIsLoading(true);
 
     try {
       if (!user) {
+        console.error("Erreur: Utilisateur non connecté");
         throw new Error("Vous devez être connecté pour ajouter une boutique");
       }
+
+      console.log("Utilisateur connecté:", user.id);
+      console.log("Données du formulaire:", formData);
 
       // Create the store data object from form data
       const storeData = createStoreDataFromForm(formData);
@@ -32,7 +37,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         user_id: user.id
       };
 
-      console.log('Store data to submit:', storeDataWithUserId);
+      console.log('Données de la boutique à soumettre:', storeDataWithUserId);
 
       // Insert the store into the database
       const { data: newStore, error: insertError } = await supabase
@@ -42,11 +47,11 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         .single();
 
       if (insertError) {
-        console.error('Error inserting store:', insertError);
+        console.error('Erreur lors de l\'insertion de la boutique:', insertError);
         throw new Error(`Erreur lors de l'ajout de la boutique: ${insertError.message}`);
       }
 
-      console.log('Store added successfully:', newStore);
+      console.log('Boutique ajoutée avec succès:', newStore);
 
       // Update the user profile with the store ID - all stores are now free
       const { error: profileError } = await supabase
@@ -59,7 +64,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         .eq('id', user.id);
 
       if (profileError) {
-        console.error('Error updating profile:', profileError);
+        console.error('Erreur lors de la mise à jour du profil:', profileError);
         // We still consider this a success since the store was added
       }
 
@@ -77,8 +82,11 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
 
       // Convert the DB store to a Store object
       const storeObject = convertToStore(newStore);
+      
+      console.log("Boutique convertie en objet Store:", storeObject);
 
       if (onSuccess) {
+        console.log("Appel de la fonction onSuccess");
         await onSuccess(storeObject);
       }
 
@@ -90,7 +98,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
       };
 
     } catch (err) {
-      console.error('Error submitting form:', err);
+      console.error('Erreur de soumission du formulaire:', err);
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
       setError(errorMessage);
       
@@ -103,6 +111,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
       return { success: false, message: errorMessage };
     } finally {
       setIsLoading(false);
+      console.log("Fin de handleSubmit dans useFormSubmit");
     }
   };
 

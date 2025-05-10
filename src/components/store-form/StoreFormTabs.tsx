@@ -53,24 +53,27 @@ const StoreFormTabs = ({
   skipSearch = false,
   isDuplicate = false
 }: StoreFormTabsProps) => {
+  // Fonction pour gérer le changement d'onglet manuellement
+  const handleTabChange = (value: string) => {
+    console.log("Changement d'onglet vers:", value);
+    setActiveTab(value);
+  };
 
   return (
     <div className="space-y-8">
-      <Tabs defaultValue={activeTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList>
           <TabsTrigger value="search" disabled={skipSearch}>Rechercher</TabsTrigger>
           <TabsTrigger value="basic">Infos générales</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="details">Détails</TabsTrigger>
         </TabsList>
-      </Tabs>
       
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardContent className="p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              
-              <TabsContent value="search" className="space-y-6">
+      
+        <form onSubmit={handleSubmit}>
+          <Card>
+            <CardContent className="p-6">
+              <TabsContent value="search" className="space-y-6 mt-6">
                 <StoreSearch
                   formData={formData}
                   handleInputChange={handleInputChange}
@@ -82,7 +85,7 @@ const StoreFormTabs = ({
                 />
               </TabsContent>
               
-              <TabsContent value="basic" className="space-y-6">
+              <TabsContent value="basic" className="space-y-6 mt-6">
                 <BasicInfoForm
                   formData={formData}
                   handleInputChange={handleInputChange}
@@ -101,33 +104,32 @@ const StoreFormTabs = ({
                 )}
               </TabsContent>
               
-              <TabsContent value="contact" className="space-y-6">
+              <TabsContent value="contact" className="space-y-6 mt-6">
                 <ContactInfoForm
                   formData={formData}
                   handleInputChange={handleInputChange}
                 />
               </TabsContent>
               
-              <TabsContent value="details" className="space-y-6">
+              <TabsContent value="details" className="space-y-6 mt-6">
                 <DetailsInfoForm
                   formData={formData}
                   handleInputChange={handleInputChange}
                 />
               </TabsContent>
-              
-            </Tabs>
-          </CardContent>
-          
-          <FormActions
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            navigate={navigate}
-            isLoading={isLoading}
-            isEdit={isEdit}
-            isDisabled={isDuplicate}
-          />
-        </Card>
-      </form>
+            </CardContent>
+            
+            <FormActions
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              navigate={navigate}
+              isLoading={isLoading}
+              isEdit={isEdit}
+              isDisabled={isDuplicate}
+            />
+          </Card>
+        </form>
+      </Tabs>
     </div>
   );
 };
