@@ -49,7 +49,7 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     isEcommerce: dbStore.is_ecommerce || false,
     ecommerceUrl: dbStore.ecommerce_url || null,
     hasGoogleBusinessProfile: dbStore.has_google_business_profile || false,
-    distance: null,
+    distance: null,  // This is added in the Store type
     products: [],  // Initialize with empty array as it doesn't exist in StoreDBType
     openingHours: [], // Add default empty openingHours array
     reviews: [], // Add default empty reviews array
@@ -74,7 +74,14 @@ export const useStores = () => {
       if (error) throw error;
       
       // Map database stores to application model
-      const mappedStores = data.map(mapDbStoreToAppStore);
+      // Type cast the data to match our StoreDBType interface
+      const mappedStores = data.map((item: any) => mapDbStoreToAppStore({
+        ...item,
+        rating: item.rating || 0,
+        review_count: item.review_count || 0,
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at || new Date().toISOString()
+      }));
       
       // Initialize products as empty arrays since they don't exist in the database directly
       const storesWithProducts = mappedStores.map(store => ({
