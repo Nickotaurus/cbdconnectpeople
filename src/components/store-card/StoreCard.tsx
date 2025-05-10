@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink } from 'lucide-react';
+import { MapPin, ExternalLink, Globe } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,12 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
           <div className="space-y-1">
             <div className="flex justify-between items-start">
               <h3 className="font-semibold text-lg line-clamp-1">{store.name}</h3>
+              
+              {store.isPremium && (
+                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                  Premium
+                </Badge>
+              )}
             </div>
             
             <div className="flex items-center text-muted-foreground text-sm">
@@ -39,6 +45,20 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
               <p className="text-sm text-primary font-medium">
                 à {distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`}
               </p>
+            )}
+            
+            {store.isEcommerce && (
+              <div className="flex items-center text-muted-foreground text-sm mt-1">
+                <Globe className="h-3.5 w-3.5 mr-1" />
+                <a 
+                  href={store.ecommerceUrl || store.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline line-clamp-1"
+                >
+                  {(store.ecommerceUrl || store.website).replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                </a>
+              </div>
             )}
           </div>
           
@@ -65,7 +85,12 @@ const StoreCard = ({ store, distance }: StoreCardProps) => {
             </Button>
             
             <Button variant="outline" size="icon" asChild>
-              <a href={store.website} target="_blank" rel="noopener noreferrer" aria-label="Visiter le site web">
+              <a 
+                href={store.isEcommerce ? (store.ecommerceUrl || store.website) : store.website} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                aria-label="Visiter le site web"
+              >
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>

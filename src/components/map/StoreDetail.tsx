@@ -1,6 +1,7 @@
 
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight, Star, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Store } from '@/types/store';
 
 interface StoreDetailProps {
@@ -30,6 +31,20 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
           <div>
             <h3 className="font-semibold text-lg">{store.name}</h3>
             <p className="text-muted-foreground text-sm">{store.address}, {store.city}</p>
+            
+            {store.isEcommerce && (
+              <div className="flex items-center text-primary text-sm mt-1">
+                <Globe className="h-3.5 w-3.5 mr-1" />
+                <a 
+                  href={store.ecommerceUrl || store.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:underline line-clamp-1"
+                >
+                  {(store.ecommerceUrl || store.website).replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
           </div>
           <Button 
             variant="outline" 
@@ -50,6 +65,12 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
           <span className="text-xs text-muted-foreground">
             {store.reviewCount} avis
           </span>
+          
+          {store.isEcommerce && (
+            <Badge variant="outline" className="text-xs">
+              E-commerce
+            </Badge>
+          )}
         </div>
         
         <p className="text-sm mb-3 line-clamp-2">

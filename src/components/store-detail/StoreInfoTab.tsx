@@ -1,6 +1,7 @@
 
-import { Globe, Calendar, Phone } from 'lucide-react';
+import { Globe, Calendar, Phone, ExternalLink } from 'lucide-react';
 import { Store } from '@/types/store';
+import { Badge } from "@/components/ui/badge";
 
 interface StoreInfoTabProps {
   store: Store;
@@ -47,6 +48,25 @@ const StoreInfoTab = ({ store }: StoreInfoTabProps) => {
       <div>
         <h3 className="text-lg font-semibold mb-2">Coordonnées</h3>
         <div className="space-y-2">
+          {store.isEcommerce && (
+            <div className="mb-3 p-3 border rounded-md bg-primary/5">
+              <div className="flex items-center mb-2">
+                <Globe className="h-4 w-4 mr-2 text-primary" />
+                <h4 className="font-medium">Boutique en ligne</h4>
+                <Badge className="ml-2" variant="outline">E-commerce</Badge>
+              </div>
+              <a 
+                href={store.ecommerceUrl || store.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary flex items-center hover:underline"
+              >
+                {(store.ecommerceUrl || store.website).replace(/^https?:\/\//, '')}
+                <ExternalLink className="h-3.5 w-3.5 ml-1" />
+              </a>
+            </div>
+          )}
+          
           <div className="flex items-center">
             <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
             <a 

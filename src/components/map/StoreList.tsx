@@ -1,7 +1,7 @@
 
 import { Store } from '@/types/store';
 import { Badge } from "@/components/ui/badge";
-import { Star } from 'lucide-react';
+import { Star, Globe } from 'lucide-react';
 import { calculateDistance } from '@/utils/geoUtils';
 
 interface StoreListProps {
@@ -93,15 +93,30 @@ const StoreList = ({
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <h3 className="font-medium truncate">{store.name}</h3>
-                {store.rating > 0 && (
-                  <div className="flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary text-xs">
-                    <Star className="w-3 h-3 mr-0.5 fill-primary" />
-                    {store.rating.toFixed(1)}
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  {store.rating > 0 && (
+                    <div className="flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary text-xs">
+                      <Star className="w-3 h-3 mr-0.5 fill-primary" />
+                      {store.rating.toFixed(1)}
+                    </div>
+                  )}
+                  
+                  {store.isEcommerce && (
+                    <Badge variant="outline" className="text-xs">
+                      E-commerce
+                    </Badge>
+                  )}
+                </div>
               </div>
               
               <p className="text-sm text-muted-foreground truncate">{store.address}</p>
+              
+              {store.isEcommerce && (
+                <div className="flex items-center text-primary text-xs mt-0.5">
+                  <Globe className="w-3 h-3 mr-0.5" />
+                  <span className="truncate">{(store.ecommerceUrl || store.website).replace(/^https?:\/\//, '')}</span>
+                </div>
+              )}
               
               {distance !== undefined && (
                 <p className="text-xs text-primary font-medium mt-1">
