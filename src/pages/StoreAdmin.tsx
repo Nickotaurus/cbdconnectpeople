@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -280,7 +279,8 @@ const StoreAdmin = () => {
     }
   };
   
-  const renderPartnerIcon = (categoryValue: string) => {
+  // Update the renderPartnerIcon function to accept PartnerCategory type
+  const renderPartnerIcon = (categoryValue: PartnerCategory) => {
     const iconName = getCategoryIconName(categoryValue);
     switch (iconName) {
       case "Building": return <Users className="h-4 w-4 mr-2" />;
