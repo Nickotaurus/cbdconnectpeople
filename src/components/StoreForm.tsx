@@ -110,7 +110,7 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
           navigate('/store-dashboard');
         }
       } else {
-        console.log("Échec de la soumission:", result.message);
+        console.log("Échec de la soumission:", result.message || "Erreur inconnue");
       }
     } catch (err) {
       console.error("Erreur lors de la soumission:", err);

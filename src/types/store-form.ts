@@ -35,6 +35,7 @@ export interface StoreFormSubmitResult {
   id?: string;
   store?: Store;
   error?: any;
+  message?: string; // Adding the missing message property
 }
 
 export interface UseStoreFormReturn {

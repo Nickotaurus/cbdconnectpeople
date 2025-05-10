@@ -90,9 +90,10 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         await onSuccess(storeObject);
       }
 
+      // Ensure the returned object includes the message property
       return { 
         success: true, 
-        message: 'Boutique ajoutée avec succès', 
+        message: 'Boutique ajoutée avec succès', // Make sure message property exists
         storeId: newStore.id,
         store: storeObject
       };
@@ -108,6 +109,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         variant: 'destructive'
       });
       
+      // Include message property in the error case as well
       return { success: false, message: errorMessage };
     } finally {
       setIsLoading(false);
