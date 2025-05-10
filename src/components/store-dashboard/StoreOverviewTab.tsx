@@ -12,6 +12,12 @@ interface StoreOverviewTabProps {
 }
 
 const StoreOverviewTab = ({ store, onEditClick, onViewMapClick }: StoreOverviewTabProps) => {
+  // Définir explicitement le centre de la carte avec les coordonnées de la boutique
+  const mapCenter = {
+    lat: store.latitude,
+    lng: store.longitude
+  };
+  
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
@@ -60,6 +66,7 @@ const StoreOverviewTab = ({ store, onEditClick, onViewMapClick }: StoreOverviewT
           <Map 
             stores={[store]} 
             selectedStoreId={store.id}
+            center={mapCenter}
           />
         </CardContent>
         <CardFooter>

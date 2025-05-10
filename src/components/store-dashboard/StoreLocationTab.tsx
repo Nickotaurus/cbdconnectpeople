@@ -9,6 +9,12 @@ interface StoreLocationTabProps {
 }
 
 const StoreLocationTab = ({ store }: StoreLocationTabProps) => {
+  // Définir explicitement le centre de la carte avec les coordonnées de la boutique
+  const mapCenter = {
+    lat: store.latitude,
+    lng: store.longitude
+  };
+  
   return (
     <Card>
       <CardHeader>
@@ -34,6 +40,7 @@ const StoreLocationTab = ({ store }: StoreLocationTabProps) => {
               stores={[store]}
               selectedStoreId={store.id}
               zoom={15}
+              center={mapCenter}
             />
           </div>
         </div>

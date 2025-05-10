@@ -6,15 +6,17 @@ interface MapProps {
   stores?: Store[];
   onSelectStore?: (store: Store) => void;
   selectedStoreId?: string;
-  zoom?: number; // Added zoom property
+  zoom?: number;
+  center?: { lat: number; lng: number };
 }
 
-const MapComponent = ({ stores, onSelectStore, selectedStoreId, zoom }: MapProps = {}) => {
+const MapComponent = ({ stores, onSelectStore, selectedStoreId, zoom, center }: MapProps = {}) => {
   return <BasicMap 
     stores={stores} 
     onSelectStore={onSelectStore} 
     selectedStoreId={selectedStoreId} 
-    zoom={zoom} 
+    zoom={zoom}
+    center={center}
   />;
 };
 
