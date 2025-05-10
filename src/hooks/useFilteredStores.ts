@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Store } from '@/types/store';
+import { Store } from '@/types/store/store';
 import { getStoresByDistance } from '@/utils/data';
 import { useStores } from '@/hooks/useStores';
 import { combineAndDeduplicateStores } from '@/utils/storeUtils/deduplication';

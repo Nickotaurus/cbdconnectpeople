@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Partner } from '@/types/partners';
+import { Partner } from '@/types/partners/partner';
 import { testPartnerData } from '@/data/testPartnersData';
 
 interface UseStoreFavoritePartnersResult {

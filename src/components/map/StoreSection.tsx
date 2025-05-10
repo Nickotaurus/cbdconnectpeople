@@ -1,5 +1,5 @@
 
-import { Store } from '@/types/store';
+import { Store } from '@/types/store/store';
 import { getStoresByDistance } from '@/utils/data';
 import StoreList from '@/components/map/StoreList';
 import StoreDetail from '@/components/map/StoreDetail';

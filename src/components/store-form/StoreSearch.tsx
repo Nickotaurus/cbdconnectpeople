@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { FormData } from '@/types/store-form';
-import { Store } from '@/types/store';
+import { FormData } from '@/types/store/form-types';
+import { Store } from '@/types/store/store';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 

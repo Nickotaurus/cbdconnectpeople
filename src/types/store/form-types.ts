@@ -1,7 +1,10 @@
 
 import { Store } from './store';
-import { StoreData, StoreDBType } from './store-types';
+import { StoreData, StoreDBType } from './store-data';
 
+/**
+ * Form data interface for store creation/editing
+ */
 export interface FormData {
   id?: string;
   name: string;
@@ -54,11 +57,4 @@ export interface UseStoreFormReturn {
 
 export interface UseFormSubmitProps {
   onSuccess?: (store: Store) => Promise<void>;
-}
-
-// Add missing property to Store interface
-declare module './store' {
-  interface Store {
-    favoritePartnersCount?: number;
-  }
 }

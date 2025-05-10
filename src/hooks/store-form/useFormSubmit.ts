@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { FormData, UseFormSubmitProps } from '@/types/store-form';
+import { FormData, UseFormSubmitProps } from '@/types/store/form-types';
 import { createStoreDataFromForm } from '@/utils/storeFormUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Store } from '@/types/store';
+import { Store } from '@/types/store/store';
 import { convertToStore } from '@/utils/storeFormUtils';
 
 export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {

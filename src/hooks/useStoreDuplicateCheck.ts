@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { FormData } from '@/types/store-form';
+import { FormData } from '@/types/store/form-types';
 
 export const useStoreDuplicateCheck = (formData: FormData) => {
   const { toast } = useToast();

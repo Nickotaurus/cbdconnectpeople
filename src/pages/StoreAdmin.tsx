@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -6,8 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart4, Users } from "lucide-react";
 import { getStoreById } from "@/utils/data";
-import { Store } from "@/types/store";
-import { StoreData } from "@/types/store-types";
+import { Store, StoreOpeningHours, StoreData } from '@/types/store';
 import { toast } from "@/hooks/use-toast";
 import { useStoreFavoritePartners } from "@/hooks/useStoreFavoritePartners";
 import StoreDashboardTab from "@/components/store-admin/StoreDashboardTab";

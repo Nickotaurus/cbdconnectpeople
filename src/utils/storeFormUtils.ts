@@ -1,6 +1,6 @@
 
-import { FormData } from '@/types/store-form';
-import { Store } from "@/types/store";
+import { FormData } from '@/types/store/form-types';
+import { Store, StoreOpeningHours } from "@/types/store/store";
 
 export const initialFormData: FormData = {
   id: '',

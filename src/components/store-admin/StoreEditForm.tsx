@@ -3,8 +3,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StoreForm from '@/components/StoreForm';
-import { Store } from '@/types/store';
-import { StoreData } from '@/types/store-types';
+import { Store } from '@/types/store/store';
+import { StoreData } from '@/types/store/store-data';
 
 interface StoreEditFormProps {
   id?: string;

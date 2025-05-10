@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchPartners } from '@/services/partnersService';
 import { filterPartners } from '@/utils/partnerUtils';
-import { Partner, UsePartnersResult } from '@/types/partners';
+import { Partner, UsePartnersResult } from '@/types/partners/partner';
 
 export type { Partner };
 

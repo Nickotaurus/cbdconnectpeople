@@ -1,31 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Store } from '@/types/store';
+import { Store } from '@/types/store/store';
 import { stores as staticStores } from '@/utils/storeUtils';
-
-interface StoreDBType {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  latitude: number;
-  longitude: number;
-  place_id?: string;
-  phone?: string;
-  website?: string;
-  rating: number;
-  review_count: number;
-  description?: string;
-  logo_url?: string;
-  photo_url?: string;
-  is_ecommerce?: boolean;
-  ecommerce_url?: string;
-  has_google_business_profile?: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { StoreDBType } from '@/types/store/store-data';
 
 // Converting database model to application model
 const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
@@ -37,9 +14,9 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     postalCode: dbStore.postal_code,
     latitude: dbStore.latitude,
     longitude: dbStore.longitude,
-    placeId: dbStore.place_id || null,
-    phone: dbStore.phone || null,
-    website: dbStore.website || null,
+    placeId: dbStore.google_place_id || '',
+    phone: dbStore.phone || '',
+    website: dbStore.website || '',
     rating: dbStore.rating || 0,
     reviewCount: dbStore.review_count || 0,
     description: dbStore.description || "",
@@ -47,8 +24,8 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     photo_url: dbStore.photo_url || null,
     imageUrl: dbStore.photo_url || "https://via.placeholder.com/400x200?text=CBD",
     isEcommerce: dbStore.is_ecommerce || false,
-    ecommerceUrl: dbStore.ecommerce_url || null,
-    hasGoogleBusinessProfile: dbStore.has_google_business_profile || false,
+    ecommerceUrl: dbStore.ecommerce_url || '',
+    hasGoogleBusinessProfile: dbStore.has_google_profile || false,
     products: [],  // Initialize with empty array as it doesn't exist in StoreDBType
     openingHours: [], // Add default empty openingHours array
     reviews: [], // Add default empty reviews array

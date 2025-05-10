@@ -1,4 +1,10 @@
 
+import { BaseStore, StoreOpeningHours } from './base-types';
+
+/**
+ * StoreData interface represents store data from external sources (like Google Places API)
+ * or intermediate formats used in form handling
+ */
 export interface StoreData {
   name: string;
   address: string;
@@ -49,7 +55,9 @@ export interface BusinessDetails {
   openingHours?: string[];  // Format: "day:hours"
 }
 
-// Interface representing the database stores schema
+/**
+ * Interface representing the database stores schema
+ */
 export interface StoreDBType {
   address: string;
   city: string;

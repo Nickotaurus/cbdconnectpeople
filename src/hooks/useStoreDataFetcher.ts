@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-import { FormData } from '@/types/store-form';
+import { FormData } from '@/types/store/form-types';
 import { createFormDataFromStoreDB } from '@/utils/storeFormUtils';
 
 interface UseStoreDataFetcherProps {

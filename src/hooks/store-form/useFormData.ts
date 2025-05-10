@@ -1,8 +1,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { FormData } from '@/types/store-form';
+import { FormData } from '@/types/store/form-types';
 import { initialFormData } from '@/utils/storeFormUtils';
-import { StoreData } from '@/types/store-types';
+import { StoreData } from '@/types/store/store-data';
 
 interface UseFormDataProps {
   initialStoreData?: StoreData;

@@ -4,7 +4,7 @@ import { useFormData } from './useFormData';
 import { useFormSubmit } from './useFormSubmit';
 import { useStoreDuplicateCheck } from '../useStoreDuplicateCheck';
 import { useStoreDataFetcher } from '../useStoreDataFetcher';
-import { UseStoreFormProps, UseStoreFormReturn, UseFormSubmitProps } from '@/types/store-form';
+import { UseStoreFormProps, UseStoreFormReturn, UseFormSubmitProps } from '@/types/store/form-types';
 
 export const useStoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStoreData }: UseStoreFormProps): UseStoreFormReturn => {
   // Si initialStoreData est fourni, on commence par l'onglet "basic" plutôt que "search"

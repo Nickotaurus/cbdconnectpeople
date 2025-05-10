@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,18 +7,10 @@ import { PartnerCategory } from "@/types/auth";
 import { useNavigate } from "react-router-dom";
 import { PartnerIcon } from "./PartnerIcon";
 import { getCategoryLabel } from "@/utils/partnerUtils";
+import { Partner } from "@/types/partners/partner";
 
 interface PartnerCardProps {
-  partner: {
-    id: string;
-    name: string;
-    category: PartnerCategory;
-    location: string;
-    description: string;
-    certifications: string[];
-    distance: number;
-    imageUrl: string;
-  };
+  partner: Partner;
   isProfessional: boolean;
   hasPremium: boolean;
   onContactClick: (partnerId: string) => void;

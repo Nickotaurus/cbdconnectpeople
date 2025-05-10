@@ -1,11 +1,12 @@
 
-import { Partner } from '@/types/partners';
+import { Partner } from '@/types/partners/partner';
+import { PartnerCategory } from "@/types/auth";
 
 export const testPartnerData: Partner[] = [
   {
     id: '1',
     name: 'ABC Comptabilité',
-    category: 'accountant',
+    category: 'accountant' as PartnerCategory,
     location: 'Paris',
     description: 'Cabinet comptable spécialisé dans le secteur du CBD',
     certifications: ['Expert-comptable', 'Certification CBD'],
@@ -15,7 +16,7 @@ export const testPartnerData: Partner[] = [
   {
     id: '2',
     name: 'GreenBank',
-    category: 'bank',
+    category: 'bank' as PartnerCategory,
     location: 'Lyon',
     description: 'Banque offrant des services financiers adaptés aux entreprises CBD',
     certifications: ['Banque éthique', 'Financement vert'],
@@ -25,7 +26,7 @@ export const testPartnerData: Partner[] = [
   {
     id: '3',
     name: 'JuriCBD',
-    category: 'legal',
+    category: 'legal' as PartnerCategory,
     location: 'Bordeaux',
     description: 'Experts juridiques spécialisés dans la législation CBD',
     certifications: ['Droit des affaires', 'Réglementation CBD'],
@@ -35,7 +36,7 @@ export const testPartnerData: Partner[] = [
   {
     id: '4',
     name: 'Assur CBD',
-    category: 'insurance',
+    category: 'insurance' as PartnerCategory,
     location: 'Marseille',
     description: 'Solutions d\'assurance sur mesure pour les boutiques CBD',
     certifications: ['Assurance professionnelle', 'Risques spécifiques CBD'],
@@ -45,7 +46,7 @@ export const testPartnerData: Partner[] = [
   {
     id: '5',
     name: 'CBD Lab',
-    category: 'laboratory',
+    category: 'laboratory' as PartnerCategory,
     location: 'Toulouse',
     description: 'Laboratoire d\'analyse et de certification de produits CBD',
     certifications: ['ISO 9001', 'Analyses THC/CBD'],
@@ -55,7 +56,7 @@ export const testPartnerData: Partner[] = [
   {
     id: '6',
     name: 'CBD Media',
-    category: 'media',
+    category: 'media' as PartnerCategory,
     location: 'Nantes',
     description: 'Agence médiatique spécialisée dans la promotion des produits CBD',
     certifications: ['Marketing digital', 'Relations presse'],

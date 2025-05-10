@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StoreFormTabs from '@/components/store-form/StoreFormTabs';
 import { useStoreForm } from '@/hooks/store-form';
-import { Store } from '@/types/store';
-import { StoreData } from '@/types/store-types';
+import { Store } from '@/types/store/store';
+import { StoreData } from '@/types/store/store-data';
 import { useStoreDuplicateCheck } from '@/hooks/useStoreDuplicateCheck';
 import { useToast } from "@/components/ui/use-toast";
 
