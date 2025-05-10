@@ -16,7 +16,7 @@ const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
-      const maxImages = 20; // Limite fixe de 20 images
+      const maxImages = 20; // Fixed limit of 20 images
       
       if (images.length + fileList.length > maxImages) {
         toast({
