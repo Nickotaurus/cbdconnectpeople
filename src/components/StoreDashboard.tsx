@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,7 @@ const StoreDashboard = () => {
     
     try {
       setIsSubmitting(true);
+      console.log("Enregistrement des données e-commerce:", ecommerceData);
       
       const { error } = await supabase
         .from('stores')
@@ -146,6 +148,7 @@ const StoreDashboard = () => {
         .eq('id', currentStore.id);
       
       if (error) {
+        console.error("Erreur Supabase:", error);
         throw error;
       }
       
@@ -167,13 +170,16 @@ const StoreDashboard = () => {
       });
       
       // Refresh stores list
-      refetch();
+      await refetch();
       
-    } catch (error) {
+      // Ajouter un message pour confirmer l'enregistrement
+      console.log("Enregistrement réussi des données e-commerce");
+      
+    } catch (error: any) {
       console.error("Error updating e-commerce status:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour de votre boutique.",
+        description: error?.message || "Une erreur est survenue lors de la mise à jour de votre boutique.",
         variant: "destructive",
       });
     } finally {
