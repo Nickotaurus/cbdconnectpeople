@@ -1,67 +1,47 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Partner } from '@/hooks/usePartners';
-import { PartnerCategory } from '@/types/auth';
+import { Partner } from '@/types/partners';
+import { testPartnerData } from '@/data/testPartnersData';
 
-export const useStoreFavoritePartners = (userId: string | undefined) => {
+interface UseStoreFavoritePartnersResult {
+  favoritePartners: Partner[];
+  isLoadingPartners: boolean;
+  error: string | null;
+}
+
+export const useStoreFavoritePartners = (userId?: string): UseStoreFavoritePartnersResult => {
   const [favoritePartners, setFavoritePartners] = useState<Partner[]>([]);
-  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
-  
+  const [isLoadingPartners, setIsLoadingPartners] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchFavoritePartners = async () => {
-      if (!userId) return;
-      
-      setIsLoadingPartners(true);
+      if (!userId) {
+        setFavoritePartners([]);
+        setIsLoadingPartners(false);
+        return;
+      }
+
       try {
-        // Récupérer les IDs des partenaires favoris de l'utilisateur
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('partner_favorites')
-          .eq('id', userId)
-          .single();
-
-        if (userError) {
-          console.error("Erreur lors de la récupération des favoris:", userError);
-          return;
-        }
-
-        if (!userData?.partner_favorites || userData.partner_favorites.length === 0) {
-          // Aucun partenaire favori
-          setIsLoadingPartners(false);
-          return;
-        }
-
-        // Récupérer les partenaires vérifiés
-        const { data: partners, error: partnersError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'partner')
-          .eq('is_verified', true);
-
-        if (partnersError) {
-          console.error("Erreur lors de la récupération des partenaires:", partnersError);
-          setIsLoadingPartners(false);
-          return;
-        }
-
-        if (partners && partners.length > 0) {
-          // Convertir les données des partenaires au format Partner
-          const formattedPartners = partners.map(partner => ({
-            id: partner.id,
-            name: partner.name || 'Partenaire sans nom',
-            category: (partner.partner_category || 'other') as PartnerCategory,
-            location: partner.partner_favorites?.[3] || 'France',
-            description: partner.partner_favorites?.[6] || 'Aucune description',
-            certifications: partner.certifications || [],
-            distance: Math.floor(Math.random() * 300),
-            imageUrl: partner.logo_url || 'https://via.placeholder.com/150'
-          }));
-
-          setFavoritePartners(formattedPartners);
-        }
+        setIsLoadingPartners(true);
+        
+        // For demonstration purposes, we're using sample partner data
+        // In a real implementation, you would fetch the user's favorite partners from the database
+        
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Get 0-3 random partners from test data to simulate favorite partners
+        const randomCount = Math.floor(Math.random() * 4);
+        const shuffledPartners = [...testPartnerData].sort(() => 0.5 - Math.random());
+        const sampleFavorites = shuffledPartners.slice(0, randomCount);
+        
+        setFavoritePartners(sampleFavorites);
+        setError(null);
       } catch (err) {
-        console.error("Erreur inattendue:", err);
+        console.error("Error fetching favorite partners:", err);
+        setError("Impossible de charger vos partenaires favoris");
       } finally {
         setIsLoadingPartners(false);
       }
@@ -69,6 +49,6 @@ export const useStoreFavoritePartners = (userId: string | undefined) => {
 
     fetchFavoritePartners();
   }, [userId]);
-  
-  return { favoritePartners, isLoadingPartners };
+
+  return { favoritePartners, isLoadingPartners, error };
 };

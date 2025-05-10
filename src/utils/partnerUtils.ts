@@ -1,7 +1,7 @@
 
 import { PartnerCategory } from "@/types/auth";
 import { partnerCategories } from "@/data/partnerCategoriesData";
-import { Partner } from "@/hooks/usePartners";
+import { Partner } from "@/types/partners";
 
 // Get category label based on the category value
 export const getCategoryLabel = (categoryValue: PartnerCategory) => {
