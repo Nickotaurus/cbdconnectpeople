@@ -36,4 +36,5 @@ export interface Store extends BaseStore {
 }
 
 // Re-export StoreOpeningHours from base-types to make it available
-export { StoreOpeningHours };
+// Using export type to comply with isolatedModules
+export type { StoreOpeningHours };
