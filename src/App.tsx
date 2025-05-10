@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import StoreDashboard from "./pages/StoreDashboard";
+import EcommercePage from "./pages/EcommercePage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/map" element={<MapView />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/partners" element={<Partners />} />
+        <Route path="/ecommerce" element={<EcommercePage />} />
         <Route path="/classifieds" element={<ClassifiedsPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
