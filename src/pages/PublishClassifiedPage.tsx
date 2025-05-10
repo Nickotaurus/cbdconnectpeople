@@ -1,15 +1,29 @@
 
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import ClassifiedForm from '@/components/classifieds/forms/ClassifiedForm';
+import { useToast } from '@/components/ui/use-toast';
 
 const PublishClassifiedPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    navigate('/login');
+  // Redirection vers la page de connexion si non authentifié
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Authentification requise",
+        description: "Vous devez être connecté pour publier une annonce.",
+        variant: "destructive",
+      });
+      navigate('/login', { replace: true });
+    }
+  }, [user, authLoading, navigate, toast]);
+
+  // Afficher un retour vide pendant le chargement pour éviter le flash de contenu
+  if (authLoading || !user) {
     return null;
   }
 

@@ -3,10 +3,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { ClassifiedFormData } from '@/types/classified';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useImageUpload } from './useImageUpload';
-import { classifiedService } from '@/services/classified';
+import { createClassified } from '@/services/classified/createClassified';
 
 interface UseClassifiedsUserProps {
   userId?: string | null;
@@ -27,7 +26,7 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
     }
   }, [user, userId, navigate]);
 
-  const createClassified = async (data: ClassifiedFormData) => {
+  const handleClassifiedSubmit = async (data: ClassifiedFormData) => {
     setIsLoading(true);
     setError(null);
 
@@ -36,67 +35,44 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
         throw new Error("User not authenticated.");
       }
 
-      // Format the data to match the database schema
-      const classifiedData = {
+      // Create the classified using our service
+      const classifiedId = await createClassified(user.id, {
         type: data.type,
         category: data.category,
         title: data.title,
         description: data.description,
         location: data.location,
         price: data.price,
-        is_premium: false, // Always false since premium option has been removed
-        user_id: user.id,
-      };
-
-      // Insert the classified
-      const { error: insertError, data: classifiedResult } = await supabase
-        .from('classifieds')
-        .insert([classifiedData])
-        .select('id')
-        .single();
-
-      if (insertError) {
-        console.error("Error submitting classified:", insertError);
-        throw new Error("Failed to submit classified.");
-      }
-
-      // If there are images, add them to the classified_images table
-      if (images.length > 0 && classifiedResult) {
-        const classifiedImages = images.map(image => ({
-          classified_id: classifiedResult.id,
-          url: image.url,
-          name: image.name
-        }));
-
-        const { error: imagesError } = await supabase
-          .from('classified_images')
-          .insert(classifiedImages);
-
-        if (imagesError) {
-          console.error("Error submitting classified images:", imagesError);
-          // Don't throw error here, as the classified has been created
-          toast({
-            title: "Warning",
-            description: "Your classified was created, but there was an issue with the images.",
-            variant: "destructive",
-          });
-        }
-      }
-
-      toast({
-        title: "Classified submitted",
-        description: "Your classified has been successfully submitted for review.",
+        isPremium: data.isPremium,
+        images: images,
+        jobType: data.jobType,
+        salary: data.salary,
+        experience: data.experience,
+        contractType: data.contractType,
+        companyName: data.companyName,
+        contactEmail: data.contactEmail
       });
 
+      toast({
+        title: "Annonce soumise",
+        description: "Votre annonce a été soumise avec succès et sera examinée par notre équipe.",
+      });
+
+      // Reset form state
+      setImages([]);
+      
+      // Redirect to classifieds page
       navigate('/classifieds');
+      return classifiedId;
     } catch (err: any) {
-      const errorMessage = err.message || "Failed to submit classified.";
+      const errorMessage = err.message || "Échec de la soumission de l'annonce.";
       setError(errorMessage);
       toast({
-        title: "Error submitting classified",
+        title: "Erreur de soumission d'annonce",
         description: errorMessage,
         variant: "destructive",
       });
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +85,7 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
     isUploading,
     error,
     handleImageUpload,
-    handleClassifiedSubmit: createClassified,
-    createClassified
+    handleClassifiedSubmit,
+    createClassified: handleClassifiedSubmit // Pour compatibilité avec le code existant
   };
 };

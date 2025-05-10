@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { ClassifiedCategory, ClassifiedType } from '@/types/classified';
 import { useToast } from '@/components/ui/use-toast';
 import { useClassifiedsUser } from '@/hooks/useClassifiedsUser';
@@ -19,7 +19,7 @@ import ImageUpload from './ImageUpload';
 const ClassifiedForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { handleClassifiedSubmit, isLoading } = useClassifiedsUser();
+  const { handleClassifiedSubmit, isLoading, images, setImages, handleImageUpload, isUploading } = useClassifiedsUser();
   
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ClassifiedType | ''>('');
@@ -27,7 +27,6 @@ const ClassifiedForm = () => {
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [price, setPrice] = useState('');
-  const [images, setImages] = useState<File[]>([]);
   
   const [jobType, setJobType] = useState('');
   const [salary, setSalary] = useState('');
@@ -74,7 +73,7 @@ const ClassifiedForm = () => {
         location,
         price,
         isPremium: false,
-        images,
+        images: [],
         jobType: isJobOffer ? jobType : undefined,
         salary: isJobOffer ? salary : undefined,
         experience: isJobOffer ? experience : undefined,
@@ -82,10 +81,22 @@ const ClassifiedForm = () => {
         companyName: isJobOffer ? companyName : undefined,
         contactEmail: isJobOffer ? contactEmail : undefined
       });
-      
-      navigate('/classifieds');
     } catch (error) {
       console.error("Erreur lors de la publication de l'annonce:", error);
+    }
+  };
+
+  // Modification du composant ImageUpload
+  const handleFilesSelected = async (files: File[]) => {
+    try {
+      await handleImageUpload(files);
+    } catch (error) {
+      console.error("Erreur lors du téléchargement des images:", error);
+      toast({
+        title: "Erreur",
+        description: "Un problème est survenu lors du téléchargement des images.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -136,7 +147,13 @@ const ClassifiedForm = () => {
       />
       
       <JobSearchInfoBox isJobSearch={isJobSearch} />
-      <ImageUpload images={images} setImages={setImages} />
+      
+      <ImageUpload 
+        images={images} 
+        setImages={setImages} 
+        onFilesSelected={handleFilesSelected}
+        isUploading={isUploading}
+      />
       
       <div className="space-y-2">
         <Label htmlFor="description" className="text-base">
@@ -174,8 +191,17 @@ const ClassifiedForm = () => {
       </div>
       
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <Button type="submit" className="gap-2" disabled={isLoading}>
-          {isLoading ? "Publication en cours..." : "Soumettre l'annonce"}
+        <Button 
+          type="submit" 
+          className="gap-2" 
+          disabled={isLoading || isUploading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Publication en cours...
+            </>
+          ) : "Soumettre l'annonce"}
         </Button>
         <Button 
           type="button" 
