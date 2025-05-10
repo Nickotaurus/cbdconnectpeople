@@ -6,6 +6,7 @@ import { ClassifiedFormData } from '@/types/classified';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/auth';
 import { useImageUpload } from './useImageUpload';
+import { classifiedService } from '@/services/classified';
 
 interface UseClassifiedsUserProps {
   userId?: string | null;

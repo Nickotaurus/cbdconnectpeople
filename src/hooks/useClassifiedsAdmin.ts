@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { classifiedService } from "@/services/classifiedService";
+import { classifiedService } from "@/services/classified";
 import { Classified, ClassifiedStatus } from "@/types/classified";
 import { useToast } from "@/components/ui/use-toast";
 
