@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { X, Upload, Info, Briefcase, Building2, Mail } from "lucide-react";
 import { ClassifiedCategory, ClassifiedType } from '@/types/classified';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,7 +24,6 @@ const PublishClassifiedPage = () => {
   const [location, setLocation] = useState('');
   const [price, setPrice] = useState('');
   const [images, setImages] = useState<File[]>([]);
-  const [premiumPhotos, setPremiumPhotos] = useState(false);
   
   const [jobType, setJobType] = useState('');
   const [salary, setSalary] = useState('');
@@ -86,14 +85,12 @@ const PublishClassifiedPage = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileList = Array.from(e.target.files);
-      const maxImages = premiumPhotos ? 20 : 3;
+      const maxImages = 20; // Limite fixe de 20 images
       
       if (images.length + fileList.length > maxImages) {
         toast({
           title: "Limite de photos atteinte",
-          description: premiumPhotos 
-            ? "Vous ne pouvez pas dépasser 20 photos au total." 
-            : "Vous ne pouvez pas ajouter plus de 3 photos. Achetez l'option premium pour ajouter jusqu'à 20 photos.",
+          description: "Vous ne pouvez pas dépasser 20 photos au total.",
           variant: "destructive"
         });
         return;
@@ -105,10 +102,6 @@ const PublishClassifiedPage = () => {
   
   const removeImage = (indexToRemove: number) => {
     setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
-  };
-  
-  const handlePremiumToggle = () => {
-    setPremiumPhotos(!premiumPhotos);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,7 +133,7 @@ const PublishClassifiedPage = () => {
         description,
         location,
         price,
-        isPremium: premiumPhotos,
+        isPremium: false, // Toujours false car l'option premium est retirée
         images,
         jobType: isJobOffer ? jobType : undefined,
         salary: isJobOffer ? salary : undefined,
@@ -331,25 +324,7 @@ const PublishClassifiedPage = () => {
           )}
           
           <div className="space-y-3">
-            <Label className="text-base">Photos ({premiumPhotos ? '0-20' : '0-3'})</Label>
-            
-            <div className="bg-secondary/30 rounded-lg p-4 mb-2">
-              <div className="flex items-start gap-2">
-                <Checkbox 
-                  id="premium-photos" 
-                  checked={premiumPhotos}
-                  onCheckedChange={handlePremiumToggle}
-                />
-                <div>
-                  <Label htmlFor="premium-photos" className="font-medium">
-                    Option Premium Photos (4,90€)
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Ajoutez jusqu'à 20 photos au lieu de 3 et augmentez la visibilité de votre annonce.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <Label className="text-base">Photos (0-20)</Label>
             
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-3">
@@ -376,7 +351,7 @@ const PublishClassifiedPage = () => {
               <Label 
                 htmlFor="image-upload" 
                 className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-secondary/20 ${
-                  images.length >= (premiumPhotos ? 20 : 3) ? 'opacity-50 cursor-not-allowed' : ''
+                  images.length >= 20 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -393,7 +368,7 @@ const PublishClassifiedPage = () => {
                   className="hidden"
                   onChange={handleImageUpload}
                   multiple
-                  disabled={images.length >= (premiumPhotos ? 20 : 3)}
+                  disabled={images.length >= 20}
                 />
               </Label>
             </div>

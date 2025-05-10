@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -88,7 +89,7 @@ export const useClassifiedsUser = ({ userId }: UseClassifiedsUserProps = {}) => 
         description: data.description,
         location: data.location,
         price: data.price,
-        is_premium: data.isPremium,
+        is_premium: false, // Toujours false car l'option premium a été retirée
         user_id: user.id,
         // Other fields can be added here
       };
