@@ -3,18 +3,10 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { CalendarIcon, ChevronDown, ShoppingBag, Ticket, BarChart4, CreditCard, Pencil, Save } from "lucide-react";
-import CouponCard from "@/components/CouponCard";
-import SubscriptionPlans from "@/components/SubscriptionPlans";
+import { BarChart4, Pencil, Users } from "lucide-react";
 import { getStoreById } from "@/utils/data";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
@@ -22,6 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import StoreForm from "@/components/StoreForm";
 import { Store } from "@/types/store";
 import { StoreData } from "@/types/store-types";
+import { filterPartners } from '@/utils/partnerUtils';
+import { Partner } from '@/hooks/usePartners';
+import { partnerCategories } from '@/data/partnerCategoriesData';
+import { getCategoryLabel, getCategoryIconName } from '@/utils/partnerUtils';
 
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,15 +31,8 @@ const StoreAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  
-  const [couponForm, setCouponForm] = useState({
-    code: "",
-    discount: "",
-    validUntil: new Date(),
-    isAffiliate: false
-  });
-  
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [favoritePartners, setFavoritePartners] = useState<Partner[]>([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
   useEffect(() => {
     const loadStore = async () => {
@@ -141,13 +130,6 @@ const StoreAdmin = () => {
           isEcommerce: storeData.is_ecommerce || false,
           ecommerceUrl: storeData.ecommerce_url || '',
           hasGoogleBusinessProfile: storeData.has_google_profile || false,
-          coupon: {
-            code: `WELCOME${Math.floor(Math.random() * 1000)}`,
-            discount: "10% sur tout le magasin",
-            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            usageCount: 0,
-            isAffiliate: false
-          },
           reviews: [],
           openingHours: storeData.opening_hours || []
         };
@@ -163,6 +145,67 @@ const StoreAdmin = () => {
     
     loadStore();
   }, [id, user, navigate]);
+
+  // Chargement des partenaires favoris
+  useEffect(() => {
+    const fetchFavoritePartners = async () => {
+      if (!user || !user.id) return;
+      
+      setIsLoadingPartners(true);
+      try {
+        // Récupérer les IDs des partenaires favoris de l'utilisateur
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('partner_favorites')
+          .eq('id', user.id)
+          .single();
+
+        if (userError) {
+          console.error("Erreur lors de la récupération des favoris:", userError);
+          return;
+        }
+
+        if (!userData?.partner_favorites || userData.partner_favorites.length === 0) {
+          // Aucun partenaire favori
+          return;
+        }
+
+        // Récupérer les partenaires vérifiés
+        const { data: partners, error: partnersError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'partner')
+          .eq('is_verified', true);
+
+        if (partnersError) {
+          console.error("Erreur lors de la récupération des partenaires:", partnersError);
+          return;
+        }
+
+        if (partners && partners.length > 0) {
+          // Convertir les données des partenaires au format Partner
+          const formattedPartners = partners.map(partner => ({
+            id: partner.id,
+            name: partner.name || 'Partenaire sans nom',
+            category: (partner.partner_category || 'other'),
+            location: partner.partner_favorites?.[3] || 'France',
+            description: partner.partner_favorites?.[6] || 'Aucune description',
+            certifications: partner.certifications || [],
+            distance: Math.floor(Math.random() * 300),
+            imageUrl: partner.logo_url || 'https://via.placeholder.com/150'
+          }));
+
+          setFavoritePartners(formattedPartners);
+        }
+      } catch (err) {
+        console.error("Erreur inattendue:", err);
+      } finally {
+        setIsLoadingPartners(false);
+      }
+    };
+
+    fetchFavoritePartners();
+  }, [user]);
   
   // Conversion de la boutique au format StoreData pour le formulaire d'édition
   const convertStoreToStoreData = (): StoreData => {
@@ -234,19 +277,18 @@ const StoreAdmin = () => {
     }
   };
   
-  const handleCouponSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Coupon créé",
-      description: `Le coupon ${couponForm.code} a été créé avec succès.`,
-    });
-  };
-  
-  const handleCreateAd = () => {
-    toast({
-      title: "Campagne publicitaire",
-      description: "Votre demande de campagne publicitaire a été enregistrée.",
-    });
+  const renderPartnerIcon = (categoryValue: string) => {
+    const iconName = getCategoryIconName(categoryValue);
+    switch (iconName) {
+      case "Building": return <Users className="h-4 w-4 mr-2" />;
+      case "Calculator": return <Users className="h-4 w-4 mr-2" />;
+      case "Briefcase": return <Users className="h-4 w-4 mr-2" />;
+      case "Shield": return <Users className="h-4 w-4 mr-2" />;
+      case "Package": return <Users className="h-4 w-4 mr-2" />;
+      case "Users": return <Users className="h-4 w-4 mr-2" />;
+      case "Tag": return <Users className="h-4 w-4 mr-2" />;
+      default: return <Users className="h-4 w-4 mr-2" />;
+    }
   };
   
   if (loading) {
@@ -322,22 +364,14 @@ const StoreAdmin = () => {
       <p className="text-muted-foreground mb-6">Gérez votre boutique {store.name}</p>
       
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-8">
+        <TabsList className="grid grid-cols-2 mb-8">
           <TabsTrigger value="dashboard">
             <BarChart4 className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Tableau de bord</span>
           </TabsTrigger>
-          <TabsTrigger value="coupons">
-            <Ticket className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Coupons</span>
-          </TabsTrigger>
-          <TabsTrigger value="premium">
-            <ShoppingBag className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Premium</span>
-          </TabsTrigger>
-          <TabsTrigger value="ads">
-            <CreditCard className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Publicité</span>
+          <TabsTrigger value="partners">
+            <Users className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Partenaires favoris</span>
           </TabsTrigger>
         </TabsList>
         
@@ -363,8 +397,8 @@ const StoreAdmin = () => {
                     <p className="text-2xl font-bold">238</p>
                   </div>
                   <div className="bg-secondary rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Utilisation des coupons</h3>
-                    <p className="text-2xl font-bold">{store.coupon?.usageCount || 0}</p>
+                    <h3 className="font-medium mb-2">Partenaires favoris</h3>
+                    <p className="text-2xl font-bold">{favoritePartners.length}</p>
                   </div>
                   <div className="bg-secondary rounded-lg p-4">
                     <h3 className="font-medium mb-2">Statut</h3>
@@ -459,209 +493,51 @@ const StoreAdmin = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="coupons" className="space-y-6">
+        <TabsContent value="partners" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Gérer vos coupons</CardTitle>
+              <CardTitle>Vos partenaires favoris</CardTitle>
               <CardDescription>
-                Créez et suivez vos coupons de réduction pour attirer de nouveaux clients.
+                Retrouvez rapidement les partenaires que vous avez marqués comme favoris
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-8 md:grid-cols-2">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Coupon actif</h3>
-                  <CouponCard 
-                    code={store.coupon?.code || "WELCOME123"}
-                    discount={store.coupon?.discount || "10% sur tout le magasin"}
-                    validUntil={store.coupon?.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                    storeName={store.name}
-                    usageCount={store.coupon?.usageCount || 0}
-                    isAffiliate={store.coupon?.isAffiliate || false}
-                    showStats={true}
-                  />
+              {isLoadingPartners ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-r-transparent rounded-full mx-auto mb-4"></div>
+                  <p>Chargement de vos partenaires favoris...</p>
                 </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Créer un nouveau coupon</h3>
-                  <form onSubmit={handleCouponSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="code">Code</Label>
-                      <Input 
-                        id="code" 
-                        placeholder="Ex: WELCOME10" 
-                        value={couponForm.code}
-                        onChange={e => setCouponForm({...couponForm, code: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="discount">Réduction</Label>
-                      <Input 
-                        id="discount" 
-                        placeholder="Ex: 10% sur tout le magasin" 
-                        value={couponForm.discount}
-                        onChange={e => setCouponForm({...couponForm, discount: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Date d'expiration</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? (
-                              format(date, "PPP", { locale: fr })
-                            ) : (
-                              <span>Choisir une date</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="isAffiliate"
-                        className="h-4 w-4"
-                        checked={couponForm.isAffiliate}
-                        onChange={e => setCouponForm({...couponForm, isAffiliate: e.target.checked})}
-                      />
-                      <Label htmlFor="isAffiliate" className="font-normal">Coupon affilié (avec commission)</Label>
-                    </div>
-                    
-                    <Button type="submit" className="w-full">Créer un coupon</Button>
-                  </form>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="premium" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Offres premium</CardTitle>
-              <CardDescription>
-                Démarquez-vous de la concurrence avec nos offres premium.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">Votre abonnement actuel</h3>
-                <div className="p-4 rounded-md bg-secondary">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">
-                        {store.isPremium ? "Plan Premium" : "Plan Basique"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {store.isPremium
-                          ? `Valide jusqu'au ${store.premiumUntil}`
-                          : "Fonctionnalités limitées"}
-                      </p>
-                    </div>
-                    {store.isPremium ? (
-                      <Button variant="outline" size="sm">Gérer</Button>
-                    ) : (
-                      <Button size="sm" onClick={() => setActiveTab("premium")}>Passer au Premium</Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <h3 className="text-lg font-medium mb-4">Nos offres</h3>
-              <SubscriptionPlans className="mt-4" />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="ads" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campagnes publicitaires</CardTitle>
-              <CardDescription>
-                Créez des campagnes publicitaires ciblées pour augmenter votre visibilité.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Créer une nouvelle campagne</h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="adTitle">Titre de l'annonce</Label>
-                      <Input id="adTitle" placeholder="Ex: Nouvelle collection CBD" />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="adDescription">Description</Label>
-                      <Textarea 
-                        id="adDescription" 
-                        placeholder="Décrivez votre offre en quelques mots..." 
-                        className="resize-none"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="budget">Budget</Label>
-                        <div className="relative">
-                          <Input id="budget" type="number" placeholder="0" min="10" />
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <span className="text-muted-foreground">€</span>
-                          </div>
+              ) : favoritePartners.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {favoritePartners.map((partner) => (
+                    <div key={partner.id} className="bg-card border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-2">
+                        {renderPartnerIcon(partner.category)}
+                        <div>
+                          <h3 className="font-medium">{partner.name}</h3>
+                          <p className="text-sm text-muted-foreground">{getCategoryLabel(partner.category)}</p>
                         </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="duration">Durée</Label>
-                        <div className="relative">
-                          <select
-                            id="duration"
-                            className={cn(
-                              "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none"
-                            )}
-                          >
-                            <option value="7">7 jours</option>
-                            <option value="15">15 jours</option>
-                            <option value="30">30 jours</option>
-                          </select>
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        </div>
+                      <p className="text-sm mt-2 line-clamp-2">{partner.description}</p>
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="text-sm text-muted-foreground">{partner.location}</div>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/partners?id=${partner.id}`}>Contacter</Link>
+                        </Button>
                       </div>
                     </div>
-                    
-                    <Button onClick={handleCreateAd} className="w-full">
-                      Lancer la campagne
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Campagnes actives</h3>
-                  <div className="text-center py-8 bg-secondary/50 rounded-md">
-                    <p className="text-muted-foreground">
-                      Vous n'avez aucune campagne active en ce moment.
-                    </p>
-                  </div>
+              ) : (
+                <div className="text-center py-8 bg-secondary/50 rounded-md">
+                  <p className="text-muted-foreground mb-4">
+                    Vous n'avez aucun partenaire favori pour le moment.
+                  </p>
+                  <Button asChild>
+                    <Link to="/partners">Explorer les partenaires</Link>
+                  </Button>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -671,4 +547,3 @@ const StoreAdmin = () => {
 };
 
 export default StoreAdmin;
-
