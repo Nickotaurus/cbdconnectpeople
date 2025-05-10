@@ -396,7 +396,7 @@ const StoreDashboard = () => {
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
                 <Button 
-                  variant="primary"
+                  variant="default"
                   disabled={isSubmitting}
                   onClick={handleEcommerceSubmit}
                 >
