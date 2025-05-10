@@ -49,7 +49,6 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     isEcommerce: dbStore.is_ecommerce || false,
     ecommerceUrl: dbStore.ecommerce_url || null,
     hasGoogleBusinessProfile: dbStore.has_google_business_profile || false,
-    distance: null,  // This is added in the Store type
     products: [],  // Initialize with empty array as it doesn't exist in StoreDBType
     openingHours: [], // Add default empty openingHours array
     reviews: [], // Add default empty reviews array
