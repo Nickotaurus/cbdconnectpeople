@@ -169,7 +169,7 @@ const StoreDashboard = () => {
           : "Les modifications ont été enregistrées.",
       });
       
-      // Refresh stores list
+      // Refresh stores list - making sure to await it
       await refetch();
       
       // Ajouter un message pour confirmer l'enregistrement
@@ -404,7 +404,10 @@ const StoreDashboard = () => {
                 <Button 
                   variant="default"
                   disabled={isSubmitting}
-                  onClick={handleEcommerceSubmit}
+                  onClick={() => {
+                    console.log("Bouton enregistrer cliqué");
+                    handleEcommerceSubmit();
+                  }}
                 >
                   {isSubmitting ? "Enregistrement..." : "Enregistrer"}
                 </Button>
