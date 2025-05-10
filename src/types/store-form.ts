@@ -33,9 +33,10 @@ export interface UseStoreFormProps {
 export interface StoreFormSubmitResult {
   success: boolean;
   id?: string;
+  storeId?: string; // Adding the missing storeId property
   store?: Store;
   error?: any;
-  message?: string; // Adding the missing message property
+  message: string; // This property was added in a previous fix
 }
 
 export interface UseStoreFormReturn {

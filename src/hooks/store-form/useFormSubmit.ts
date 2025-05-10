@@ -96,11 +96,12 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         await onSuccess(storeObject);
       }
 
-      // Ensure the returned object includes the message property
+      // Return result with both storeId and store properties for consistent access
       return { 
         success: true, 
-        message: 'Boutique ajoutée avec succès', // Make sure message property exists
-        storeId: newStore.id,
+        message: 'Boutique ajoutée avec succès',
+        storeId: newStore.id, // Make sure storeId is returned
+        id: newStore.id, // Also keep id for backward compatibility
         store: storeObject
       };
 
@@ -115,8 +116,12 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
         variant: 'destructive'
       });
       
-      // Include message property in the error case as well
-      return { success: false, message: errorMessage };
+      // Include message and storeId (as null) properties for consistent return type
+      return { 
+        success: false, 
+        message: errorMessage,
+        storeId: undefined 
+      };
     } finally {
       setIsLoading(false);
       console.log("Fin de handleSubmit dans useFormSubmit");

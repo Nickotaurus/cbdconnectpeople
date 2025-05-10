@@ -125,8 +125,9 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
         if (result.store && onSuccess) {
           console.log("Appel de la fonction onSuccess");
           await onSuccess(result.store);
-        } else if (result.storeId) {
-          console.log("Navigation vers la page du tableau de bord");
+        } else if (result.storeId || result.id) { // Check both storeId and id
+          const storeIdToUse = result.storeId || result.id; // Use either property
+          console.log("Navigation vers la page du tableau de bord, storeId:", storeIdToUse);
           // Navigate to store dashboard after successful submission
           navigate('/store-dashboard');
         }
