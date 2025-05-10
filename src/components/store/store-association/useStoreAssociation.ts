@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { associateStoreWithUser } from '@/utils/storeUtils';
+import { associateStoreWithUser } from '@/utils/storeUtils/storeAssociation';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -117,6 +117,7 @@ export const useStoreAssociation = (
       }
       
       // Create a new association using store name and city
+      // This line was causing the error - we need to pass only the parameters defined in the function
       const response = await associateStoreWithUser(storeName, city, user.id);
       setResult(response);
       

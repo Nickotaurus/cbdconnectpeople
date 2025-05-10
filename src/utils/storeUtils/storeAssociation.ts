@@ -1,8 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { stores } from './storeOperations';
 
-// Fonction améliorée pour associer une boutique à un profil utilisateur
+// Updated function signature to accept three parameters
 export const associateStoreWithUser = async (
   storeName: string,
   city: string,
