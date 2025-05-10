@@ -1,6 +1,6 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Globe, Newspaper, MessageCircle, Briefcase, Shopping } from 'lucide-react';
+import { MapPin, Globe, Newspaper, MessageCircle, Briefcase, ShoppingBag } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/auth';
 import NavLinks from './navigation/NavLinks';
@@ -19,7 +19,7 @@ const Navbar = () => {
   
   const navLinks = [
     { href: '/map', label: 'Boutiques CBD', icon: MapPin },
-    { href: '/ecommerce', label: 'E-commerce CBD', icon: Shopping },
+    { href: '/ecommerce', label: 'E-commerce CBD', icon: ShoppingBag },
     { href: '/news', label: 'Actualité CBD', icon: Newspaper },
     { href: '/partners', label: 'Partenaires CBD', icon: Briefcase },
     { href: '/classifieds', label: 'Petites Annonces', icon: MessageCircle },
