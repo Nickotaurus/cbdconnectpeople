@@ -13,7 +13,7 @@ export interface StoreData {
   rating?: number;
   totalReviews?: number;
   reviews?: ReviewData[];
-  openingHours?: string[];
+  openingHours?: string[];  // Format: "day:hours"
   description?: string;
   logo_url?: string;
   photo_url?: string;
@@ -46,7 +46,7 @@ export interface BusinessDetails {
   rating?: number;
   totalReviews?: number;
   reviews?: ReviewData[];
-  openingHours?: string[];
+  openingHours?: string[];  // Format: "day:hours"
 }
 
 // Interface representing the database stores schema
@@ -73,5 +73,5 @@ export interface StoreDBType {
   is_premium?: boolean | null;
   premium_until?: string | null;
   has_google_profile?: boolean | null;
-  opening_hours?: string[] | null;
+  opening_hours?: string[] | null;  // Format: "day:hours"
 }

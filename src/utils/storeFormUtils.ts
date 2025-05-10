@@ -75,18 +75,12 @@ export const createFormDataFromStoreDB = (storeData: any): FormData => {
     isEcommerce: storeData.is_ecommerce || false,
     ecommerceUrl: storeData.website || '', // Default to website if not provided
     hasGoogleBusinessProfile: storeData.has_google_profile || false,
-    openingHours: (storeData.opening_hours || []).map((hour: string) => {
-      const parts = hour.split(':');
-      return {
-        day: parts[0] || '',
-        hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
-      };
-    })
+    openingHours: (storeData.opening_hours || [])
   };
 };
 
 export const createStoreDataFromForm = (formData: FormData) => {
-  // Convertir les objets d'heures d'ouverture en tableau de chaînes
+  // Convert opening hours from any format to string array
   const formattedHours = formData.openingHours && Array.isArray(formData.openingHours) 
     ? formData.openingHours.map((hour: any) => {
         if (typeof hour === 'string') {

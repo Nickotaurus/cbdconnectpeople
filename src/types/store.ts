@@ -57,4 +57,5 @@ export interface Store {
     origin: string;
     quality: string;
   }[];
+  favoritePartnersCount?: number;
 }

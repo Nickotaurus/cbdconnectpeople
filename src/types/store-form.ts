@@ -19,7 +19,7 @@ export interface FormData {
   isEcommerce: boolean;
   ecommerceUrl: string;
   hasGoogleBusinessProfile?: boolean;
-  openingHours?: string[];
+  openingHours?: string[]; // Format: "day:hours"
 }
 
 export interface UseStoreFormProps {

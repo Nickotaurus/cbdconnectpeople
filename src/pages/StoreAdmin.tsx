@@ -131,7 +131,19 @@ const StoreAdmin = () => {
           ecommerceUrl: storeData.ecommerce_url || '',
           hasGoogleBusinessProfile: storeData.has_google_profile || false,
           reviews: [],
-          openingHours: storeData.opening_hours || [],
+          // Convert string array to object array if necessary
+          openingHours: Array.isArray(storeData.opening_hours) 
+            ? storeData.opening_hours.map((hour: string) => {
+                if (typeof hour === 'string') {
+                  const parts = hour.split(':');
+                  return {
+                    day: parts[0] || '',
+                    hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
+                  };
+                }
+                return hour;
+              })
+            : [],
           products: [],
           favoritePartnersCount: favoritePartners.length
         };
@@ -170,7 +182,8 @@ const StoreAdmin = () => {
       is_ecommerce: store.isEcommerce || false,
       ecommerce_url: store.ecommerceUrl || '',
       has_google_profile: store.hasGoogleBusinessProfile || false,
-      openingHours: store.openingHours || []
+      // Convert object array to string array
+      openingHours: store.openingHours.map(hour => `${hour.day}:${hour.hours}`)
     };
   };
 
