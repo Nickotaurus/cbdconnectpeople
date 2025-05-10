@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload, Check, Image as ImageIcon } from 'lucide-react';
 
@@ -10,8 +10,15 @@ interface LogoUploadProps {
 }
 
 const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploadProps) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentLogoUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mettre à jour previewUrl lorsque currentLogoUrl change
+  useEffect(() => {
+    if (currentLogoUrl) {
+      setPreviewUrl(currentLogoUrl);
+    }
+  }, [currentLogoUrl]);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -43,6 +50,11 @@ const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploa
     // Si le téléchargement échoue, restaurer l'ancienne prévisualisation
     if (!logoUrl && currentLogoUrl) {
       setPreviewUrl(currentLogoUrl);
+    }
+
+    // Réinitialiser le champ de fichier pour permettre de sélectionner le même fichier à nouveau
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 

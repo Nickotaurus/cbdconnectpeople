@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +28,17 @@ const StoreEcommerceTab = ({
   uploadingLogo,
   currentLogoUrl
 }: StoreEcommerceTabProps) => {
+  // Gérer les changements de logo
+  const handleLogoUpload = async (file: File) => {
+    try {
+      const logoUrl = await onLogoUpload(file);
+      return logoUrl;
+    } catch (error) {
+      console.error("Erreur lors de l'upload du logo:", error);
+      return null;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -70,10 +81,13 @@ const StoreEcommerceTab = ({
             </p>
             
             <LogoUpload 
-              onUpload={onLogoUpload}
+              onUpload={handleLogoUpload}
               isUploading={uploadingLogo}
               currentLogoUrl={currentLogoUrl}
             />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              Votre logo est automatiquement enregistré lors du téléchargement. Cliquez sur "Enregistrer" ci-dessous pour sauvegarder les autres modifications.
+            </p>
           </div>
         </div>
       </CardContent>
