@@ -1,16 +1,19 @@
 
 import { useState } from 'react';
-import { X, Upload } from "lucide-react";
+import { X, Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { storeImage } from "@/types/classified";
 
 interface ImageUploadProps {
-  images: File[];
-  setImages: React.Dispatch<React.SetStateAction<File[]>>;
+  images: storeImage[];
+  setImages: React.Dispatch<React.SetStateAction<storeImage[]>>;
+  onFilesSelected: (files: File[]) => void;
+  isUploading: boolean;
 }
 
-const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
+const ImageUpload = ({ images, setImages, onFilesSelected, isUploading }: ImageUploadProps) => {
   const { toast } = useToast();
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +30,8 @@ const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
         return;
       }
       
-      setImages(prevImages => [...prevImages, ...fileList]);
+      // Pass the files to parent component for handling upload
+      onFilesSelected(fileList);
     }
   };
   
@@ -44,8 +48,8 @@ const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
           {images.map((image, index) => (
             <div key={index} className="relative aspect-square bg-muted rounded-md overflow-hidden group">
               <img
-                src={URL.createObjectURL(image)}
-                alt={`Preview ${index}`}
+                src={image.url}
+                alt={image.name}
                 className="w-full h-full object-cover"
               />
               <button
@@ -64,15 +68,26 @@ const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
         <Label 
           htmlFor="image-upload" 
           className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-secondary/20 ${
-            images.length >= 20 ? 'opacity-50 cursor-not-allowed' : ''
+            images.length >= 20 || isUploading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-            <p className="mb-1 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Cliquez pour ajouter des photos</span>
-            </p>
-            <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP (max. 5MB)</p>
+            {isUploading ? (
+              <>
+                <Loader2 className="h-8 w-8 mb-2 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Téléchargement en cours...
+                </p>
+              </>
+            ) : (
+              <>
+                <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                <p className="mb-1 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Cliquez pour ajouter des photos</span>
+                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP (max. 5MB)</p>
+              </>
+            )}
           </div>
           <Input
             id="image-upload"
@@ -81,7 +96,7 @@ const ImageUpload = ({ images, setImages }: ImageUploadProps) => {
             className="hidden"
             onChange={handleImageUpload}
             multiple
-            disabled={images.length >= 20}
+            disabled={images.length >= 20 || isUploading}
           />
         </Label>
       </div>

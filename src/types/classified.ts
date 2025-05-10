@@ -41,7 +41,7 @@ export interface ClassifiedFormData {
   location: string;
   price?: string;
   isPremium: boolean;
-  images: File[];
+  images: storeImage[];
   jobType?: string;
   salary?: string;
   experience?: string;

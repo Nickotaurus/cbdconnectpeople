@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,14 @@ import ImageUpload from './ImageUpload';
 const ClassifiedForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { handleClassifiedSubmit, isLoading, images, setImages, handleImageUpload, isUploading } = useClassifiedsUser();
+  const { 
+    handleClassifiedSubmit, 
+    isLoading, 
+    images, 
+    setImages, 
+    handleImageUpload, 
+    isUploading 
+  } = useClassifiedsUser();
   
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ClassifiedType | ''>('');
@@ -73,7 +79,7 @@ const ClassifiedForm = () => {
         location,
         price,
         isPremium: false,
-        images: [],
+        images,
         jobType: isJobOffer ? jobType : undefined,
         salary: isJobOffer ? salary : undefined,
         experience: isJobOffer ? experience : undefined,
