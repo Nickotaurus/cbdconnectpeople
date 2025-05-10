@@ -18,6 +18,8 @@ import { filterPartners } from '@/utils/partnerUtils';
 import { Partner } from '@/hooks/usePartners';
 import { partnerCategories } from '@/data/partnerCategoriesData';
 import { getCategoryLabel, getCategoryIconName } from '@/utils/partnerUtils';
+import { PartnerCategory } from '@/types/auth';
+import { PartnerIcon } from '@/components/partners/PartnerIcon';
 
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
@@ -187,7 +189,8 @@ const StoreAdmin = () => {
           const formattedPartners = partners.map(partner => ({
             id: partner.id,
             name: partner.name || 'Partenaire sans nom',
-            category: (partner.partner_category || 'other'),
+            // Cast string to PartnerCategory to make TypeScript happy
+            category: (partner.partner_category || 'other') as PartnerCategory,
             location: partner.partner_favorites?.[3] || 'France',
             description: partner.partner_favorites?.[6] || 'Aucune description',
             certifications: partner.certifications || [],
@@ -512,7 +515,7 @@ const StoreAdmin = () => {
                   {favoritePartners.map((partner) => (
                     <div key={partner.id} className="bg-card border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3 mb-2">
-                        {renderPartnerIcon(partner.category)}
+                        <PartnerIcon category={partner.category} />
                         <div>
                           <h3 className="font-medium">{partner.name}</h3>
                           <p className="text-sm text-muted-foreground">{getCategoryLabel(partner.category)}</p>
