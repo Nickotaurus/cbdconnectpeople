@@ -13,6 +13,7 @@ export const useStoreDashboard = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const { stores, refetch } = useStores();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [ecommerceData, setEcommerceData] = useState({
     isEcommerce: false,
     ecommerceUrl: '',
@@ -164,6 +165,85 @@ export const useStoreDashboard = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Nouvelle fonction pour gérer l'upload du logo
+  const handleLogoUpload = async (file: File) => {
+    if (!currentStore?.id) {
+      toast({
+        title: "Erreur",
+        description: "Aucune boutique associée à votre compte.",
+        variant: "destructive",
+      });
+      return null;
+    }
+    
+    try {
+      setUploadingLogo(true);
+      
+      // Créer un nom de fichier unique
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${currentStore.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      // Télécharger le fichier dans le bucket "store-logos"
+      const { data, error } = await supabase.storage
+        .from('store-logos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (error) {
+        console.error("Erreur lors du téléchargement du logo:", error);
+        throw error;
+      }
+      
+      // Obtenir l'URL publique du logo
+      const { data: publicUrlData } = supabase.storage
+        .from('store-logos')
+        .getPublicUrl(filePath);
+      
+      const logoUrl = publicUrlData.publicUrl;
+      
+      // Mettre à jour la boutique avec l'URL du logo
+      const { error: updateError } = await supabase
+        .from('stores')
+        .update({ logo_url: logoUrl })
+        .eq('id', currentStore.id);
+        
+      if (updateError) {
+        console.error("Erreur lors de la mise à jour de l'URL du logo:", updateError);
+        throw updateError;
+      }
+      
+      // Mettre à jour le store local
+      setCurrentStore(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          logo_url: logoUrl
+        };
+      });
+      
+      toast({
+        title: "Succès",
+        description: "Votre logo a été téléchargé avec succès.",
+      });
+      
+      return logoUrl;
+      
+    } catch (error: any) {
+      console.error("Erreur lors du téléchargement du logo:", error);
+      toast({
+        title: "Erreur",
+        description: error?.message || "Une erreur est survenue lors du téléchargement du logo.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
   
   return {
     currentStore,
@@ -172,8 +252,10 @@ export const useStoreDashboard = () => {
     setShowSuccessMessage,
     ecommerceData,
     isSubmitting,
+    uploadingLogo,
     handleEcommerceChange,
     handleEcommerceSubmit,
+    handleLogoUpload,
     refetch
   };
 };

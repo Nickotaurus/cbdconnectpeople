@@ -24,8 +24,10 @@ const StoreDashboard = () => {
     setShowSuccessMessage,
     ecommerceData,
     isSubmitting,
+    uploadingLogo,
     handleEcommerceChange,
-    handleEcommerceSubmit
+    handleEcommerceSubmit,
+    handleLogoUpload
   } = useStoreDashboard();
 
   const handleEditStore = () => {
@@ -97,6 +99,9 @@ const StoreDashboard = () => {
               isSubmitting={isSubmitting}
               onChange={handleEcommerceChange}
               onSubmit={handleEcommerceSubmit}
+              onLogoUpload={handleLogoUpload}
+              uploadingLogo={uploadingLogo}
+              currentLogoUrl={currentStore.logo_url}
             />
           </TabsContent>
         </Tabs>

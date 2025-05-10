@@ -2,7 +2,9 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import EcommerceField from '@/components/store-form/EcommerceField';
+import LogoUpload from './LogoUpload';
 
 interface StoreEcommerceTabProps {
   ecommerceData: {
@@ -12,13 +14,19 @@ interface StoreEcommerceTabProps {
   isSubmitting: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: () => void;
+  onLogoUpload: (file: File) => Promise<string | null>;
+  uploadingLogo: boolean;
+  currentLogoUrl?: string | null;
 }
 
 const StoreEcommerceTab = ({ 
   ecommerceData, 
   isSubmitting, 
   onChange, 
-  onSubmit 
+  onSubmit,
+  onLogoUpload,
+  uploadingLogo,
+  currentLogoUrl
 }: StoreEcommerceTabProps) => {
   return (
     <Card>
@@ -51,16 +59,29 @@ const StoreEcommerceTab = ({
               </p>
             </div>
           )}
+
+          <Separator className="my-6" />
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Logo de votre boutique</h3>
+            <p className="text-sm text-muted-foreground">
+              Ce logo sera affiché sur la page E-commerce pour représenter votre boutique.
+              Choisissez une image claire et de bonne qualité pour attirer l'attention des clients.
+            </p>
+            
+            <LogoUpload 
+              onUpload={onLogoUpload}
+              isUploading={uploadingLogo}
+              currentLogoUrl={currentLogoUrl}
+            />
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
         <Button 
           variant="default"
           disabled={isSubmitting}
-          onClick={() => {
-            console.log("Bouton enregistrer cliqué");
-            onSubmit();
-          }}
+          onClick={onSubmit}
         >
           {isSubmitting ? "Enregistrement..." : "Enregistrer"}
         </Button>
