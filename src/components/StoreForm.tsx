@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StoreFormTabs from '@/components/store-form/StoreFormTabs';
 import { useStoreForm } from '@/hooks/store-form';
@@ -67,9 +67,13 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
   // Utiliser notre hook de vérification des doublons
   const { isDuplicate } = useStoreDuplicateCheck(formData);
   
+  useEffect(() => {
+    console.log("FormData mis à jour:", formData);
+  }, [formData]);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Soumission du formulaire dans StoreForm");
+    console.log("Soumission du formulaire dans StoreForm avec les données:", formData);
     
     // Empêcher la soumission si un doublon est détecté
     if (isDuplicate) {
@@ -88,8 +92,20 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
       return;
     }
     
+    // Validation basique des champs obligatoires
+    if (!formData.name || !formData.address || !formData.city || !formData.postalCode) {
+      toast({
+        title: "Informations manquantes",
+        description: "Veuillez remplir tous les champs obligatoires.",
+        variant: "destructive"
+      });
+      // Si un champ requis manque, activer l'onglet de base
+      setActiveTab('basic');
+      return;
+    }
+    
     setIsSubmitting(true);
-    console.log("Soumission du formulaire dans StoreForm");
+    console.log("Début de la soumission du formulaire");
     
     try {
       const result = await submitForm(e);
@@ -98,22 +114,37 @@ const StoreForm = ({ isEdit = false, storeId, onSuccess, storeType, initialStore
       
       if (result.success) {
         console.log("Soumission réussie");
+        toast({
+          title: "Boutique ajoutée avec succès",
+          description: "Votre boutique a été enregistrée avec succès.",
+        });
+        
         // Set the newly registered store flag
         sessionStorage.setItem('newlyRegisteredStore', 'true');
         
         if (result.store && onSuccess) {
           console.log("Appel de la fonction onSuccess");
           await onSuccess(result.store);
-        } else if (result.id) {
+        } else if (result.storeId) {
           console.log("Navigation vers la page du tableau de bord");
           // Navigate to store dashboard after successful submission
           navigate('/store-dashboard');
         }
       } else {
         console.log("Échec de la soumission:", result.message || "Erreur inconnue");
+        toast({
+          title: "Échec de l'enregistrement",
+          description: result.message || "Une erreur est survenue lors de l'enregistrement de la boutique.",
+          variant: "destructive"
+        });
       }
     } catch (err) {
       console.error("Erreur lors de la soumission:", err);
+      toast({
+        title: "Erreur de soumission",
+        description: "Une erreur inattendue est survenue lors de l'enregistrement de la boutique.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }

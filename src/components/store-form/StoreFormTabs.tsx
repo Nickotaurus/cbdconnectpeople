@@ -59,10 +59,17 @@ const StoreFormTabs = ({
     setActiveTab(value);
   };
 
+  // Ajouter cette fonction pour gérer la soumission du formulaire
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Soumission du formulaire depuis StoreFormTabs");
+    handleSubmit(e);
+  };
+
   return (
     <div className="space-y-8">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList>
+        <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="search" disabled={skipSearch}>Rechercher</TabsTrigger>
           <TabsTrigger value="basic">Infos générales</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -70,7 +77,7 @@ const StoreFormTabs = ({
         </TabsList>
       
       
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onFormSubmit}>
           <Card>
             <CardContent className="p-6">
               <TabsContent value="search" className="space-y-6 mt-6">

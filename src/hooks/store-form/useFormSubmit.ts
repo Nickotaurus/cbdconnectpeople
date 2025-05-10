@@ -15,7 +15,7 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
   const { toast } = useToast();
 
   const handleSubmit = async (formData: FormData) => {
-    console.log("Début de handleSubmit dans useFormSubmit");
+    console.log("Début de handleSubmit dans useFormSubmit avec les données:", formData);
     setError('');
     setIsLoading(true);
 
@@ -26,7 +26,13 @@ export const useFormSubmit = ({ onSuccess }: UseFormSubmitProps = {}) => {
       }
 
       console.log("Utilisateur connecté:", user.id);
-      console.log("Données du formulaire:", formData);
+
+      // Validation des données avant soumission
+      if (!formData.name || !formData.address || !formData.city || !formData.postalCode) {
+        const errorMsg = "Veuillez remplir tous les champs obligatoires";
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+      }
 
       // Create the store data object from form data
       const storeData = createStoreDataFromForm(formData);

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 
 interface FormActionsProps {
   activeTab: string;
@@ -9,7 +9,7 @@ interface FormActionsProps {
   navigate: (path: string) => void;
   isLoading?: boolean;
   isEdit?: boolean;
-  isDisabled?: boolean; // Nouvelle prop
+  isDisabled?: boolean;
 }
 
 const FormActions = ({ 
@@ -18,7 +18,7 @@ const FormActions = ({
   navigate, 
   isLoading = false,
   isEdit = false,
-  isDisabled = false // Nouvelle propriété avec valeur par défaut
+  isDisabled = false
 }: FormActionsProps) => {
   // Définition de l'ordre des onglets
   const tabOrder = ['search', 'basic', 'contact', 'details'];
@@ -54,6 +54,7 @@ const FormActions = ({
         variant="outline"
         onClick={handleBack}
         disabled={isLoading}
+        type="button"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         {activeTab === 'search' ? 'Annuler' : 'Précédent'}
@@ -71,10 +72,11 @@ const FormActions = ({
       ) : (
         <Button
           type="submit"
-          disabled={isLoading || isDisabled} // Désactiver le bouton si nécessaire
-          className={isDisabled ? "opacity-50 cursor-not-allowed" : ""} // Ajouter un style visuel
+          disabled={isLoading || isDisabled}
+          className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
         >
           {isLoading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Enregistrer'}
+          {!isLoading && <Save className="ml-2 h-4 w-4" />}
         </Button>
       )}
     </CardFooter>
