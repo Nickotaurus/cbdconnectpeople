@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import PartnersList from '@/components/partners/PartnersList';
-import { Partner } from '@/types/partners';
+import { Partner } from '@/types/partners/partner';
 
 interface PartnersContentProps {
   isLoading: boolean;

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FormData } from '@/types/store-form';
+import { FormData } from '@/types/store/form-types';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";

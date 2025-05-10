@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Check, ArrowRight, AlertCircle, Globe, Star, Clock, Phone, MapPin, Info, Globe2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReviewData } from '@/types/store-types';
+import { ReviewData } from '@/types/store/store-data';
 import { Badge } from '@/components/ui/badge';
 
 interface BusinessProfileProps {

@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { findBusinessByPlaceId } from '@/services/googleBusinessService';
-import { StoreData, BusinessDetails } from '@/types/store-types';
+import { StoreData, BusinessDetails } from '@/types/store/store-data';
 
 export const useStoreSelection = (onStoreSelect: (store: StoreData) => void) => {
   const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(false);

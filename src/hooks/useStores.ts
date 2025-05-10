@@ -17,8 +17,8 @@ const mapDbStoreToAppStore = (dbStore: StoreDBType): Store => {
     placeId: dbStore.google_place_id || '',
     phone: dbStore.phone || '',
     website: dbStore.website || '',
-    rating: dbStore.rating || 0,
-    reviewCount: dbStore.review_count || 0,
+    rating: 0, // Default to 0 as it's not in StoreDBType
+    reviewCount: 0, // Default to 0 as it's not in StoreDBType
     description: dbStore.description || "",
     logo_url: dbStore.logo_url || null,
     photo_url: dbStore.photo_url || null,

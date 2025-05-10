@@ -14,7 +14,7 @@ import SearchResults from './search/SearchResults';
 import StoreSearchBar from './search/StoreSearchBar';
 import DialogWrapper from './search/DialogWrapper';
 import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
-import { StoreData } from '@/types/store-types';
+import { StoreData } from '@/types/store/store-data';
 import './StoreSearch.css';
 
 interface StoreSearchProps {

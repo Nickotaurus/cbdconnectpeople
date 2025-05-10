@@ -11,7 +11,7 @@ import GoogleBusinessIntegration from './search/GoogleBusinessIntegration';
 import { useGooglePlacesApi } from '@/hooks/store/useGooglePlacesApi';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PartyPopper } from "lucide-react";
-import { ReviewData } from '@/types/store-types';
+import { ReviewData } from '@/types/store/store-data';
 import { Separator } from '@/components/ui/separator';
 
 interface ManualStoreSearchProps {

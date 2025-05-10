@@ -1,6 +1,5 @@
-
 import { getPlacesService } from './googleMapsService';
-import { BusinessDetails } from '@/types/store-types';
+import { BusinessDetails } from '@/types/store/store-data';
 
 export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDetails | null> => {
   try {
