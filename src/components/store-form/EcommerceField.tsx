@@ -29,7 +29,9 @@ const EcommerceField: React.FC<EcommerceFieldProps> = ({ isEcommerce, ecommerceU
             const syntheticEvent = {
               target: {
                 name: 'isEcommerce',
-                value: checked
+                value: checked,
+                type: 'checkbox',
+                checked: checked
               }
             } as unknown as React.ChangeEvent<HTMLInputElement>;
             onChange(syntheticEvent);

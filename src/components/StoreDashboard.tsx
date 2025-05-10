@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,8 @@ import { Store } from '@/types/store';
 import { convertToStore } from '@/utils/storeFormUtils';
 import { useStores } from '@/hooks/useStores';
 import Map from '@/components/Map';
+import EcommerceField from '@/components/store-form/EcommerceField';
+import { Globe, Store as StoreIcon } from 'lucide-react';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +19,11 @@ const StoreDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const { stores, refetch } = useStores();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ecommerceData, setEcommerceData] = useState({
+    isEcommerce: false,
+    ecommerceUrl: '',
+  });
 
   useEffect(() => {
     const checkNewlyRegistered = () => {
@@ -79,6 +85,12 @@ const StoreDashboard = () => {
         if (storeData) {
           const storeObject = convertToStore(storeData);
           setCurrentStore(storeObject);
+          
+          // Set ecommerce data
+          setEcommerceData({
+            isEcommerce: storeObject.isEcommerce || false,
+            ecommerceUrl: storeObject.ecommerceUrl || storeObject.website || '',
+          });
         }
       } catch (error) {
         console.error("Error in fetchUserStore:", error);
@@ -102,6 +114,71 @@ const StoreDashboard = () => {
 
   const handleDismissSuccessMessage = () => {
     setShowSuccessMessage(false);
+  };
+  
+  const handleEcommerceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setEcommerceData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+  
+  const handleEcommerceSubmit = async () => {
+    if (!currentStore?.id) {
+      toast({
+        title: "Erreur",
+        description: "Aucune boutique associée à votre compte.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          is_ecommerce: ecommerceData.isEcommerce,
+          ecommerce_url: ecommerceData.ecommerceUrl,
+        })
+        .eq('id', currentStore.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local store data
+      setCurrentStore(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          isEcommerce: ecommerceData.isEcommerce,
+          ecommerceUrl: ecommerceData.ecommerceUrl,
+        };
+      });
+      
+      toast({
+        title: "Succès",
+        description: ecommerceData.isEcommerce 
+          ? "Votre boutique a été enregistrée comme e-commerce."
+          : "Les modifications ont été enregistrées.",
+      });
+      
+      // Refresh stores list
+      refetch();
+      
+    } catch (error) {
+      console.error("Error updating e-commerce status:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour de votre boutique.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,9 +217,16 @@ const StoreDashboard = () => {
       ) : currentStore ? (
         <Tabs defaultValue="overview">
           <TabsList className="mb-6">
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="overview" className="flex items-center gap-1">
+              <StoreIcon className="h-4 w-4" />
+              <span>Vue d'ensemble</span>
+            </TabsTrigger>
             <TabsTrigger value="details">Détails</TabsTrigger>
             <TabsTrigger value="location">Localisation</TabsTrigger>
+            <TabsTrigger value="ecommerce" className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              <span>E-commerce</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -167,6 +251,14 @@ const StoreDashboard = () => {
                     {currentStore.hasGoogleBusinessProfile && (
                       <div className="mt-4 bg-blue-50 p-3 rounded-md">
                         <p className="text-blue-800 font-semibold">✓ Profil Google Business connecté</p>
+                      </div>
+                    )}
+                    {currentStore.isEcommerce && (
+                      <div className="mt-4 bg-green-50 p-3 rounded-md">
+                        <p className="text-green-800 font-semibold">✓ Boutique e-commerce active</p>
+                        <p className="text-green-700 text-sm">
+                          URL: {currentStore.ecommerceUrl || currentStore.website}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -266,6 +358,51 @@ const StoreDashboard = () => {
                   </div>
                 </div>
               </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="ecommerce">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestion E-commerce</CardTitle>
+                <CardDescription>
+                  Configurez votre boutique pour qu'elle apparaisse dans la section E-commerce
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <p className="text-sm text-muted-foreground">
+                    En activant cette option, votre boutique sera également visible dans la section "E-commerce CBD" 
+                    de notre plateforme. Cela vous permettra d'atteindre davantage de clients potentiels qui 
+                    recherchent spécifiquement des boutiques en ligne.
+                  </p>
+                  
+                  <EcommerceField 
+                    isEcommerce={ecommerceData.isEcommerce}
+                    ecommerceUrl={ecommerceData.ecommerceUrl}
+                    onChange={handleEcommerceChange}
+                  />
+                  
+                  {ecommerceData.isEcommerce && !ecommerceData.ecommerceUrl && (
+                    <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md">
+                      <p className="text-sm">
+                        <strong>Attention:</strong> Vous n'avez pas indiqué d'URL pour votre boutique en ligne. 
+                        Si vous avez un site web dédié à l'e-commerce, indiquez-le ici, sinon votre site web 
+                        principal sera utilisé.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-2">
+                <Button 
+                  variant="primary"
+                  disabled={isSubmitting}
+                  onClick={handleEcommerceSubmit}
+                >
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
