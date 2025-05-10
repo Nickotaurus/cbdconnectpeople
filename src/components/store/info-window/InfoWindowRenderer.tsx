@@ -106,7 +106,7 @@ export const renderInfoWindowContent = (
     '<div class="store-type">Boutique CBD</div>' : 
     '';
 
-  // Affichage des avis Google, si disponibles
+  // Amélioration de l'affichage des avis Google
   const ratingSection = place.rating ? `
     <div class="store-rating">
       <span class="rating-value">${place.rating.toFixed(1)}</span>

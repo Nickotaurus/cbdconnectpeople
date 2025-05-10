@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Globe, ExternalLink, Star, Heart } from 'lucide-react';
 import { fetchReviewsData } from '@/services/googleBusinessService';
+import { loadGoogleMapsAPI } from '@/services/googleMapsService';
 
 interface EcommerceCardProps {
   store: EcommerceStore;
@@ -21,23 +22,41 @@ const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardPro
   const { toast } = useToast();
   const [isToggling, setIsToggling] = useState(false);
   const [reviewData, setReviewData] = useState<{ rating?: number, totalReviews?: number } | null>(null);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   
-  // Récupérer les avis Google si la boutique e-commerce a un placeId
+  // Charger l'API Google Maps avant de récupérer les avis
   useEffect(() => {
-    const loadReviewData = async () => {
-      // Pour les boutiques physiques avec un e-commerce, elles peuvent avoir un place_id
-      if (store.googlePlaceId) {
-        const data = await fetchReviewsData(store.googlePlaceId);
-        if (data) {
-          setReviewData(data);
+    const initGoogleMaps = async () => {
+      if (store.isPhysicalStore && store.googlePlaceId) {
+        try {
+          await loadGoogleMapsAPI();
+          loadReviewData();
+        } catch (error) {
+          console.error("Failed to load Google Maps API:", error);
         }
       }
     };
     
-    if (store.isPhysicalStore && store.googlePlaceId) {
-      loadReviewData();
-    }
+    initGoogleMaps();
   }, [store.googlePlaceId, store.isPhysicalStore]);
+  
+  // Récupérer les avis Google si la boutique e-commerce a un placeId
+  const loadReviewData = async () => {
+    if (!store.googlePlaceId) return;
+    
+    setIsLoadingReviews(true);
+    try {
+      const data = await fetchReviewsData(store.googlePlaceId);
+      console.log("Review data for", store.name, ":", data);
+      if (data) {
+        setReviewData(data);
+      }
+    } catch (error) {
+      console.error("Error loading review data:", error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
 
   const displayRating = reviewData?.rating !== undefined ? reviewData.rating : store.rating;
   const displayReviewCount = reviewData?.totalReviews !== undefined ? reviewData.totalReviews : store.reviewCount;
@@ -135,10 +154,19 @@ const EcommerceCard = ({ store, isFavorite, onToggleFavorite }: EcommerceCardPro
       
       <CardContent className="pb-2">
         <div className="mb-3">
-          {renderStars(displayRating)}
-          <p className="text-xs text-muted-foreground mt-1">
-            {displayReviewCount} avis {store.isPhysicalStore && reviewData ? 'Google' : 'clients'}
-          </p>
+          {isLoadingReviews ? (
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+              <span className="text-xs text-muted-foreground">Chargement...</span>
+            </div>
+          ) : (
+            <>
+              {renderStars(displayRating)}
+              <p className="text-xs text-muted-foreground mt-1">
+                {displayReviewCount} avis {store.isPhysicalStore && store.googlePlaceId && reviewData ? 'Google' : 'clients'}
+              </p>
+            </>
+          )}
         </div>
         
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">

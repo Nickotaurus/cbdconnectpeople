@@ -5,17 +5,34 @@ import { useToast } from '@/hooks/use-toast';
 import { ClientUser } from '@/types/auth';
 import { EcommerceStore } from '@/types/ecommerce';
 import { supabase } from '@/integrations/supabase/client';
+import { loadGoogleMapsAPI } from '@/services/googleMapsService';
 
 export const useEcommerceStores = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const clientUser = user as ClientUser;
   const [isLoading, setIsLoading] = useState(true);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [stores, setStores] = useState<EcommerceStore[]>([]);
   const [filteredStores, setFilteredStores] = useState<EcommerceStore[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState<string | null>(null);
   const [favoriteEcommerces, setFavoriteEcommerces] = useState<string[]>([]);
+
+  // Essayer de charger l'API Google Maps dès le début
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      try {
+        await loadGoogleMapsAPI();
+        setIsGoogleMapsLoaded(true);
+        console.log("Google Maps API loaded in useEcommerceStores");
+      } catch (error) {
+        console.error("Failed to load Google Maps API:", error);
+      }
+    };
+    
+    loadGoogleMaps();
+  }, []);
 
   useEffect(() => {
     fetchEcommerceStores();
@@ -23,7 +40,7 @@ export const useEcommerceStores = () => {
     if (user?.role === 'client' && clientUser?.favorites) {
       setFavoriteEcommerces(clientUser.favorites.filter(id => id.startsWith('ec')));
     }
-  }, [user]);
+  }, [user, isGoogleMapsLoaded]);
 
   const fetchEcommerceStores = async () => {
     setIsLoading(true);
@@ -65,7 +82,7 @@ export const useEcommerceStores = () => {
           shippingCountries: ['France', 'Europe', 'Monde entier'].sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2)),
           userId: store.user_id,
           isPhysicalStore: true,
-          googlePlaceId: store.google_place_id // Ajouter le Google Place ID aux données du magasin
+          googlePlaceId: store.google_place_id // Google Place ID pour récupérer les avis
         })),
         ...(ecommerceUsers || []).filter(user => !ecommerceStores?.some(store => store.user_id === user.id)).map(user => ({
           id: `ec-${user.id}`,
@@ -83,6 +100,9 @@ export const useEcommerceStores = () => {
           isPhysicalStore: false
         }))
       ];
+      
+      console.log("Ecommerce stores loaded:", transformedStores.length, "stores");
+      console.log("Stores with googlePlaceId:", transformedStores.filter(store => !!store.googlePlaceId).length);
       
       setStores(transformedStores);
       setFilteredStores(transformedStores);
@@ -220,6 +240,8 @@ export const useEcommerceStores = () => {
     setFavoriteEcommerces,
     handleSearch,
     handleSpecialtyFilter,
-    allSpecialties
+    allSpecialties: Array.from(
+      new Set(stores.flatMap(store => store.specialties))
+    ).sort()
   };
 };

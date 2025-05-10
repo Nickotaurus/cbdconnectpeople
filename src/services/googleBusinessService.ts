@@ -69,29 +69,42 @@ export const findBusinessByPlaceId = async (placeId: string): Promise<BusinessDe
   }
 };
 
-// Nouvelle fonction pour récupérer uniquement les informations d'avis
+// Améliorer la fonction fetchReviewsData pour garantir une meilleure récupération des données
 export const fetchReviewsData = async (placeId: string): Promise<{ rating?: number, totalReviews?: number } | null> => {
   try {
     if (!window.google?.maps?.places || !placeId) {
+      console.error("Google Places API not available or placeId is missing");
       return null;
     }
     
+    console.log("Fetching reviews for placeId:", placeId);
+    
     const service = getPlacesService();
     if (!service) {
+      console.error("Could not create Places service");
       return null;
     }
     
     return new Promise((resolve) => {
+      // Utiliser plus de champs pour s'assurer que nous obtenons toutes les données nécessaires
       service.getDetails({
         placeId,
-        fields: ['rating', 'user_ratings_total']
+        fields: ['name', 'rating', 'user_ratings_total', 'reviews']
       }, (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+          console.log("Google reviews data received:", {
+            name: place.name,
+            rating: place.rating,
+            totalReviews: place.user_ratings_total,
+            hasReviews: place.reviews ? place.reviews.length > 0 : false
+          });
+          
           resolve({
             rating: place.rating,
             totalReviews: place.user_ratings_total
           });
         } else {
+          console.warn("Failed to fetch review data:", status);
           resolve(null);
         }
       });

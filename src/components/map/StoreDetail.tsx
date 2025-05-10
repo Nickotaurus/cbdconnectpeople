@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Store } from '@/types/store';
 import { fetchReviewsData } from '@/services/googleBusinessService';
+import { loadGoogleMapsAPI } from '@/services/googleMapsService';
 
 interface StoreDetailProps {
   store: Store;
@@ -14,18 +15,28 @@ interface StoreDetailProps {
 
 const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProps) => {
   const [reviewData, setReviewData] = useState<{ rating?: number, totalReviews?: number } | null>(null);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   
   useEffect(() => {
-    const loadReviewData = async () => {
+    const initAndLoadData = async () => {
       if (store.placeId) {
-        const data = await fetchReviewsData(store.placeId);
-        if (data) {
-          setReviewData(data);
+        setIsLoadingReviews(true);
+        try {
+          await loadGoogleMapsAPI();
+          const data = await fetchReviewsData(store.placeId);
+          console.log("Review data for store:", store.name, data);
+          if (data) {
+            setReviewData(data);
+          }
+        } catch (error) {
+          console.error("Error loading review data:", error);
+        } finally {
+          setIsLoadingReviews(false);
         }
       }
     };
     
-    loadReviewData();
+    initAndLoadData();
   }, [store.placeId]);
 
   const displayRating = reviewData?.rating !== undefined ? reviewData.rating : store.rating;
@@ -78,13 +89,24 @@ const StoreDetail = ({ store, onClearSelection, onViewDetails }: StoreDetailProp
         </div>
         
         <div className="flex items-center gap-2 mb-3">
-          <div className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs font-medium flex items-center">
-            <Star className="h-3 w-3 mr-1 fill-primary" />
-            {displayRating}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {displayReviewCount} avis Google
-          </span>
+          {isLoadingReviews ? (
+            <div className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs font-medium flex items-center">
+              <div className="h-3 w-12 bg-primary/20 animate-pulse rounded"></div>
+            </div>
+          ) : (
+            <div className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs font-medium flex items-center">
+              <Star className="h-3 w-3 mr-1 fill-primary" />
+              {displayRating}
+            </div>
+          )}
+          
+          {isLoadingReviews ? (
+            <span className="text-xs text-muted-foreground">Chargement...</span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {displayReviewCount} avis Google
+            </span>
+          )}
           
           {store.isEcommerce && (
             <Badge variant="outline" className="text-xs">
