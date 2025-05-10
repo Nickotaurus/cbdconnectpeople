@@ -33,10 +33,10 @@ export interface UseStoreFormProps {
 export interface StoreFormSubmitResult {
   success: boolean;
   id?: string;
-  storeId?: string; // Adding the missing storeId property
+  storeId?: string; 
   store?: Store;
   error?: any;
-  message: string; // This property was added in a previous fix
+  message: string;
 }
 
 export interface UseStoreFormReturn {
@@ -52,7 +52,13 @@ export interface UseStoreFormReturn {
   handleSubmit: (e: React.FormEvent) => Promise<StoreFormSubmitResult>;
 }
 
-// Adding this interface to ensure type consistency across files
 export interface UseFormSubmitProps {
   onSuccess?: (store: Store) => Promise<void>;
+}
+
+// Add missing property to Store interface
+declare module './store' {
+  interface Store {
+    favoritePartnersCount?: number;
+  }
 }
