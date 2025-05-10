@@ -7,7 +7,7 @@ import { EcommerceStore } from '@/types/ecommerce';
 import { useEcommerceStores } from '@/hooks/useEcommerceStores';
 
 // Components
-import EcommerceHeader from '@/components/ecommerce/EcommerceHeader';
+import EcommercePageHeader from '@/components/ecommerce/EcommercePageHeader';
 import EcommerceFilters from '@/components/ecommerce/EcommerceFilters';
 import EcommerceCard from '@/components/ecommerce/EcommerceCard';
 import EcommerceLoading from '@/components/ecommerce/EcommerceLoading';
@@ -84,7 +84,7 @@ const EcommercePage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
-        <EcommerceHeader 
+        <EcommercePageHeader 
           title="Boutiques E-commerce CBD" 
           subtitle="Trouvez les meilleurs sites de vente en ligne de produits CBD"
         />
