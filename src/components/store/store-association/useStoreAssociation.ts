@@ -90,34 +90,7 @@ export const useStoreAssociation = (
         throw new Error('Utilisateur non connecté');
       }
       
-      // Force remove any existing association for testing
-      if (storeName.toLowerCase().includes('histoire de chanvre')) {
-        // Remove store_id association from profile
-        await supabase
-          .from('profiles')
-          .update({ store_id: null })
-          .eq('id', user.id);
-          
-        // Clean store association if it exists
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('id')
-          .ilike('name', '%Histoire de Chanvre%');
-          
-        if (storeData && storeData.length > 0) {
-          await supabase
-            .from('stores')
-            .update({ user_id: null, claimed_by: null })
-            .eq('id', storeData[0].id);
-        }
-        
-        // Clean local storage
-        localStorage.removeItem('userStoreId');
-        sessionStorage.removeItem('userStoreId');
-      }
-      
       // Create a new association using store name and city
-      // This line was causing the error - we need to pass only the parameters defined in the function
       const response = await associateStoreWithUser(storeName, city, user.id);
       setResult(response);
       
