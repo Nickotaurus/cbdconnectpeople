@@ -7,12 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import { AssociationResult } from './types';
 
 export const useStoreAssociation = (
-  defaultEmail: string,
   defaultStoreName: string,
+  defaultCity: string,
   onSuccess?: (storeId: string) => void
 ) => {
-  const [email, setEmail] = useState(defaultEmail);
   const [storeName, setStoreName] = useState(defaultStoreName);
+  const [city, setCity] = useState(defaultCity);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<AssociationResult>({});
   const navigate = useNavigate();
@@ -25,17 +25,19 @@ export const useStoreAssociation = (
     sessionStorage.removeItem('newlyAddedStore');
   }, []);
   
-  // Check if store is already associated at startup
+  // Check if user already has a store association
   useEffect(() => {
     const checkExistingAssociation = async () => {
-      if (!email) return;
-      
       try {
-        // 1. Find user ID from email
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) return;
+        
+        // Get user profile
         const { data: userData, error: userError } = await supabase
           .from('profiles')
-          .select('id, store_id, email')
-          .eq('email', email)
+          .select('store_id')
+          .eq('id', user.id)
           .single();
 
         if (userError) {
@@ -65,40 +67,42 @@ export const useStoreAssociation = (
     };
     
     checkExistingAssociation();
-  }, [email, onSuccess]);
+  }, [onSuccess]);
 
   const handleAssociate = async () => {
-    if (!email || !storeName) return;
+    if (!storeName) {
+      toast({
+        title: "Nom manquant",
+        description: "Veuillez saisir le nom de la boutique",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setProcessing(true);
     setResult({});
 
     try {
-      // Force remove any existing association
-      if (email === 'histoiredechanvre29@gmail.com') {
-        // Get user ID
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', email)
-          .single();
-        
-        if (userError) {
-          console.error('Erreur lors de la récupération du profil:', userError);
-          throw new Error('Profil non trouvé');
-        }
-        
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+      
+      // Force remove any existing association for testing
+      if (storeName.toLowerCase().includes('histoire de chanvre')) {
         // Remove store_id association from profile
         await supabase
           .from('profiles')
           .update({ store_id: null })
-          .eq('id', userData.id);
+          .eq('id', user.id);
           
         // Clean store association if it exists
         const { data: storeData } = await supabase
           .from('stores')
           .select('id')
-          .ilike('name', `%${storeName}%`);
+          .ilike('name', '%Histoire de Chanvre%');
           
         if (storeData && storeData.length > 0) {
           await supabase
@@ -112,8 +116,8 @@ export const useStoreAssociation = (
         sessionStorage.removeItem('userStoreId');
       }
       
-      // Create a new association - passing just the two required parameters
-      const response = await associateStoreWithUser(email, storeName);
+      // Create a new association using store name and city
+      const response = await associateStoreWithUser(storeName, city, user.id);
       setResult(response);
       
       if (response.success && response.storeId) {
@@ -123,7 +127,7 @@ export const useStoreAssociation = (
           description: "Votre boutique a été associée avec succès à votre profil",
         });
         
-        // If association succeeded, reload page after 1.5 seconds
+        // If association succeeded, redirect after 1.5 seconds
         setTimeout(() => {
           if (onSuccess && response.storeId) {
             onSuccess(response.storeId);
@@ -144,10 +148,10 @@ export const useStoreAssociation = (
   };
 
   return {
-    email,
-    setEmail,
     storeName,
     setStoreName,
+    city,
+    setCity,
     processing,
     result,
     handleAssociate

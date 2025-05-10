@@ -1,14 +1,12 @@
 
-import { ReactNode } from 'react';
+export interface StoreAssociationToolProps {
+  defaultStoreName?: string;
+  defaultCity?: string;
+  onSuccess?: (storeId: string) => void;
+}
 
 export interface AssociationResult {
   success?: boolean;
   message?: string;
   storeId?: string;
-}
-
-export interface StoreAssociationToolProps {
-  defaultEmail?: string;
-  defaultStoreName?: string;
-  onSuccess?: (storeId: string) => void;
 }

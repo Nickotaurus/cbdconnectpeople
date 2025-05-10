@@ -7,19 +7,19 @@ import ResultAlert from './ResultAlert';
 import AssociateButton from './AssociateButton';
 
 const StoreAssociationTool = ({ 
-  defaultEmail = "histoiredechanvre29@gmail.com",
   defaultStoreName = "Histoire de Chanvre",
+  defaultCity = "Quimper",
   onSuccess
 }: StoreAssociationToolProps) => {
   const {
-    email,
-    setEmail,
     storeName,
     setStoreName,
+    city,
+    setCity,
     processing,
     result,
     handleAssociate
-  } = useStoreAssociation(defaultEmail, defaultStoreName, onSuccess);
+  } = useStoreAssociation(defaultStoreName, defaultCity, onSuccess);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -29,10 +29,10 @@ const StoreAssociationTool = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <AssociationForm 
-          email={email}
           storeName={storeName}
-          onEmailChange={setEmail}
+          city={city}
           onStoreNameChange={setStoreName}
+          onCityChange={setCity}
           disabled={processing || !!result.success}
         />
 
@@ -41,7 +41,7 @@ const StoreAssociationTool = ({
       <CardFooter>
         <AssociateButton 
           onClick={handleAssociate} 
-          disabled={processing || !email || !storeName || !!result.success}
+          disabled={processing || !storeName || !!result.success}
           processing={processing}
           success={!!result.success}
         />

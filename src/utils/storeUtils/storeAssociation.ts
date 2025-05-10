@@ -4,30 +4,29 @@ import { stores } from './storeOperations';
 
 // Fonction améliorée pour associer une boutique à un profil utilisateur
 export const associateStoreWithUser = async (
-  email: string,
-  storeName: string
+  storeName: string,
+  city: string,
+  userId: string
 ): Promise<{ success: boolean; message: string; storeId?: string }> => {
-  console.log(`Tentative d'association pour ${email} avec la boutique ${storeName}`);
+  console.log(`Tentative d'association pour la boutique ${storeName} à ${city}`);
   
   try {
-    // 1. Trouver l'ID utilisateur à partir de l'email
+    if (!userId) {
+      return { success: false, message: 'ID utilisateur non fourni' };
+    }
+
+    // Vérifier si l'utilisateur a déjà une boutique associée
     const { data: userData, error: userError } = await supabase
       .from('profiles')
-      .select('id, store_id')
-      .eq('email', email)
+      .select('store_id')
+      .eq('id', userId)
       .single();
 
     if (userError) {
       console.error('Erreur lors de la recherche du profil:', userError);
       return { success: false, message: 'Profil utilisateur non trouvé' };
     }
-
-    const userId = userData?.id;
-    if (!userId) {
-      return { success: false, message: 'ID utilisateur non trouvé' };
-    }
     
-    // Vérifier si l'utilisateur a déjà une boutique associée
     if (userData.store_id) {
       console.log('Boutique déjà associée:', userData.store_id);
       
@@ -57,12 +56,19 @@ export const associateStoreWithUser = async (
       }
     }
 
-    // 2. Rechercher la boutique par nom dans la base de données Supabase
-    // Utiliser ilike avec des jokers pour une recherche plus souple
-    const { data: storeData, error: storeDbError } = await supabase
+    // 1. Rechercher la boutique par nom dans la base de données Supabase avec filtrage par ville
+    const query = supabase
       .from('stores')
-      .select('*')
+      .select('*');
+    
+    // Appliquer des filtres flexibles
+    const storeNameQuery = query
       .ilike('name', `%${storeName}%`);
+    
+    // Si une ville est fournie, l'utiliser comme filtre supplémentaire
+    let { data: storeData, error: storeDbError } = await (city 
+      ? storeNameQuery.ilike('city', `%${city}%`) 
+      : storeNameQuery);
 
     if (storeDbError) {
       console.error('Erreur lors de la recherche de la boutique:', storeDbError);
@@ -71,7 +77,7 @@ export const associateStoreWithUser = async (
 
     console.log('Résultats de recherche Supabase:', storeData?.length || 0, 'boutiques trouvées');
 
-    // 3. Si la boutique existe dans Supabase, l'associer au profil utilisateur
+    // 2. Si la boutique existe dans Supabase, l'associer au profil utilisateur
     if (storeData && storeData.length > 0) {
       const store = storeData[0];
       
@@ -118,18 +124,25 @@ export const associateStoreWithUser = async (
       };
     }
 
-    // 4. Si non trouvée dans Supabase, chercher dans les données locales avec une recherche plus souple
-    console.log('Recherche dans les données locales pour:', storeName);
+    // 3. Si non trouvée dans Supabase, chercher dans les données locales avec une recherche plus souple
+    console.log('Recherche dans les données locales pour:', storeName, 'à', city);
     console.log('Nombre de boutiques locales à parcourir:', stores.length);
     
     // Recherche plus tolérante avec toLowerCase() et includes()
-    const localStore = stores.find(s => 
-      s.name.toLowerCase().includes(storeName.toLowerCase()) || 
-      storeName.toLowerCase().includes(s.name.toLowerCase())
-    );
+    const localStore = stores.find(s => {
+      const nameMatch = s.name.toLowerCase().includes(storeName.toLowerCase()) || 
+                       storeName.toLowerCase().includes(s.name.toLowerCase());
+      
+      // Si une ville est fournie, vérifier aussi la correspondance de ville
+      const cityMatch = !city || 
+                       s.city.toLowerCase().includes(city.toLowerCase()) ||
+                       city.toLowerCase().includes(s.city.toLowerCase());
+      
+      return nameMatch && cityMatch;
+    });
 
     if (localStore) {
-      console.log('Boutique trouvée dans les données locales:', localStore.name);
+      console.log('Boutique trouvée dans les données locales:', localStore.name, 'à', localStore.city);
       
       // Vérifier si cette boutique locale existe déjà sous un autre nom dans Supabase
       const { data: existingStores } = await supabase
@@ -227,7 +240,7 @@ export const associateStoreWithUser = async (
       };
     }
 
-    // 5. Cas spécial pour Histoire de Chanvre (correspondance partielle)
+    // 4. Cas spécial pour Histoire de Chanvre (correspondance partielle)
     if (storeName.toLowerCase().includes('histoire') && 
         storeName.toLowerCase().includes('chanvre')) {
       
@@ -237,12 +250,12 @@ export const associateStoreWithUser = async (
         .insert({
           name: "Histoire de Chanvre",
           address: "5 Rue du Pré Perché",
-          city: "Quimper",
-          postal_code: "29000",
+          city: city || "Quimper",
+          postal_code: city === "Paris" ? "75001" : city === "Lyon" ? "69001" : "29000",
           latitude: 47.9984,
           longitude: -4.1019,
           phone: "0298123456",
-          description: "Boutique de produits CBD à Quimper",
+          description: "Boutique de produits CBD",
           user_id: userId,
           claimed_by: userId,
           is_verified: true
@@ -271,10 +284,67 @@ export const associateStoreWithUser = async (
       };
     }
 
+    // 5. Essayer de créer une boutique basique avec les informations disponibles
+    if (storeName && city) {
+      const defaultLatLong = {
+        "Paris": { lat: 48.8566, lng: 2.3522 },
+        "Lyon": { lat: 45.7640, lng: 4.8357 },
+        "Marseille": { lat: 43.2965, lng: 5.3698 },
+        "Bordeaux": { lat: 44.8378, lng: -0.5792 },
+        "Lille": { lat: 50.6292, lng: 3.0573 },
+        "Quimper": { lat: 47.9960, lng: -4.1024 }
+      };
+      
+      const coords = defaultLatLong[city] || { lat: 46.603354, lng: 1.888334 }; // Centre de la France par défaut
+      
+      // Créer une nouvelle boutique basique
+      const { data: newStore, error: insertError } = await supabase
+        .from('stores')
+        .insert({
+          name: storeName,
+          address: "À compléter",
+          city: city,
+          postal_code: city === "Paris" ? "75000" : 
+                      city === "Lyon" ? "69000" : 
+                      city === "Marseille" ? "13000" :
+                      city === "Bordeaux" ? "33000" :
+                      city === "Lille" ? "59000" :
+                      city === "Quimper" ? "29000" : "00000",
+          latitude: coords.lat,
+          longitude: coords.lng,
+          description: `Boutique de CBD à ${city}`,
+          user_id: userId,
+          claimed_by: userId,
+          is_verified: true
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Erreur lors de l\'insertion de la boutique:', insertError);
+        return { success: false, message: 'Erreur lors de la création de la boutique' };
+      }
+
+      // Mise à jour du profil utilisateur avec l'ID de la boutique
+      await supabase
+        .from('profiles')
+        .update({ store_id: newStore.id, store_type: 'physical' })
+        .eq('id', userId);
+        
+      localStorage.setItem('userStoreId', newStore.id);
+      sessionStorage.setItem('userStoreId', newStore.id);
+      
+      return { 
+        success: true, 
+        message: `Nouvelle boutique "${storeName}" créée et associée avec succès`,
+        storeId: newStore.id
+      };
+    }
+
     // Afficher un message d'erreur plus détaillé
     return { 
       success: false, 
-      message: `Boutique "${storeName}" non trouvée. Vérifiez l'orthographe ou essayez un autre nom.` 
+      message: `Boutique "${storeName}"${city ? ` à ${city}` : ''} non trouvée. Vérifiez l'orthographe ou essayez un autre nom.` 
     };
   } catch (error) {
     console.error('Erreur inattendue:', error);
