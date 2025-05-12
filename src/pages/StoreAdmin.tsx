@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -6,7 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart4, Users } from "lucide-react";
 import { getStoreById } from "@/utils/data";
-import { Store, StoreOpeningHours, StoreData } from '@/types/store';
+import { Store } from '@/types/store';
 import { toast } from "@/hooks/use-toast";
 import { useStoreFavoritePartners } from "@/hooks/useStoreFavoritePartners";
 import StoreDashboardTab from "@/components/store-admin/StoreDashboardTab";
@@ -14,6 +13,7 @@ import StorePartnersTab from "@/components/store-admin/StorePartnersTab";
 import StoreLoadingState from "@/components/store-admin/StoreLoadingState";
 import StoreErrorState from "@/components/store-admin/StoreErrorState";
 import StoreEditForm from "@/components/store-admin/StoreEditForm";
+import UnauthorizedAccessStore from "@/components/store-admin/UnauthorizedAccessStore";
 
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +28,7 @@ const StoreAdmin = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isStoreOwner, setIsStoreOwner] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
   
   const { favoritePartners, isLoadingPartners } = useStoreFavoritePartners(user?.id);
   
@@ -37,6 +38,13 @@ const StoreAdmin = () => {
       setError(null);
       
       try {
+        if (!user?.id) {
+          // Pas d'utilisateur connecté, accès non autorisé
+          setUnauthorized(true);
+          setLoading(false);
+          return;
+        }
+        
         if (!id) {
           // Si id n'est pas présent, essayons de récupérer depuis sessionStorage
           const sessionStoreId = sessionStorage.getItem('userStoreId');
@@ -46,63 +54,58 @@ const StoreAdmin = () => {
           }
           
           // Si on a un utilisateur connecté, recherchons sa boutique
-          if (user?.id) {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('store_id')
-              .eq('id', user.id)
-              .single();
-              
-            if (profileError && profileError.code !== 'PGRST116') {
-              throw new Error("Impossible de récupérer votre profil.");
-            }
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('store_id')
+            .eq('id', user.id)
+            .single();
             
-            if (profileData?.store_id) {
-              navigate(`/store/${profileData.store_id}/admin`, { replace: true });
-              return;
-            }
-            
-            // Vérifier les boutiques associées à cet utilisateur
-            const { data: storeData, error: storeError } = await supabase
-              .from('stores')
-              .select('id')
-              .eq('user_id', user.id)
-              .limit(1)
-              .single();
-              
-            if (storeError && storeError.code !== 'PGRST116') {
-              throw new Error("Impossible de rechercher vos boutiques.");
-            }
-            
-            if (storeData) {
-              navigate(`/store/${storeData.id}/admin`, { replace: true });
-              return;
-            }
-            
-            throw new Error("Vous n'avez pas encore créé de boutique.");
+          if (profileError && profileError.code !== 'PGRST116') {
+            throw new Error("Impossible de récupérer votre profil.");
           }
           
-          throw new Error("Identifiant de boutique manquant");
+          if (profileData?.store_id) {
+            navigate(`/store/${profileData.store_id}/admin`, { replace: true });
+            return;
+          }
+          
+          // Vérifier les boutiques associées à cet utilisateur
+          const { data: storeData, error: storeError } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+            .single();
+            
+          if (storeError && storeError.code !== 'PGRST116') {
+            throw new Error("Impossible de rechercher vos boutiques.");
+          }
+          
+          if (storeData) {
+            navigate(`/store/${storeData.id}/admin`, { replace: true });
+            return;
+          }
+          
+          throw new Error("Vous n'avez pas encore créé de boutique.");
         }
         
         // Essayer d'abord la méthode locale pour les anciennes données
         const localStore = getStoreById(id);
         if (localStore) {
+          // Vérification de propriété pour les anciennes données
+          const isOwner = localStore.userId === user.id || localStore.claimedBy === user.id;
+          setIsStoreOwner(isOwner);
+          
+          if (!isOwner) {
+            setUnauthorized(true);
+            setLoading(false);
+            return;
+          }
+          
           setStore({
             ...localStore,
             favoritePartnersCount: favoritePartners.length
           });
-          
-          // Vérification de propriété pour les anciennes données
-          if (user?.id && localStore.id) {
-            const { data } = await supabase
-              .from('profiles')
-              .select('store_id')
-              .eq('id', user.id)
-              .single();
-              
-            setIsStoreOwner(data?.store_id === localStore.id);
-          }
           
           setLoading(false);
           return;
@@ -120,11 +123,13 @@ const StoreAdmin = () => {
         }
         
         // Vérifier si l'utilisateur connecté est le propriétaire de cette boutique
-        if (user?.id) {
-          setIsStoreOwner(
-            storeData.user_id === user.id || 
-            storeData.claimed_by === user.id
-          );
+        const isOwner = storeData.user_id === user.id || storeData.claimed_by === user.id;
+        setIsStoreOwner(isOwner);
+        
+        if (!isOwner) {
+          setUnauthorized(true);
+          setLoading(false);
+          return;
         }
         
         // Adapter au format attendu par l'interface
@@ -151,7 +156,6 @@ const StoreAdmin = () => {
           ecommerceUrl: storeData.ecommerce_url || '',
           hasGoogleBusinessProfile: storeData.has_google_profile || false,
           reviews: [],
-          // Convert string array to object array if necessary
           openingHours: Array.isArray(storeData.opening_hours) 
             ? storeData.opening_hours.map((hour: string) => {
                 if (typeof hour === 'string') {
@@ -165,7 +169,9 @@ const StoreAdmin = () => {
               })
             : [],
           products: [],
-          favoritePartnersCount: favoritePartners.length
+          favoritePartnersCount: favoritePartners.length,
+          userId: storeData.user_id,
+          claimedBy: storeData.claimed_by,
         };
         
         setStore(adaptedStore);
@@ -179,7 +185,7 @@ const StoreAdmin = () => {
     
     loadStore();
   }, [id, user, navigate, favoritePartners.length]);
-
+  
   // Conversion de la boutique au format StoreData pour le formulaire d'édition
   const convertStoreToStoreData = (): StoreData => {
     if (!store) return {} as StoreData;
@@ -268,6 +274,10 @@ const StoreAdmin = () => {
     
     setIsEditMode(true);
   };
+  
+  if (unauthorized) {
+    return <UnauthorizedAccessStore storeId={id} />;
+  }
   
   if (loading) {
     return <StoreLoadingState />;
