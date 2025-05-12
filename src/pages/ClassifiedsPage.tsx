@@ -12,12 +12,16 @@ import { Classified, ClassifiedType, ClassifiedCategory } from '@/types/classifi
 import { useQuery } from '@tanstack/react-query';
 import { classifiedService } from '@/services/classified';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Link } from 'react-router-dom';
 
 const ClassifiedsPage = () => {
   const { user } = useAuth();
   const [activeType, setActiveType] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredClassifieds, setFilteredClassifieds] = useState<Classified[]>([]);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [selectedClassified, setSelectedClassified] = useState<Classified | null>(null);
   
   // Fetch real classified ads from the database
   const { data: classifieds, isLoading, error } = useQuery({
@@ -64,6 +68,21 @@ const ClassifiedsPage = () => {
     const term = e.target.value;
     setSearchTerm(term);
     filterClassifieds(activeType, term);
+  };
+
+  const handleViewClassified = (classified: Classified) => {
+    if (user) {
+      // Si l'utilisateur est connecté, on pourrait le rediriger vers la page détaillée de l'annonce
+      // Pour l'instant, nous pourrions simplement stocker l'annonce sélectionnée
+      setSelectedClassified(classified);
+      // Ici, vous pourriez ajouter une redirection vers une page d'annonce détaillée
+      // navigate(`/classifieds/${classified.id}`);
+      console.log("Voir l'annonce:", classified.title);
+    } else {
+      // Si l'utilisateur n'est pas connecté, afficher la boîte de dialogue de connexion
+      setSelectedClassified(classified);
+      setLoginDialogOpen(true);
+    }
   };
   
   const getTypeLabel = (type: ClassifiedType) => {
@@ -140,7 +159,7 @@ const ClassifiedsPage = () => {
           ) : (
             <div className="bg-secondary/30 rounded-lg p-4 mb-10 max-w-lg mx-auto">
               <p className="text-sm">
-                Vous souhaitez publier une annonce ? <a href="/register" className="text-primary font-medium hover:underline">Créez un compte gratuit</a> pour commencer.
+                Vous souhaitez publier une annonce ? <Link to="/register" className="text-primary font-medium hover:underline">Créez un compte gratuit</Link> pour commencer.
               </p>
             </div>
           )}
@@ -238,7 +257,12 @@ const ClassifiedsPage = () => {
                     })}
                   </div>
                   
-                  <Button variant="default">Voir l'annonce</Button>
+                  <Button 
+                    variant="default"
+                    onClick={() => handleViewClassified(classified)}
+                  >
+                    Voir l'annonce
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
@@ -250,6 +274,34 @@ const ClassifiedsPage = () => {
             <p className="text-muted-foreground">Aucune annonce ne correspond à votre recherche.</p>
           </div>
         )}
+
+        {/* Boîte de dialogue pour inciter à la création de compte */}
+        <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Créez un compte pour voir les détails</DialogTitle>
+              <DialogDescription>
+                Pour accéder aux détails de cette annonce et contacter l'annonceur, vous devez créer un compte ou vous connecter.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedClassified && (
+              <div className="py-4">
+                <h3 className="font-medium mb-1">{selectedClassified.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2">{selectedClassified.description}</p>
+              </div>
+            )}
+            
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" asChild className="sm:flex-1">
+                <Link to="/login">Se connecter</Link>
+              </Button>
+              <Button asChild className="sm:flex-1">
+                <Link to="/register">Créer un compte</Link>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
