@@ -1,10 +1,12 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import EcommerceField from '@/components/store-form/EcommerceField';
-import LogoUpload from './LogoUpload';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Globe, ShoppingCart, Upload, Loader2 } from "lucide-react";
+import LogoUpload from '@/components/store-dashboard/LogoUpload';
 
 interface StoreEcommerceTabProps {
   ecommerceData: {
@@ -12,95 +14,120 @@ interface StoreEcommerceTabProps {
     ecommerceUrl: string;
   };
   isSubmitting: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: () => void;
-  onLogoUpload: (file: File) => Promise<string | null>;
   uploadingLogo: boolean;
-  currentLogoUrl?: string | null;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: () => Promise<void>;
+  onLogoUpload: (file: File) => Promise<string | null>;
+  currentLogoUrl?: string;
+  isStoreOwner?: boolean;
 }
 
-const StoreEcommerceTab = ({ 
-  ecommerceData, 
-  isSubmitting, 
-  onChange, 
+const StoreEcommerceTab = ({
+  ecommerceData,
+  isSubmitting,
+  uploadingLogo,
+  onChange,
   onSubmit,
   onLogoUpload,
-  uploadingLogo,
-  currentLogoUrl
+  currentLogoUrl,
+  isStoreOwner = false
 }: StoreEcommerceTabProps) => {
-  // Gérer les changements de logo
-  const handleLogoUpload = async (file: File) => {
-    try {
-      const logoUrl = await onLogoUpload(file);
-      return logoUrl;
-    } catch (error) {
-      console.error("Erreur lors de l'upload du logo:", error);
-      return null;
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isStoreOwner) return;
+    onSubmit();
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Gestion E-commerce</CardTitle>
-        <CardDescription>
-          Configurez votre boutique pour qu'elle apparaisse dans la section E-commerce
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <p className="text-sm text-muted-foreground">
-            En activant cette option, votre boutique sera également visible dans la section "E-commerce CBD" 
-            de notre plateforme. Cela vous permettra d'atteindre davantage de clients potentiels qui 
-            recherchent spécifiquement des boutiques en ligne.
-          </p>
-          
-          <EcommerceField 
-            isEcommerce={ecommerceData.isEcommerce}
-            ecommerceUrl={ecommerceData.ecommerceUrl}
-            onChange={onChange}
-          />
-          
-          {ecommerceData.isEcommerce && !ecommerceData.ecommerceUrl && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md">
-              <p className="text-sm">
-                <strong>Attention:</strong> Vous n'avez pas indiqué d'URL pour votre boutique en ligne. 
-                Si vous avez un site web dédié à l'e-commerce, indiquez-le ici, sinon votre site web 
-                principal sera utilisé.
-              </p>
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>E-commerce</CardTitle>
+          <CardDescription>
+            Indiquez si votre boutique dispose d'une activité de vente en ligne
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isEcommerce"
+                name="isEcommerce"
+                checked={ecommerceData.isEcommerce}
+                onCheckedChange={(checked) => 
+                  onChange({
+                    target: { 
+                      name: 'isEcommerce', 
+                      type: 'checkbox',
+                      checked 
+                    }
+                  } as React.ChangeEvent<HTMLInputElement>)
+                }
+                disabled={!isStoreOwner || isSubmitting}
+              />
+              <Label htmlFor="isEcommerce" className="font-medium">
+                Cette boutique propose de l'e-commerce
+              </Label>
             </div>
-          )}
-
-          <Separator className="my-6" />
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Logo de votre boutique</h3>
-            <p className="text-sm text-muted-foreground">
-              Ce logo sera affiché sur la page E-commerce pour représenter votre boutique.
-              Choisissez une image claire et de bonne qualité pour attirer l'attention des clients.
-            </p>
             
-            <LogoUpload 
-              onUpload={handleLogoUpload}
-              isUploading={uploadingLogo}
-              currentLogoUrl={currentLogoUrl}
-            />
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              Votre logo est automatiquement enregistré lors du téléchargement. Cliquez sur "Enregistrer" ci-dessous pour sauvegarder les autres modifications.
-            </p>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Button 
-          variant="default"
-          disabled={isSubmitting}
-          onClick={onSubmit}
-        >
-          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
-        </Button>
-      </CardFooter>
-    </Card>
+            {ecommerceData.isEcommerce && (
+              <div className="space-y-2">
+                <Label htmlFor="ecommerceUrl">URL de votre site e-commerce</Label>
+                <div className="flex gap-2 items-center">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="ecommerceUrl"
+                    name="ecommerceUrl"
+                    value={ecommerceData.ecommerceUrl}
+                    onChange={onChange}
+                    placeholder="https://www.votre-boutique.com"
+                    className="flex-1"
+                    disabled={!isStoreOwner || isSubmitting}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {isStoreOwner && (
+              <Button 
+                type="submit" 
+                className="w-full sm:w-auto" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Enregistrer les paramètres e-commerce
+                  </>
+                )}
+              </Button>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Logo de la boutique</CardTitle>
+          <CardDescription>
+            Téléchargez un logo pour votre boutique (format recommandé: carré, 512x512px)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LogoUpload 
+            onUpload={onLogoUpload} 
+            isUploading={uploadingLogo} 
+            currentLogoUrl={currentLogoUrl}
+            disabled={!isStoreOwner}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

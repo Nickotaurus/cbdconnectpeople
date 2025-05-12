@@ -12,10 +12,12 @@ import StoreLocationTab from '@/components/store-dashboard/StoreLocationTab';
 import StoreEcommerceTab from '@/components/store-dashboard/StoreEcommerceTab';
 import NoStoreCard from '@/components/store-dashboard/NoStoreCard';
 import SuccessMessage from '@/components/store-dashboard/SuccessMessage';
+import { useAuth } from '@/contexts/auth';
 
 const StoreDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const { user } = useAuth();
   
   const {
     currentStore,
@@ -29,11 +31,24 @@ const StoreDashboard = () => {
     handleEcommerceSubmit,
     handleLogoUpload
   } = useStoreDashboard();
+  
+  // Vérifier si l'utilisateur est le propriétaire de la boutique
+  const isStoreOwner = user && currentStore && 
+    (user.id === currentStore.userId || user.id === currentStore.claimedBy);
 
   const handleEditStore = () => {
-    if (currentStore?.id) {
-      navigate(`/store/${currentStore.id}/admin`);
+    if (!currentStore?.id) return;
+    
+    if (!isStoreOwner) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'êtes pas autorisé à modifier cette boutique",
+        variant: "destructive"
+      });
+      return;
     }
+    
+    navigate(`/store/${currentStore.id}/admin`);
   };
   
   const handleViewOnMap = () => {
@@ -78,7 +93,7 @@ const StoreDashboard = () => {
             <StoreOverviewTab
               store={currentStore}
               onEditClick={handleEditStore}
-              onViewMapClick={handleViewOnMap}
+              isStoreOwner={isStoreOwner}
             />
           </TabsContent>
           
@@ -86,6 +101,7 @@ const StoreDashboard = () => {
             <StoreDetailsTab
               store={currentStore}
               onEditClick={handleEditStore}
+              isStoreOwner={isStoreOwner}
             />
           </TabsContent>
           
@@ -102,6 +118,7 @@ const StoreDashboard = () => {
               onLogoUpload={handleLogoUpload}
               uploadingLogo={uploadingLogo}
               currentLogoUrl={currentStore.logo_url}
+              isStoreOwner={isStoreOwner}
             />
           </TabsContent>
         </Tabs>

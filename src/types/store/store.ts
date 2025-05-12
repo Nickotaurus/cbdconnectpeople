@@ -1,40 +1,47 @@
 
-import { 
-  BaseStore, 
-  StoreOpeningHours, 
-  StoreReview, 
-  StoreProduct, 
-  StoreIncentive, 
-  StoreCoupon, 
-  StoreLotteryPrize 
-} from './base-types';
-
-/**
- * Main Store interface used throughout the application
- */
-export interface Store extends BaseStore {
+export interface Store {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  latitude: number;
+  longitude: number;
   phone: string;
-  website: string;
-  openingHours: StoreOpeningHours[];
-  description: string;
-  imageUrl: string;
+  website?: string;
+  description?: string;
+  imageUrl?: string;
   logo_url?: string;
   photo_url?: string;
   rating: number;
   reviewCount: number;
-  incentive?: StoreIncentive;
-  coupon?: StoreCoupon;
-  lotteryPrize?: StoreLotteryPrize;
+  placeId?: string;
   isPremium?: boolean;
   premiumUntil?: string;
   isEcommerce?: boolean;
   ecommerceUrl?: string;
   hasGoogleBusinessProfile?: boolean;
-  reviews: StoreReview[];
-  products: StoreProduct[];
+  reviews: any[];
+  openingHours: OpeningHour[];
+  products?: any[];
   favoritePartnersCount?: number;
+  userId?: string; // ID de l'utilisateur propriétaire
+  claimedBy?: string; // ID de l'utilisateur qui a revendiqué cette boutique
 }
 
-// Re-export StoreOpeningHours from base-types to make it available
-// Using export type to comply with isolatedModules
-export type { StoreOpeningHours };
+export interface OpeningHour {
+  day: string;
+  hours: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  date: string;
+  user: {
+    name: string;
+    avatar?: string;
+  };
+  category?: string;
+}

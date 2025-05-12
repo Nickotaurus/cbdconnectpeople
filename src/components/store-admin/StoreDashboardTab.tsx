@@ -7,9 +7,10 @@ import { Store } from "@/types/store";
 interface StoreDashboardTabProps {
   store: Store;
   onEditClick: () => void;
+  isStoreOwner?: boolean;
 }
 
-const StoreDashboardTab = ({ store, onEditClick }: StoreDashboardTabProps) => {
+const StoreDashboardTab = ({ store, onEditClick, isStoreOwner = false }: StoreDashboardTabProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -19,10 +20,12 @@ const StoreDashboardTab = ({ store, onEditClick }: StoreDashboardTabProps) => {
             Gérez les informations principales de votre boutique
           </CardDescription>
         </div>
-        <Button onClick={onEditClick}>
-          <Pencil className="h-4 w-4 mr-2" />
-          Modifier
-        </Button>
+        {isStoreOwner && (
+          <Button onClick={onEditClick}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Modifier
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -76,14 +79,16 @@ const StoreDashboardTab = ({ store, onEditClick }: StoreDashboardTabProps) => {
                     <p className="font-medium text-green-800">Profil Google Business connecté</p>
                   </div>
                   <p className="text-green-700 text-sm">Vos clients peuvent voir votre boutique sur Google Maps et Google Search.</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-3"
-                    onClick={onEditClick}
-                  >
-                    Mettre à jour les informations
-                  </Button>
+                  {isStoreOwner && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-3"
+                      onClick={onEditClick}
+                    >
+                      Mettre à jour les informations
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
@@ -94,12 +99,14 @@ const StoreDashboardTab = ({ store, onEditClick }: StoreDashboardTabProps) => {
                     <p className="font-medium text-amber-800">Profil Google Business non connecté</p>
                   </div>
                   <p className="text-amber-700 text-sm">Connectez votre profil Google Business pour améliorer votre visibilité.</p>
-                  <Button 
-                    className="mt-3"
-                    onClick={onEditClick}
-                  >
-                    Connecter Google Business
-                  </Button>
+                  {isStoreOwner && (
+                    <Button 
+                      className="mt-3"
+                      onClick={onEditClick}
+                    >
+                      Connecter Google Business
+                    </Button>
+                  )}
                 </div>
               )}
 

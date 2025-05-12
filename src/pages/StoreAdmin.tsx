@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -26,6 +27,7 @@ const StoreAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isStoreOwner, setIsStoreOwner] = useState(false);
   
   const { favoritePartners, isLoadingPartners } = useStoreFavoritePartners(user?.id);
   
@@ -90,6 +92,18 @@ const StoreAdmin = () => {
             ...localStore,
             favoritePartnersCount: favoritePartners.length
           });
+          
+          // Vérification de propriété pour les anciennes données
+          if (user?.id && localStore.id) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('store_id')
+              .eq('id', user.id)
+              .single();
+              
+            setIsStoreOwner(data?.store_id === localStore.id);
+          }
+          
           setLoading(false);
           return;
         }
@@ -103,6 +117,14 @@ const StoreAdmin = () => {
           
         if (storeError) {
           throw new Error("Boutique non trouvée dans la base de données.");
+        }
+        
+        // Vérifier si l'utilisateur connecté est le propriétaire de cette boutique
+        if (user?.id) {
+          setIsStoreOwner(
+            storeData.user_id === user.id || 
+            storeData.claimed_by === user.id
+          );
         }
         
         // Adapter au format attendu par l'interface
@@ -234,6 +256,19 @@ const StoreAdmin = () => {
     }
   };
   
+  const handleEditClick = () => {
+    if (!isStoreOwner) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'êtes pas autorisé à modifier cette boutique",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsEditMode(true);
+  };
+  
   if (loading) {
     return <StoreLoadingState />;
   }
@@ -273,7 +308,11 @@ const StoreAdmin = () => {
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-6">
-          <StoreDashboardTab store={store} onEditClick={() => setIsEditMode(true)} />
+          <StoreDashboardTab 
+            store={store} 
+            onEditClick={handleEditClick}
+            isStoreOwner={isStoreOwner} 
+          />
         </TabsContent>
         
         <TabsContent value="partners" className="space-y-6">
