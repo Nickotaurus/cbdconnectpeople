@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, MapPin, Search, Tag, Clock } from 'lucide-react';
+import { Filter, MapPin, Search, Tag, Clock, Mail, Phone, User } from 'lucide-react';
 import PublishButton from '@/components/classifieds/PublishButton';
 import { Classified, ClassifiedType, ClassifiedCategory } from '@/types/classified';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +21,7 @@ const ClassifiedsPage = () => {
   const [filteredClassifieds, setFilteredClassifieds] = useState<Classified[]>([]);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [selectedClassified, setSelectedClassified] = useState<Classified | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   
   // Fetch real classified ads from the database
   const { data: classifieds, isLoading, error } = useQuery({
@@ -72,11 +72,9 @@ const ClassifiedsPage = () => {
 
   const handleViewClassified = (classified: Classified) => {
     if (user) {
-      // Si l'utilisateur est connecté, on pourrait le rediriger vers la page détaillée de l'annonce
-      // Pour l'instant, nous pourrions simplement stocker l'annonce sélectionnée
+      // Si l'utilisateur est connecté, afficher la boîte de dialogue des détails
       setSelectedClassified(classified);
-      // Ici, vous pourriez ajouter une redirection vers une page d'annonce détaillée
-      // navigate(`/classifieds/${classified.id}`);
+      setDetailsDialogOpen(true);
       console.log("Voir l'annonce:", classified.title);
     } else {
       // Si l'utilisateur n'est pas connecté, afficher la boîte de dialogue de connexion
@@ -298,6 +296,93 @@ const ClassifiedsPage = () => {
               </Button>
               <Button asChild className="sm:flex-1">
                 <Link to="/register">Créer un compte</Link>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Boîte de dialogue pour afficher les détails d'une annonce */}
+        <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Détails de l'annonce</DialogTitle>
+            </DialogHeader>
+            
+            {selectedClassified && (
+              <div className="py-4 space-y-6">
+                {selectedClassified.images && selectedClassified.images.length > 0 && (
+                  <div className="h-64 overflow-hidden rounded-md">
+                    <img 
+                      src={selectedClassified.images[0].url}
+                      alt={selectedClassified.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between">
+                  <Badge className={getTypeBadgeColor(selectedClassified.type)}>
+                    {getTypeLabel(selectedClassified.type)}
+                  </Badge>
+                  
+                  <Badge variant="outline" className="bg-gray-50">
+                    <Tag className="h-3 w-3 mr-1" />
+                    {getCategoryLabel(selectedClassified.category)}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <h2 className="text-2xl font-semibold mb-2">{selectedClassified.title}</h2>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{selectedClassified.location}</span>
+                  </div>
+                  
+                  {selectedClassified.price && (
+                    <div className="mb-4">
+                      <Badge variant="secondary" className="text-lg px-4 py-1 font-semibold">
+                        {selectedClassified.price}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <div className="bg-muted/30 p-4 rounded-md my-4">
+                    <h3 className="font-medium mb-2">Description</h3>
+                    <p className="whitespace-pre-wrap">{selectedClassified.description}</p>
+                  </div>
+                  
+                  <div className="border-t pt-4 mt-6">
+                    <h3 className="font-medium mb-3">Informations sur l'annonceur</h3>
+                    
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span>{selectedClassified.user.name}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span>{selectedClassified.user.email}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>Publiée le {new Date(selectedClassified.date).toLocaleDateString('fr-FR', { 
+                          day: 'numeric', 
+                          month: 'short', 
+                          year: 'numeric' 
+                        })}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter className="flex justify-end mt-4">
+              <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+                Fermer
               </Button>
             </DialogFooter>
           </DialogContent>
