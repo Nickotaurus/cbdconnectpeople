@@ -47,15 +47,6 @@ export interface StoreIncentive {
   isAffiliate?: boolean;
 }
 
-// Store coupon format
-export interface StoreCoupon {
-  code: string;
-  discount: string;
-  validUntil: string;
-  usageCount?: number;
-  isAffiliate?: boolean;
-}
-
 // Store lottery prize format
 export interface StoreLotteryPrize {
   name: string;

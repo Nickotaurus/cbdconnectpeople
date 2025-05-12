@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Store, StoreOpeningHours } from '@/types/store';
+import { Store, OpeningHour } from '@/types/store';
 import { storesData } from '@/data/storesData';
 
 export const useStores = () => {
@@ -27,8 +27,8 @@ export const useStores = () => {
       if (dbStores && dbStores.length > 0) {
         // Convertir les données de la DB au format Store
         const storeList = dbStores.map((storeData: any) => {
-          // Convertir les heures d'ouverture du format string[] au format StoreOpeningHours[]
-          let openingHours: StoreOpeningHours[] = [];
+          // Convertir les heures d'ouverture du format string[] au format OpeningHour[]
+          let openingHours: OpeningHour[] = [];
           if (storeData.opening_hours && Array.isArray(storeData.opening_hours)) {
             openingHours = storeData.opening_hours.map((hour: string) => {
               const parts = hour.split(':');
