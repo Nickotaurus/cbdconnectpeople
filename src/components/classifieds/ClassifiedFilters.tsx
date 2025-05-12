@@ -3,15 +3,34 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, MapPin, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
+import AdvancedFiltersPopover from './AdvancedFiltersPopover';
 
 interface ClassifiedFiltersProps {
   searchTerm: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onTypeChange: (value: string) => void;
+  onAdvancedFilterChange: (filters: {
+    minPrice?: string;
+    maxPrice?: string;
+    dateFrom?: Date;
+    isPremium?: boolean;
+  }) => void;
+  advancedFilters: {
+    minPrice?: string;
+    maxPrice?: string;
+    dateFrom?: Date;
+    isPremium?: boolean;
+  };
 }
 
-const ClassifiedFilters = ({ searchTerm, onSearchChange, onTypeChange }: ClassifiedFiltersProps) => {
+const ClassifiedFilters = ({ 
+  searchTerm, 
+  onSearchChange, 
+  onTypeChange,
+  onAdvancedFilterChange,
+  advancedFilters
+}: ClassifiedFiltersProps) => {
   return (
     <>
       <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-3xl mx-auto">
@@ -25,10 +44,10 @@ const ClassifiedFilters = ({ searchTerm, onSearchChange, onTypeChange }: Classif
           />
         </div>
         
-        <Button variant="default" className="gap-2">
-          <Filter className="h-4 w-4" />
-          Filtres avancés
-        </Button>
+        <AdvancedFiltersPopover 
+          onFilterChange={onAdvancedFilterChange}
+          filters={advancedFilters}
+        />
         
         <Button variant="default" className="gap-2">
           <MapPin className="h-4 w-4" />

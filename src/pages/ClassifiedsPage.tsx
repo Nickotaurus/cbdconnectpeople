@@ -18,6 +18,12 @@ const ClassifiedsPage = () => {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [selectedClassified, setSelectedClassified] = useState<Classified | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    minPrice: '',
+    maxPrice: '',
+    dateFrom: undefined as Date | undefined,
+    isPremium: false
+  });
   
   // Fetch real classified ads from the database
   const { data: classifieds, isLoading, error } = useQuery({
@@ -29,19 +35,21 @@ const ClassifiedsPage = () => {
   
   useEffect(() => {
     if (classifieds) {
-      filterClassifieds(activeType, searchTerm);
+      filterClassifieds(activeType, searchTerm, advancedFilters);
     }
-  }, [classifieds, activeType, searchTerm]);
+  }, [classifieds, activeType, searchTerm, advancedFilters]);
   
-  const filterClassifieds = (type: string, term: string) => {
+  const filterClassifieds = (type: string, term: string, filters: typeof advancedFilters) => {
     if (!classifieds) return;
     
     let filtered = [...classifieds];
     
+    // Type filter
     if (type !== 'all') {
       filtered = filtered.filter(classified => classified.type === type);
     }
     
+    // Search term filter
     if (term.trim()) {
       const lowerTerm = term.toLowerCase();
       filtered = filtered.filter(
@@ -52,18 +60,49 @@ const ClassifiedsPage = () => {
       );
     }
     
+    // Advanced filters
+    if (filters.minPrice) {
+      filtered = filtered.filter(classified => {
+        const price = parseFloat(classified.price || '0');
+        return price >= parseFloat(filters.minPrice || '0');
+      });
+    }
+    
+    if (filters.maxPrice) {
+      filtered = filtered.filter(classified => {
+        const price = parseFloat(classified.price || '0');
+        return price <= parseFloat(filters.maxPrice || '0');
+      });
+    }
+    
+    if (filters.dateFrom) {
+      filtered = filtered.filter(classified => {
+        const classifiedDate = new Date(classified.date);
+        return classifiedDate >= filters.dateFrom!;
+      });
+    }
+    
+    if (filters.isPremium) {
+      filtered = filtered.filter(classified => classified.isPremium);
+    }
+    
     setFilteredClassifieds(filtered);
   };
   
   const handleTypeChange = (value: string) => {
     setActiveType(value);
-    filterClassifieds(value, searchTerm);
+    filterClassifieds(value, searchTerm, advancedFilters);
   };
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
-    filterClassifieds(activeType, term);
+    filterClassifieds(activeType, term, advancedFilters);
+  };
+  
+  const handleAdvancedFiltersChange = (filters: typeof advancedFilters) => {
+    setAdvancedFilters(filters);
+    filterClassifieds(activeType, searchTerm, filters);
   };
 
   const handleViewClassified = (classified: Classified) => {
@@ -87,7 +126,9 @@ const ClassifiedsPage = () => {
         <ClassifiedFilters 
           searchTerm={searchTerm} 
           onSearchChange={handleSearch} 
-          onTypeChange={handleTypeChange} 
+          onTypeChange={handleTypeChange}
+          onAdvancedFilterChange={handleAdvancedFiltersChange}
+          advancedFilters={advancedFilters}
         />
         
         <ClassifiedsList 
