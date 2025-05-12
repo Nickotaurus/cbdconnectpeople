@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Store } from "@/types/store"; 
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Globe } from "lucide-react";
+import { useAuth } from "@/contexts/auth";
 
 interface UnauthorizedAccessProps {
   storeId?: string;
@@ -13,6 +14,7 @@ interface UnauthorizedAccessProps {
 
 const UnauthorizedAccessStore = ({ storeId, store }: UnauthorizedAccessProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   return (
     <div className="container mx-auto py-8">
@@ -93,12 +95,7 @@ const UnauthorizedAccessStore = ({ storeId, store }: UnauthorizedAccessProps) =>
             </p>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between pt-2">
-          {storeId && (
-            <Button variant="outline" onClick={() => navigate(`/store/${storeId}`)}>
-              Voir la fiche boutique
-            </Button>
-          )}
+        <CardFooter className="flex justify-end pt-2">
           <Button onClick={() => navigate("/")}>
             Retour à l'accueil
           </Button>
