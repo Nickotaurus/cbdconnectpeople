@@ -1,17 +1,16 @@
 
-// Re-export all classified service functions
 import { getApprovedClassifieds, getClassifiedsByStatus, getUserClassifieds } from './getClassifieds';
-import { createClassified } from './createClassified';
 import { updateClassifiedStatus } from './updateClassifiedStatus';
-import { addClassifiedImages } from './addClassifiedImages';
 import { deleteClassified } from './deleteClassified';
+import { createClassified } from './createClassified';
+import { addClassifiedImages } from './addClassifiedImages';
 
 export const classifiedService = {
   getApprovedClassifieds,
   getClassifiedsByStatus,
   getUserClassifieds,
-  createClassified,
   updateClassifiedStatus,
-  addClassifiedImages,
-  deleteClassified
+  deleteClassified,
+  createClassified,
+  addClassifiedImages
 };

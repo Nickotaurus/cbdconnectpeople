@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,99 +8,35 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter, MapPin, Search, Tag, Clock } from 'lucide-react';
 import PublishButton from '@/components/classifieds/PublishButton';
-
-// Types
-type ClassifiedType = 'buy' | 'sell' | 'service';
-type ClassifiedCategory = 'store' | 'ecommerce' | 'realestate' | 'employer' | 'employee';
-
-interface Classified {
-  id: string;
-  type: ClassifiedType;
-  category: ClassifiedCategory;
-  title: string;
-  description: string;
-  location: string;
-  price?: string;
-  date: string;
-  user: {
-    name: string;
-    id: string;
-  };
-  isPremium: boolean;
-  images?: string[];
-}
-
-// Mock data
-const mockClassifieds: Classified[] = [
-  {
-    id: '1',
-    type: 'sell',
-    category: 'store',
-    title: 'Cession de boutique CBD Paris 3ème',
-    description: 'Boutique de 55m² dans quartier passant, clientèle fidèle, CA en hausse. Vente cause départ à l\'étranger.',
-    location: 'Paris, France',
-    price: '85 000 €',
-    date: '2023-10-15',
-    user: { name: 'CBD Central', id: 'u1' },
-    isPremium: true,
-    images: ['https://images.unsplash.com/photo-1567449303183-ae0d6ed1c14e?q=80&w=1000'],
-  },
-  {
-    id: '2',
-    type: 'buy',
-    category: 'ecommerce',
-    title: 'Recherche dropshipping CBD',
-    description: 'Nous recherchons un partenaire pour nos activités de e-commerce en dropshipping pour des produits de qualité.',
-    location: 'Lyon, France',
-    date: '2023-10-18',
-    user: { name: 'GreenLeaf Distribution', id: 'u2' },
-    isPremium: false
-  },
-  {
-    id: '3',
-    type: 'service',
-    category: 'employer',
-    title: 'Recrute vendeur/vendeuse CBD',
-    description: 'Boutique CBD à Bordeaux recrute vendeur(se) avec expérience dans le secteur. Temps plein, CDI après période d\'essai.',
-    location: 'Bordeaux, France',
-    date: '2023-10-20',
-    user: { name: 'CBD Bordeaux', id: 'u3' },
-    isPremium: true,
-    images: ['https://images.unsplash.com/photo-1533392151650-269f96231f65?q=80&w=1000'],
-  },
-  {
-    id: '4',
-    type: 'sell',
-    category: 'realestate',
-    title: 'Terrain agricole adapté culture chanvre',
-    description: 'Terrain de 5 hectares avec irrigation, sol adapté à la culture du chanvre. Analyses de sol disponibles.',
-    location: 'Drôme, France',
-    price: '250 000 €',
-    date: '2023-10-22',
-    user: { name: 'AgriCBD', id: 'u4' },
-    isPremium: false
-  },
-  {
-    id: '5',
-    type: 'service',
-    category: 'employee',
-    title: 'Consultant expert en CBD cherche mission',
-    description: 'Expert en réglementation et produits CBD propose ses services pour accompagner votre entreprise dans son développement.',
-    location: 'Télétravail, France',
-    date: '2023-10-25',
-    user: { name: 'Jean Martin', id: 'u5' },
-    isPremium: false
-  }
-];
+import { Classified, ClassifiedType, ClassifiedCategory } from '@/types/classified';
+import { useQuery } from '@tanstack/react-query';
+import { classifiedService } from '@/services/classified';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ClassifiedsPage = () => {
   const { user } = useAuth();
   const [activeType, setActiveType] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredClassifieds, setFilteredClassifieds] = useState(mockClassifieds);
+  const [filteredClassifieds, setFilteredClassifieds] = useState<Classified[]>([]);
+  
+  // Fetch real classified ads from the database
+  const { data: classifieds, isLoading, error } = useQuery({
+    queryKey: ['classifieds', 'approved'],
+    queryFn: async () => {
+      return await classifiedService.getApprovedClassifieds();
+    }
+  });
+  
+  useEffect(() => {
+    if (classifieds) {
+      filterClassifieds(activeType, searchTerm);
+    }
+  }, [classifieds, activeType, searchTerm]);
   
   const filterClassifieds = (type: string, term: string) => {
-    let filtered = [...mockClassifieds];
+    if (!classifieds) return;
+    
+    let filtered = [...classifieds];
     
     if (type !== 'all') {
       filtered = filtered.filter(classified => classified.type === type);
@@ -209,75 +146,106 @@ const ClassifiedsPage = () => {
           )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClassifieds.map(classified => (
-            <Card key={classified.id} className={cn("overflow-hidden", classified.isPremium && "border-2 border-primary")}>
-              {classified.images && classified.images.length > 0 && (
-                <div className="h-48 overflow-hidden">
-                  <img 
-                    src={classified.images[0]} 
-                    alt={classified.title} 
-                    className="w-full h-full object-cover"
-                  />
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="h-48">
+                  <Skeleton className="w-full h-full" />
                 </div>
-              )}
-              
-              <CardHeader className={cn("pb-2", !classified.images && "pt-6")}>
-                <div className="flex justify-between items-start mb-2">
-                  <Badge className={getTypeBadgeColor(classified.type)}>
-                    {getTypeLabel(classified.type)}
-                  </Badge>
-                  {classified.isPremium && (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                      Premium
+                <CardHeader>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-20 w-full mb-4" />
+                  <Skeleton className="h-4 w-40" />
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-28" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              Une erreur est survenue lors du chargement des annonces. Veuillez réessayer plus tard.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredClassifieds.map(classified => (
+              <Card key={classified.id} className={cn("overflow-hidden", classified.isPremium && "border-2 border-primary")}>
+                {classified.images && classified.images.length > 0 && (
+                  <div className="h-48 overflow-hidden">
+                    <img 
+                      src={classified.images[0].url}
+                      alt={classified.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                
+                <CardHeader className={cn("pb-2", !classified.images && "pt-6")}>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge className={getTypeBadgeColor(classified.type)}>
+                      {getTypeLabel(classified.type)}
                     </Badge>
-                  )}
-                </div>
-                
-                <CardTitle className="text-xl">{classified.title}</CardTitle>
-                
-                <div className="flex items-center gap-2 mt-1">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                  <CardDescription>{classified.location}</CardDescription>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pb-2">
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                  {classified.description}
-                </p>
-                
-                <div className="flex items-center gap-2 mb-3">
-                  <Badge variant="outline" className="bg-gray-50">
-                    <Tag className="h-3 w-3 mr-1" />
-                    {getCategoryLabel(classified.category)}
-                  </Badge>
+                    {classified.isPremium && (
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
                   
-                  {classified.price && (
-                    <Badge variant="secondary" className="font-semibold">
-                      {classified.price}
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-              
-              <CardFooter className="pt-2 flex justify-between items-center">
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {new Date(classified.date).toLocaleDateString('fr-FR', { 
-                    day: 'numeric', 
-                    month: 'short', 
-                    year: 'numeric' 
-                  })}
-                </div>
+                  <CardTitle className="text-xl">{classified.title}</CardTitle>
+                  
+                  <div className="flex items-center gap-2 mt-1">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                    <CardDescription>{classified.location}</CardDescription>
+                  </div>
+                </CardHeader>
                 
-                <Button variant="default">Voir l'annonce</Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                <CardContent className="pb-2">
+                  <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+                    {classified.description}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="outline" className="bg-gray-50">
+                      <Tag className="h-3 w-3 mr-1" />
+                      {getCategoryLabel(classified.category)}
+                    </Badge>
+                    
+                    {classified.price && (
+                      <Badge variant="secondary" className="font-semibold">
+                        {classified.price}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-2 flex justify-between items-center">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {new Date(classified.date).toLocaleDateString('fr-FR', { 
+                      day: 'numeric', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })}
+                  </div>
+                  
+                  <Button variant="default">Voir l'annonce</Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
         
-        {filteredClassifieds.length === 0 && (
+        {!isLoading && !error && filteredClassifieds.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Aucune annonce ne correspond à votre recherche.</p>
           </div>
