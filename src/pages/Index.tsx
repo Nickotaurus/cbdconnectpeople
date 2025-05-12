@@ -7,6 +7,8 @@ import HeroSection from '@/components/home/HeroSection';
 import ProfilesSection from '@/components/home/ProfilesSection';
 import FeaturesSection from '@/components/home/FeaturesSection';
 import NewsSection from '@/components/home/NewsSection';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { user } = useAuth();
@@ -22,6 +24,32 @@ const Index = () => {
         );
       case 'partner':
         return <PartnerDashboard />;
+      case 'admin':
+        return (
+          <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-6">Espace Administration</h1>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="bg-white rounded-lg border p-6 shadow-sm">
+                <h2 className="text-xl font-semibold mb-4">Petites Annonces</h2>
+                <p className="text-muted-foreground mb-4">
+                  Gérez les petites annonces soumises par les utilisateurs.
+                </p>
+                <Button asChild>
+                  <Link to="/admin/classifieds">Gérer les annonces</Link>
+                </Button>
+              </div>
+              <div className="bg-white rounded-lg border p-6 shadow-sm">
+                <h2 className="text-xl font-semibold mb-4">Partenaires</h2>
+                <p className="text-muted-foreground mb-4">
+                  Gérez les partenaires de la plateforme.
+                </p>
+                <Button asChild>
+                  <Link to="/admin/partners">Gérer les partenaires</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
       default:
         break;
     }
