@@ -15,6 +15,27 @@ import StoreErrorState from "@/components/store-admin/StoreErrorState";
 import StoreEditForm from "@/components/store-admin/StoreEditForm";
 import UnauthorizedAccessStore from "@/components/store-admin/UnauthorizedAccessStore";
 
+interface StoreData {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  latitude: number;
+  longitude: number;
+  placeId: string;
+  phone: string;
+  website: string;
+  rating: number;
+  totalReviews: number;
+  description: string;
+  logo_url: string;
+  photo_url: string;
+  is_ecommerce: boolean;
+  ecommerce_url: string;
+  has_google_profile: boolean;
+  openingHours: string[];
+}
+
 const StoreAdmin = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -39,8 +60,73 @@ const StoreAdmin = () => {
       
       try {
         if (!user?.id) {
-          // Pas d'utilisateur connecté, accès non autorisé
+          // Pas d'utilisateur connecté, mais on continue à charger les données
           setUnauthorized(true);
+          
+          // Charger la boutique pour afficher ses informations
+          if (id) {
+            const localStore = getStoreById(id);
+            if (localStore) {
+              setStore({
+                ...localStore,
+                favoritePartnersCount: 0
+              });
+            } else {
+              // Essayons Supabase
+              const { data: storeData, error: storeError } = await supabase
+                .from('stores')
+                .select('*')
+                .eq('id', id)
+                .single();
+                
+              if (!storeError && storeData) {
+                // Adapter au format attendu par l'interface
+                const adaptedStore: Store = {
+                  id: storeData.id,
+                  name: storeData.name,
+                  address: storeData.address,
+                  city: storeData.city,
+                  postalCode: storeData.postal_code,
+                  latitude: storeData.latitude,
+                  longitude: storeData.longitude,
+                  phone: storeData.phone || '',
+                  website: storeData.website || '',
+                  description: storeData.description || '',
+                  imageUrl: storeData.photo_url || '',
+                  logo_url: storeData.logo_url || '',
+                  photo_url: storeData.photo_url || '',
+                  rating: 0,
+                  reviewCount: 0,
+                  placeId: storeData.google_place_id || '',
+                  isPremium: storeData.is_premium || false,
+                  premiumUntil: storeData.premium_until,
+                  isEcommerce: storeData.is_ecommerce || false,
+                  ecommerceUrl: storeData.ecommerce_url || '',
+                  hasGoogleBusinessProfile: storeData.has_google_profile || false,
+                  reviews: [],
+                  openingHours: Array.isArray(storeData.opening_hours) 
+                    ? storeData.opening_hours.map((hour: string) => {
+                        if (typeof hour === 'string') {
+                          const parts = hour.split(':');
+                          return {
+                            day: parts[0] || '',
+                            hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
+                          };
+                        }
+                        return hour;
+                      })
+                    : [],
+                  products: [],
+                  favoritePartnersCount: 0,
+                  userId: storeData.user_id,
+                  claimedBy: storeData.claimed_by,
+                };
+                
+                setStore(adaptedStore);
+              }
+            }
+          }
+          
           setLoading(false);
           return;
         }
@@ -276,7 +362,7 @@ const StoreAdmin = () => {
   };
   
   if (unauthorized) {
-    return <UnauthorizedAccessStore storeId={id} />;
+    return <UnauthorizedAccessStore storeId={id} store={store} />;
   }
   
   if (loading) {
