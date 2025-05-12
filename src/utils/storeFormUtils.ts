@@ -1,6 +1,5 @@
-
 import { FormData } from '@/types/store/form-types';
-import { Store, StoreOpeningHours } from "@/types/store/store";
+import { Store, OpeningHour } from "@/types/store/store";
 
 export const initialFormData: FormData = {
   id: '',
@@ -53,7 +52,9 @@ export const convertToStore = (storeData: any): Store => {
         hours: parts.length > 1 ? parts.slice(1).join(':').trim() : ''
       };
     }),
-    products: []
+    products: [],
+    userId: storeData.user_id,
+    claimedBy: storeData.claimed_by
   };
 };
 

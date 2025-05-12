@@ -27,6 +27,7 @@ export interface Store {
   favoritePartnersCount?: number;
   userId?: string; // ID de l'utilisateur propriétaire
   claimedBy?: string; // ID de l'utilisateur qui a revendiqué cette boutique
+  coupon?: StoreCoupon; // Ajout de la propriété coupon
 }
 
 export interface OpeningHour {
@@ -44,4 +45,12 @@ export interface Review {
     avatar?: string;
   };
   category?: string;
+}
+
+export interface StoreCoupon {
+  code: string;
+  discount: string;
+  validUntil: string;
+  usageCount?: number;
+  isAffiliate?: boolean;
 }

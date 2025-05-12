@@ -9,9 +9,10 @@ interface StoreOverviewTabProps {
   store: Store;
   onEditClick: () => void;
   onViewMapClick: () => void;
+  isStoreOwner?: boolean; // Ajout de la prop isStoreOwner
 }
 
-const StoreOverviewTab = ({ store, onEditClick, onViewMapClick }: StoreOverviewTabProps) => {
+const StoreOverviewTab = ({ store, onEditClick, onViewMapClick, isStoreOwner = false }: StoreOverviewTabProps) => {
   // Définir explicitement le centre de la carte avec les coordonnées de la boutique
   const mapCenter = {
     lat: store.latitude,
@@ -53,7 +54,9 @@ const StoreOverviewTab = ({ store, onEditClick, onViewMapClick }: StoreOverviewT
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={onEditClick}>Modifier les informations</Button>
+          {isStoreOwner && (
+            <Button onClick={onEditClick}>Modifier les informations</Button>
+          )}
         </CardFooter>
       </Card>
       

@@ -7,9 +7,15 @@ interface LogoUploadProps {
   onUpload: (file: File) => Promise<string | null>;
   currentLogoUrl?: string | null;
   isUploading?: boolean;
+  disabled?: boolean; // Ajout de la prop disabled
 }
 
-const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploadProps) => {
+const LogoUpload = ({ 
+  onUpload, 
+  currentLogoUrl, 
+  isUploading = false, 
+  disabled = false 
+}: LogoUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +72,7 @@ const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploa
         className="hidden"
         ref={fileInputRef}
         onChange={handleFileChange}
+        disabled={disabled || isUploading}
       />
       
       {previewUrl ? (
@@ -79,7 +86,7 @@ const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploa
             <Button
               variant="secondary"
               onClick={handleButtonClick}
-              disabled={isUploading}
+              disabled={disabled || isUploading}
               className="bg-white hover:bg-gray-100 text-black"
             >
               {isUploading ? 'Chargement...' : 'Modifier le logo'}
@@ -97,7 +104,7 @@ const LogoUpload = ({ onUpload, currentLogoUrl, isUploading = false }: LogoUploa
           variant="outline"
           onClick={handleButtonClick}
           className="w-full h-48 border-dashed flex flex-col items-center justify-center gap-2"
-          disabled={isUploading}
+          disabled={disabled || isUploading}
         >
           {isUploading ? (
             <>

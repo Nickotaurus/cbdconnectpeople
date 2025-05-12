@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe, Store as StoreIcon } from 'lucide-react';
 import { useStoreDashboard } from '@/hooks/useStoreDashboard';
+import { useToast } from '@/hooks/use-toast'; // Ajout de l'import useToast
 
 // Import our new component tabs
 import StoreOverviewTab from '@/components/store-dashboard/StoreOverviewTab';
@@ -18,6 +19,7 @@ const StoreDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuth();
+  const { toast } = useToast(); // Utilisation de useToast
   
   const {
     currentStore,
@@ -93,6 +95,7 @@ const StoreDashboard = () => {
             <StoreOverviewTab
               store={currentStore}
               onEditClick={handleEditStore}
+              onViewMapClick={handleViewOnMap} // Ajout de la prop manquante
               isStoreOwner={isStoreOwner}
             />
           </TabsContent>
