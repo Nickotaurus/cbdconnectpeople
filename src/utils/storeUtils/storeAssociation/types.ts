@@ -31,7 +31,6 @@ export interface StoreSearchResult {
 }
 
 export interface CityCoordinates {
-  city: string;
   lat: number;
   lng: number;
 }

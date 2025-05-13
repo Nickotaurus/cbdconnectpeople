@@ -5,7 +5,7 @@ import { StoreBasicInfo, CityCoordinates } from './types';
 /**
  * Default coordinates for common cities
  */
-export const defaultCityCoordinates: CityCoordinates = {
+export const defaultCityCoordinates: Record<string, CityCoordinates> = {
   "Paris": { lat: 48.8566, lng: 2.3522 },
   "Lyon": { lat: 45.7640, lng: 4.8357 },
   "Marseille": { lat: 43.2965, lng: 5.3698 },

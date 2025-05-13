@@ -2,56 +2,68 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { associateStoreWithProfile } from '@/utils/storeUtils/storeAssociation/associateStore';
-import { StoreBasicInfo } from '@/utils/storeUtils/storeAssociation/types';
+import { StoreBasicInfo, AssociationResult } from '@/utils/storeUtils/storeAssociation/types';
+import { useAuth } from '@/contexts/auth';
 
-export const useStoreAssociation = () => {
-  const [isAssociating, setIsAssociating] = useState(false);
-  const [associationResult, setAssociationResult] = useState<{
-    success: boolean;
-    message: string;
-    storeId?: string;
-  } | null>(null);
+export const useStoreAssociation = (
+  defaultStoreName = "",
+  defaultCity = "",
+  onSuccess?: (storeId: string) => void
+) => {
+  const { user } = useAuth();
+  const [storeName, setStoreName] = useState<string>(defaultStoreName);
+  const [city, setCity] = useState<string>(defaultCity);
+  const [processing, setProcessing] = useState<boolean>(false);
+  const [result, setResult] = useState<AssociationResult>({} as AssociationResult);
 
-  const associateStore = async (userId: string, storeData: StoreBasicInfo, storeType: 'physical' | 'ecommerce' | 'both' = 'physical') => {
+  const handleAssociate = async () => {
+    if (!user?.id || !storeName) return;
+
     try {
-      setIsAssociating(true);
-      setAssociationResult(null);
+      setProcessing(true);
+      setResult({} as AssociationResult);
       
-      // Verify if the user exists
-      const { data: userProfile, error: userError } = await supabase
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .single();
+      // Create a minimal store data object for association
+      const storeData: StoreBasicInfo = {
+        name: storeName,
+        city: city,
+        latitude: 0,  // Will be updated during association process
+        longitude: 0, // Will be updated during association process
+      };
       
-      if (userError || !userProfile) {
-        setAssociationResult({
-          success: false,
-          message: 'Utilisateur non trouvé. Veuillez vous reconnecter.'
-        });
-        return;
+      // Call the association function
+      const associationResult = await associateStoreWithProfile(user.id, storeData, 'physical');
+      
+      setResult(associationResult);
+      
+      // If successful and callback provided, call it with the store ID
+      if (associationResult.success && associationResult.storeId && onSuccess) {
+        onSuccess(associationResult.storeId);
       }
       
-      // Associate the store with the user profile
-      const result = await associateStoreWithProfile(userId, storeData, storeType);
-      
-      setAssociationResult(result);
-      
-      return result;
     } catch (error) {
-      console.error('Error during store association:', error);
-      setAssociationResult({
+      console.error('Error associating store:', error);
+      setResult({
         success: false,
-        message: 'Une erreur est survenue lors de l\'association de la boutique.'
+        message: "Une erreur s'est produite lors de l'association de la boutique"
       });
     } finally {
-      setIsAssociating(false);
+      setProcessing(false);
     }
   };
 
   return {
-    associateStore,
-    isAssociating,
-    associationResult,
+    storeName,
+    setStoreName,
+    city,
+    setCity,
+    processing,
+    result,
+    handleAssociate,
+    // Also expose the raw association function for more complex scenarios
+    associateStore: (userId: string, storeData: StoreBasicInfo, storeType: 'physical' | 'ecommerce' | 'both' = 'physical') => 
+      associateStoreWithProfile(userId, storeData, storeType),
+    isAssociating: processing,
+    associationResult: result
   };
 };
