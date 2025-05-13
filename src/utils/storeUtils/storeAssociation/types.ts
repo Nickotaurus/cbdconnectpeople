@@ -20,3 +20,8 @@ export interface AssociationResult {
   message: string;
   storeId?: string;
 }
+
+export interface CityCoordinates {
+  lat: number;
+  lng: number;
+}

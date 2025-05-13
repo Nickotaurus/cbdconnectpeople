@@ -42,14 +42,9 @@ export const associateStoreWithProfile = async (
     
     // Update user profile with store ID
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ store_id: storeId, store_type: storeType })
-        .eq('id', userId);
-      
-      if (updateError) {
-        console.error('Erreur lors de la mise à jour du profil:', updateError);
-        return { success: false, message: 'Erreur lors de la mise à jour du profil' };
+      const updateResult = await updateUserProfile(userId, storeId, storeType);
+      if (!updateResult.success) {
+        return updateResult;
       }
     } catch (error) {
       console.error('Unexpected error during profile update:', error);
@@ -76,6 +71,32 @@ export const associateStoreWithProfile = async (
 };
 
 /**
+ * Update user profile with store ID
+ */
+async function updateUserProfile(
+  userId: string, 
+  storeId: string, 
+  storeType: 'physical' | 'ecommerce' | 'both'
+): Promise<AssociationResult> {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ store_id: storeId, store_type: storeType })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      return { success: false, message: 'Erreur lors de la mise à jour du profil' };
+    }
+    
+    return { success: true, message: 'Profil mis à jour avec succès' };
+  } catch (error) {
+    console.error('Unexpected error during profile update:', error);
+    return { success: false, message: 'Erreur lors de la mise à jour du profil' };
+  }
+}
+
+/**
  * Process CBD shop specific association
  */
 async function processCbdShop(
@@ -84,84 +105,79 @@ async function processCbdShop(
 ): Promise<AssociationResult> {
   try {
     // First check if the store has already been migrated
-    const existingStoreQuery = await supabase
+    const { data: existingStoreData, error: existingStoreError } = await supabase
       .from('stores')
       .select('id')
       .eq('source_table', 'cbd_shops')
-      .eq('source_id', storeData.sourceId);
-    
-    const existingStoreError = existingStoreQuery.error;
-    const existingStoreData = existingStoreQuery.data;
+      .eq('source_id', storeData.sourceId || '')
+      .maybeSingle();
     
     if (existingStoreError) {
       console.error(`Error checking for existing store: ${existingStoreError.message}`);
       // Continue with the process, we'll try to create a new one
-    } else if (existingStoreData && existingStoreData.length > 0) {
-      console.log(`CBD shop already migrated to stores table with ID ${existingStoreData[0].id}`);
+    } else if (existingStoreData) {
+      console.log(`CBD shop already migrated to stores table with ID ${existingStoreData.id}`);
       return { 
         success: true, 
         message: 'Boutique associée avec succès au profil', 
-        storeId: existingStoreData[0].id 
+        storeId: existingStoreData.id 
       };
     }
     
     // Fetch the CBD shop
-    const cbdShopQuery = await supabase
+    const { data: cbdShops, error: cbdShopError } = await supabase
       .from('cbd_shops')
       .select('*')
-      .eq('id', parseInt(storeData.sourceId || '0'));
+      .eq('id', parseInt(storeData.sourceId || '0'))
+      .maybeSingle();
     
-    const cbdShopError = cbdShopQuery.error;
-    const cbdShops = cbdShopQuery.data;
-    
-    if (cbdShopError || !cbdShops || cbdShops.length === 0) {
+    if (cbdShopError || !cbdShops) {
       console.error(`Error fetching CBD shop with ID ${storeData.sourceId}:`, cbdShopError);
       return { success: false, message: `Boutique introuvable dans la base de données` };
     }
 
-    const shopData = cbdShops[0];
-    
     // Insert into stores table
     const insertData = {
-      name: shopData.name,
-      address: shopData.address || '',
-      city: shopData.city || '',
+      name: cbdShops.name,
+      address: cbdShops.address || '',
+      city: cbdShops.city || '',
       postal_code: '',
-      latitude: shopData.lat,
-      longitude: shopData.lng,
+      latitude: cbdShops.lat,
+      longitude: cbdShops.lng,
       user_id: userId,
       claimed_by: userId,
       is_verified: true,
       source_table: 'cbd_shops',
-      source_id: shopData.id.toString()
+      source_id: cbdShops.id.toString()
     };
     
     // Insert the store
-    const insertResult = await supabase
+    const { error: insertError } = await supabase
       .from('stores')
       .insert(insertData);
     
-    if (insertResult.error) {
-      console.error(`Error inserting store from CBD shop:`, insertResult.error);
+    if (insertError) {
+      console.error(`Error inserting store from CBD shop:`, insertError);
       return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
     }
     
     // Get the inserted store
-    const newStoreQuery = await supabase
+    const { data: newStoreData, error: newStoreError } = await supabase
       .from('stores')
       .select('id')
       .eq('source_table', 'cbd_shops')
-      .eq('source_id', shopData.id.toString());
+      .eq('source_id', cbdShops.id.toString())
+      .maybeSingle();
     
-    if (newStoreQuery.error || !newStoreQuery.data || newStoreQuery.data.length === 0) {
-      console.error(`Error retrieving inserted store:`, newStoreQuery.error);
+    if (newStoreError || !newStoreData) {
+      console.error(`Error retrieving inserted store:`, newStoreError);
       return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
     }
     
     return { 
       success: true, 
       message: 'Boutique créée et associée avec succès au profil', 
-      storeId: newStoreQuery.data[0].id 
+      storeId: newStoreData.id 
     };
   } catch (error) {
     console.error('Unexpected error during CBD shop processing:', error);
@@ -196,33 +212,34 @@ async function createNewStore(
   
   try {
     // Insert the store
-    const insertResult = await supabase
+    const { error: insertError } = await supabase
       .from('stores')
       .insert(insertData);
     
-    if (insertResult.error) {
-      console.error('Error inserting store:', insertResult.error);
+    if (insertError) {
+      console.error('Error inserting store:', insertError);
       return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
     }
     
     // Query for the inserted store
-    const newStoreQuery = await supabase
+    const { data: newStoreData, error: newStoreError } = await supabase
       .from('stores')
       .select('id')
       .eq('name', storeData.name)
       .eq('user_id', userId)
       .order('registration_date', { ascending: false })
-      .limit(1);
+      .limit(1)
+      .maybeSingle();
     
-    if (newStoreQuery.error || !newStoreQuery.data || newStoreQuery.data.length === 0) {
-      console.error('Error retrieving inserted store:', newStoreQuery.error);
+    if (newStoreError || !newStoreData) {
+      console.error('Error retrieving inserted store:', newStoreError);
       return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
     }
     
     return { 
       success: true, 
       message: 'Boutique créée avec succès', 
-      storeId: newStoreQuery.data[0].id 
+      storeId: newStoreData.id 
     };
   } catch (error) {
     console.error('Unexpected error during store creation:', error);
