@@ -24,19 +24,16 @@ export const associateStoreWithProfile = async (
       
       if (storeData.sourceTable === 'cbd_shops') {
         // Pour une boutique de cbd_shops, vérifions d'abord si elle a déjà été migrée
-        // Use explicit typing to break the circular dependency
-        const existingStoreQuery = await supabase
+        // Build the query first, then execute it
+        const existingStoreQuery = supabase
           .from('stores')
-          .select('id');
-          
-        // Apply filters after the initial query to avoid type issues
-        const filteredQuery = existingStoreQuery
+          .select('id')
           .eq('source_table', 'cbd_shops')
           .eq('source_id', storeData.sourceId)
           .single();
           
-        const existingStore = filteredQuery.data;
-        const existingStoreError = filteredQuery.error;
+        // Execute the query
+        const { data: existingStore, error: existingStoreError } = await existingStoreQuery;
         
         if (existingStoreError) {
           console.error(`Error checking for existing store: ${existingStoreError.message}`);
@@ -47,16 +44,15 @@ export const associateStoreWithProfile = async (
           storeExists = true;
         } else {
           // Migrer depuis cbd_shops vers stores
-          const cbdShopQuery = await supabase
+          // Build the query for cbd_shops
+          const cbdShopQuery = supabase
             .from('cbd_shops')
-            .select('*');
-            
-          const filteredCbdQuery = cbdShopQuery
+            .select('*')
             .eq('id', parseInt(storeData.sourceId))
             .single();
           
-          const cbdShop = filteredCbdQuery.data;
-          const cbdShopError = filteredCbdQuery.error;
+          // Execute the query
+          const { data: cbdShop, error: cbdShopError } = await cbdShopQuery;
           
           if (cbdShopError || !cbdShop) {
             console.error(`Error fetching CBD shop with ID ${storeData.sourceId}:`, cbdShopError);
@@ -78,18 +74,14 @@ export const associateStoreWithProfile = async (
             source_id: cbdShop.id.toString()
           };
           
-          const newStoreQuery = await supabase
+          // Build and execute the insert query
+          const { data: newStore, error: insertError } = await supabase
             .from('stores')
-            .insert(insertData);
-            
-          const insertWithReturn = newStoreQuery
+            .insert(insertData)
             .select()
             .single();
           
-          const newStore = insertWithReturn.data;
-          const insertError = insertWithReturn.error;
-          
-          if (insertError) {
+          if (insertError || !newStore) {
             console.error(`Error inserting store from CBD shop:`, insertError);
             return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
           }
@@ -120,18 +112,14 @@ export const associateStoreWithProfile = async (
         is_verified: true
       };
       
-      const newStoreQuery = await supabase
+      // Build and execute the insert query
+      const { data: newStore, error: insertError } = await supabase
         .from('stores')
-        .insert(insertData);
-        
-      const insertWithReturn = newStoreQuery
+        .insert(insertData)
         .select()
         .single();
       
-      const newStore = insertWithReturn.data;
-      const insertError = insertWithReturn.error;
-      
-      if (insertError) {
+      if (insertError || !newStore) {
         console.error('Error inserting store:', insertError);
         return { success: false, message: `Erreur lors de l'enregistrement de la boutique` };
       }
@@ -140,12 +128,11 @@ export const associateStoreWithProfile = async (
     }
     
     // Mise à jour du profil utilisateur avec l'ID de la boutique
-    const profileUpdateQuery = await supabase
+    // Build and execute the profile update query
+    const { error: profileError } = await supabase
       .from('profiles')
-      .update({ store_id: storeId, store_type: storeType });
-      
-    const profileUpdateResult = profileUpdateQuery.eq('id', userId);
-    const profileError = profileUpdateResult.error;
+      .update({ store_id: storeId, store_type: storeType })
+      .eq('id', userId);
     
     if (profileError) {
       console.error('Erreur lors de la mise à jour du profil:', profileError);
