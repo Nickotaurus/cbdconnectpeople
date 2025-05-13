@@ -73,8 +73,8 @@ export async function fetchPartners(): Promise<{
         name: profile.name || 'Partenaire sans nom',
         category: (profile.partner_category || 'other') as string,
         location: profile.partner_favorites?.[3] || 'France',
-        // Remove the direct access to city property and use a safer approach
-        city: '',  // Set a default empty string
+        // Fix: Don't access city directly since it doesn't exist in the profile type
+        city: '',  // Provide a default empty string
         description: profile.partner_favorites?.[6] || 'Aucune description',
         certifications: profile.certifications || [],
         distance: Math.floor(Math.random() * 300),

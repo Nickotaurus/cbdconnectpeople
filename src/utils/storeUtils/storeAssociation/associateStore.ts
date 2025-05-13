@@ -24,16 +24,19 @@ export const associateStoreWithProfile = async (
       
       if (storeData.sourceTable === 'cbd_shops') {
         // Pour une boutique de cbd_shops, vérifions d'abord si elle a déjà été migrée
-        // Break the type dependency chain by specifying the expected return type shape
+        // Use explicit typing to break the circular dependency
         const existingStoreQuery = await supabase
           .from('stores')
-          .select('id')
+          .select('id');
+          
+        // Apply filters after the initial query to avoid type issues
+        const filteredQuery = existingStoreQuery
           .eq('source_table', 'cbd_shops')
           .eq('source_id', storeData.sourceId)
           .single();
           
-        const existingStore = existingStoreQuery.data;
-        const existingStoreError = existingStoreQuery.error;
+        const existingStore = filteredQuery.data;
+        const existingStoreError = filteredQuery.error;
         
         if (existingStoreError) {
           console.error(`Error checking for existing store: ${existingStoreError.message}`);
@@ -46,12 +49,14 @@ export const associateStoreWithProfile = async (
           // Migrer depuis cbd_shops vers stores
           const cbdShopQuery = await supabase
             .from('cbd_shops')
-            .select('*')
+            .select('*');
+            
+          const filteredCbdQuery = cbdShopQuery
             .eq('id', parseInt(storeData.sourceId))
             .single();
           
-          const cbdShop = cbdShopQuery.data;
-          const cbdShopError = cbdShopQuery.error;
+          const cbdShop = filteredCbdQuery.data;
+          const cbdShopError = filteredCbdQuery.error;
           
           if (cbdShopError || !cbdShop) {
             console.error(`Error fetching CBD shop with ID ${storeData.sourceId}:`, cbdShopError);
@@ -59,26 +64,30 @@ export const associateStoreWithProfile = async (
           }
           
           // Insérer dans la table stores
+          const insertData = {
+            name: cbdShop.name,
+            address: cbdShop.address || '',
+            city: cbdShop.city || '',
+            postal_code: '',
+            latitude: cbdShop.lat,
+            longitude: cbdShop.lng,
+            user_id: userId,
+            claimed_by: userId,
+            is_verified: true,
+            source_table: 'cbd_shops',
+            source_id: cbdShop.id.toString()
+          };
+          
           const newStoreQuery = await supabase
             .from('stores')
-            .insert({
-              name: cbdShop.name,
-              address: cbdShop.address || '',
-              city: cbdShop.city || '',
-              postal_code: '',
-              latitude: cbdShop.lat,
-              longitude: cbdShop.lng,
-              user_id: userId,
-              claimed_by: userId,
-              is_verified: true,
-              source_table: 'cbd_shops',
-              source_id: cbdShop.id.toString()
-            })
+            .insert(insertData);
+            
+          const insertWithReturn = newStoreQuery
             .select()
             .single();
           
-          const newStore = newStoreQuery.data;
-          const insertError = newStoreQuery.error;
+          const newStore = insertWithReturn.data;
+          const insertError = insertWithReturn.error;
           
           if (insertError) {
             console.error(`Error inserting store from CBD shop:`, insertError);
@@ -94,29 +103,33 @@ export const associateStoreWithProfile = async (
       }
     } else {
       // Pour les nouvelles boutiques sans source spécifique
+      const insertData = {
+        name: storeData.name,
+        address: storeData.address || '',
+        city: storeData.city || '',
+        postal_code: storeData.postalCode || '',
+        latitude: storeData.latitude,
+        longitude: storeData.longitude,
+        phone: storeData.phone || '',
+        website: storeData.website || '',
+        description: storeData.description || '',
+        photo_url: storeData.imageUrl || '',
+        is_ecommerce: storeType === 'ecommerce' || storeType === 'both',
+        user_id: userId,
+        claimed_by: userId,
+        is_verified: true
+      };
+      
       const newStoreQuery = await supabase
         .from('stores')
-        .insert({
-          name: storeData.name,
-          address: storeData.address || '',
-          city: storeData.city || '',
-          postal_code: storeData.postalCode || '',
-          latitude: storeData.latitude,
-          longitude: storeData.longitude,
-          phone: storeData.phone || '',
-          website: storeData.website || '',
-          description: storeData.description || '',
-          photo_url: storeData.imageUrl || '',
-          is_ecommerce: storeType === 'ecommerce' || storeType === 'both',
-          user_id: userId,
-          claimed_by: userId,
-          is_verified: true
-        })
+        .insert(insertData);
+        
+      const insertWithReturn = newStoreQuery
         .select()
         .single();
       
-      const newStore = newStoreQuery.data;
-      const insertError = newStoreQuery.error;
+      const newStore = insertWithReturn.data;
+      const insertError = insertWithReturn.error;
       
       if (insertError) {
         console.error('Error inserting store:', insertError);
@@ -129,10 +142,10 @@ export const associateStoreWithProfile = async (
     // Mise à jour du profil utilisateur avec l'ID de la boutique
     const profileUpdateQuery = await supabase
       .from('profiles')
-      .update({ store_id: storeId, store_type: storeType })
-      .eq('id', userId);
+      .update({ store_id: storeId, store_type: storeType });
       
-    const profileError = profileUpdateQuery.error;
+    const profileUpdateResult = profileUpdateQuery.eq('id', userId);
+    const profileError = profileUpdateResult.error;
     
     if (profileError) {
       console.error('Erreur lors de la mise à jour du profil:', profileError);
