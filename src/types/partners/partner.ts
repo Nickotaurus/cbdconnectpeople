@@ -22,6 +22,12 @@ export interface Partner {
   ratingsAverage?: number;
   ratingsCount?: number;
   isVerified?: boolean;
+  
+  // Additional properties needed by components
+  imageUrl?: string;
+  location?: string;
+  distance?: number;
+  certifications?: string[];
 }
 
 export interface PartnerCategory {
@@ -39,4 +45,13 @@ export interface PartnerSubscription {
   benefits: string[];
   isPopular?: boolean;
   callToAction: string;
+}
+
+// Add the UsePartnersResult interface that was missing
+export interface UsePartnersResult {
+  partnerProfiles: Partner[];
+  filteredPartners: Partner[];
+  isLoading: boolean;
+  error: string | null;
+  useTestData: boolean;
 }

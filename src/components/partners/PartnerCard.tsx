@@ -29,36 +29,38 @@ const PartnerCard = ({
     <Card key={partner.id} className="overflow-hidden flex flex-col h-full">
       <div className="h-48 overflow-hidden">
         <img 
-          src={partner.imageUrl} 
+          src={partner.imageUrl || 'https://via.placeholder.com/150'} 
           alt={partner.name} 
           className="w-full h-full object-cover"
         />
       </div>
       <CardHeader className="pb-2">
         <Badge variant="secondary" className="flex items-center gap-1 text-base px-3 py-1.5 mb-2 font-semibold">
-          <PartnerIcon category={partner.category} />
-          {getCategoryLabel(partner.category)}
+          <PartnerIcon category={partner.category as PartnerCategory} />
+          {getCategoryLabel(partner.category as PartnerCategory)}
         </Badge>
         <CardTitle className="text-xl">{partner.name}</CardTitle>
         <CardDescription className="flex items-center gap-1">
           <MapPin className="h-3 w-3" />
-          {partner.location} • <span>{partner.distance} km</span>
+          {partner.location || partner.city || 'Non spécifiée'} {partner.distance && `• ${partner.distance} km`}
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-2 flex-1">
         <p className="text-sm text-muted-foreground mb-3">{partner.description}</p>
         
-        <div className="mb-3">
-          <p className="text-xs font-medium mb-1.5">Certifications:</p>
-          <div className="flex flex-wrap gap-1.5">
-            {partner.certifications.map(cert => (
-              <Badge key={cert} variant="outline" className="flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                {cert}
-              </Badge>
-            ))}
+        {partner.certifications && partner.certifications.length > 0 && (
+          <div className="mb-3">
+            <p className="text-xs font-medium mb-1.5">Certifications:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {partner.certifications.map(cert => (
+                <Badge key={cert} variant="outline" className="flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  {cert}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
       <CardFooter className="pt-2">
         <Button 

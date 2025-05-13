@@ -20,7 +20,7 @@ export async function fetchPartners(): Promise<{
     
     if (profileError) {
       console.error("❌ Error fetching profiles:", profileError);
-      return { partners: [], error: "Impossible de charger les profils partenaires", useTestData: true };
+      return { partners: testPartnerData, error: "Impossible de charger les profils partenaires", useTestData: true };
     }
     
     console.log("📋 Total partner profiles found:", allProfiles?.length || 0);
@@ -52,7 +52,7 @@ export async function fetchPartners(): Promise<{
         description: "Impossible de charger les partenaires.",
         variant: "destructive",
       });
-      return { partners: [], error: "Impossible de charger les partenaires", useTestData: true };
+      return { partners: testPartnerData, error: "Impossible de charger les partenaires", useTestData: true };
     }
 
     console.log("✅ Filtered partner profiles:", data?.length || 0);
@@ -68,15 +68,17 @@ export async function fetchPartners(): Promise<{
         });
       });
       
-      const formattedProfiles = data.map(profile => ({
+      const formattedProfiles: Partner[] = data.map(profile => ({
         id: profile.id,
         name: profile.name || 'Partenaire sans nom',
-        category: (profile.partner_category || 'other') as PartnerCategory, // Cast to PartnerCategory type
+        category: (profile.partner_category || 'other') as string,
         location: profile.partner_favorites?.[3] || 'France',
+        city: profile.city || '',
         description: profile.partner_favorites?.[6] || 'Aucune description',
         certifications: profile.certifications || [],
         distance: Math.floor(Math.random() * 300),
-        imageUrl: profile.logo_url || 'https://via.placeholder.com/150'
+        imageUrl: profile.logo_url || 'https://via.placeholder.com/150',
+        logoUrl: profile.logo_url
       }));
       
       console.log("🏆 Formatted Profiles:", formattedProfiles);

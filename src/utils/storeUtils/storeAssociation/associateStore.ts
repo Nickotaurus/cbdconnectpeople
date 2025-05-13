@@ -76,7 +76,7 @@ export const associateStoreWithProfile = async (
         }
       } else {
         // Pour d'autres tables source, utiliser le processus existant...
-        storeId = storeData.id;
+        storeId = storeData.id || '';
         storeExists = true;
       }
     } else {

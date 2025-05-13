@@ -37,9 +37,11 @@ const StoreCard = ({
       <div className="relative h-full flex flex-col">
         <StoreCardImage 
           imageUrl={imageUrl} 
-          altText={store.name}
+          storeName={store.name}
           isPremium={store.isPremium}
           className="h-1/2 object-cover w-full"
+          rating={store.rating}
+          storeId={store.id}
         />
         
         <CardContent className="flex-1 flex flex-col p-3 relative">

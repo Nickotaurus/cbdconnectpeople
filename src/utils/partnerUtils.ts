@@ -1,3 +1,4 @@
+
 import { PartnerCategory } from "@/types/auth";
 import { partnerCategories } from "@/data/partnerCategoriesData";
 import { Partner } from "@/types/partners/partner";
@@ -28,7 +29,7 @@ export const filterPartners = (partners: Partner[], searchTerm: string, category
     
     filtered = filtered.filter(partner => {
       const nameMatch = partner.name.toLowerCase().includes(normalizedSearchTerm);
-      const locationMatch = partner.location.toLowerCase().includes(normalizedSearchTerm);
+      const locationMatch = (partner.location || partner.city || '').toLowerCase().includes(normalizedSearchTerm);
       const descMatch = partner.description.toLowerCase().includes(normalizedSearchTerm);
       
       return nameMatch || locationMatch || descMatch;

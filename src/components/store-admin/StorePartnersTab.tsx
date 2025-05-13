@@ -32,15 +32,15 @@ const StorePartnersTab = ({ favoritePartners, isLoadingPartners }: StorePartners
             {favoritePartners.map((partner) => (
               <div key={partner.id} className="bg-card border rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-2">
-                  <PartnerIcon category={partner.category} />
+                  <PartnerIcon category={partner.category as PartnerCategory} />
                   <div>
                     <h3 className="font-medium">{partner.name}</h3>
-                    <p className="text-sm text-muted-foreground">{getCategoryLabel(partner.category)}</p>
+                    <p className="text-sm text-muted-foreground">{getCategoryLabel(partner.category as PartnerCategory)}</p>
                   </div>
                 </div>
                 <p className="text-sm mt-2 line-clamp-2">{partner.description}</p>
                 <div className="flex justify-between items-center mt-4">
-                  <div className="text-sm text-muted-foreground">{partner.location}</div>
+                  <div className="text-sm text-muted-foreground">{partner.location || partner.city || 'Non spécifiée'}</div>
                   <Button size="sm" variant="outline" asChild>
                     <Link to={`/partners?id=${partner.id}`}>Contacter</Link>
                   </Button>

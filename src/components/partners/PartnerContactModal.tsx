@@ -22,10 +22,10 @@ const PartnerContactModal = ({ partner, isOpen, onClose }: PartnerContactModalPr
 
   // Données fictives pour les coordonnées (normalement elles viendraient de la base de données)
   const contactInfo = {
-    phone: "+33 1 23 45 67 89",
-    email: `contact@${partner.name.toLowerCase().replace(/\s/g, "-")}.com`,
-    address: partner.location + ", France",
-    website: `https://www.${partner.name.toLowerCase().replace(/\s/g, "-")}.fr`,
+    phone: partner.phone || "+33 1 23 45 67 89",
+    email: partner.email || `contact@${partner.name.toLowerCase().replace(/\s/g, "-")}.com`,
+    address: (partner.location || partner.city || partner.address || 'Non spécifiée') + ", France",
+    website: partner.website || `https://www.${partner.name.toLowerCase().replace(/\s/g, "-")}.fr`,
   };
 
   return (
