@@ -63,6 +63,7 @@ export async function fetchPartners(): Promise<{
           id: profile.id,
           name: profile.name,
           category: profile.partner_category,
+          // Use optional chaining for city which might not exist in the profile type
           location: profile.partner_favorites?.[3] || 'Non spécifiée',
           description: profile.partner_favorites?.[6] || 'Aucune description'
         });
@@ -73,6 +74,7 @@ export async function fetchPartners(): Promise<{
         name: profile.name || 'Partenaire sans nom',
         category: (profile.partner_category || 'other') as string,
         location: profile.partner_favorites?.[3] || 'France',
+        // Handle city safely - it might not exist on the profile type
         city: profile.city || '',
         description: profile.partner_favorites?.[6] || 'Aucune description',
         certifications: profile.certifications || [],
