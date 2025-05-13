@@ -24,14 +24,18 @@ export const associateStoreWithProfile = async (
       
       if (storeData.sourceTable === 'cbd_shops') {
         // Pour une boutique de cbd_shops, vérifions d'abord si elle a déjà été migrée
-        const { data: existingStore } = await supabase
+        // Fix for infinite type instantiation - Break type dependency chain
+        const { data: existingStore, error: existingStoreError } = await supabase
           .from('stores')
           .select('id')
           .eq('source_table', 'cbd_shops')
           .eq('source_id', storeData.sourceId)
           .single();
         
-        if (existingStore) {
+        if (existingStoreError) {
+          console.error(`Error checking for existing store: ${existingStoreError.message}`);
+          // Continue with the process, we'll try to create a new one
+        } else if (existingStore) {
           console.log(`CBD shop already migrated to stores table with ID ${existingStore.id}`);
           storeId = existingStore.id;
           storeExists = true;
