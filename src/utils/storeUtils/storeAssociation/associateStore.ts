@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Store } from '@/types/store';
 import { StoreBasicInfo, AssociationResult } from './types';
 
 /**

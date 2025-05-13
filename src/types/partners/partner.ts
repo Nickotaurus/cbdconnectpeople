@@ -1,24 +1,42 @@
 
-import { PartnerCategory } from "@/types/auth";
+import { Store } from '../store/store';
 
-/**
- * Partner interface for partner data across the application
- */
 export interface Partner {
   id: string;
   name: string;
-  category: PartnerCategory;
-  location: string;
   description: string;
-  certifications: string[];
-  distance: number;
-  imageUrl: string;
+  specialties?: string[];
+  category: string;
+  website?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  logo?: string;
+  logoUrl?: string;
+  storeId?: string;
+  store?: Store;
+  isPremium?: boolean;
+  followers?: number;
+  ratingsAverage?: number;
+  ratingsCount?: number;
+  isVerified?: boolean;
 }
 
-export interface UsePartnersResult {
-  partnerProfiles: Partner[];
-  filteredPartners: Partner[];
-  isLoading: boolean;
-  error: string | null;
-  useTestData: boolean;
+export interface PartnerCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+export interface PartnerSubscription {
+  id: string;
+  name: string;
+  price: number;
+  priceUnit: string;
+  benefits: string[];
+  isPopular?: boolean;
+  callToAction: string;
 }

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { associateStoreWithUser } from '@/utils/storeUtils/storeAssociation';
+import { associateStoreWithProfile } from '@/utils/storeUtils/storeAssociation';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -90,8 +90,17 @@ export const useStoreAssociation = (
         throw new Error('Utilisateur non connecté');
       }
       
-      // Create a new association using store name and city
-      const response = await associateStoreWithUser(storeName, city, user.id);
+      // Create a new store basic info object
+      const storeData = {
+        id: '', // Will be set by the backend
+        name: storeName,
+        city: city,
+        latitude: 0,  // Default values that will be replaced
+        longitude: 0
+      };
+      
+      // Associate the store with the user profile
+      const response = await associateStoreWithProfile(user.id, storeData);
       setResult(response);
       
       if (response.success && response.storeId) {

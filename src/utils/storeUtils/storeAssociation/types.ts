@@ -11,13 +11,17 @@ export interface StoreBasicInfo {
   website?: string;
   description?: string;
   imageUrl?: string;
-  // Pour les boutiques provenant d'autres tables
+  // For stores from other tables
   sourceTable?: string;
   sourceId?: string;
 }
 
 export interface AssociationResult {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   storeId?: string;
+}
+
+export interface CityCoordinates {
+  [city: string]: { lat: number; lng: number };
 }
