@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Store, OpeningHour } from '@/types/store';
 import { storesData } from '@/data/storesData';
+import { fetchCBDShops } from '@/services/cbdShopsService';
 
 export const useStores = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -13,7 +14,7 @@ export const useStores = () => {
     try {
       setIsLoading(true);
       
-      // Essayer d'abord de charger depuis Supabase
+      // Récupérer les boutiques depuis Supabase (stores table)
       const { data: dbStores, error } = await supabase
         .from('stores')
         .select('*')
@@ -23,6 +24,13 @@ export const useStores = () => {
         console.error("Error fetching stores from Supabase:", error);
         throw error;
       }
+      
+      // Récupérer les boutiques CBD depuis la table cbd_shops
+      const cbdShops = await fetchCBDShops();
+      console.log(`Loaded ${cbdShops.length} CBD shops from cbd_shops table`);
+      
+      // Combiner les boutiques des deux sources
+      let allStores: Store[] = [];
       
       if (dbStores && dbStores.length > 0) {
         // Convertir les données de la DB au format Store
@@ -61,15 +69,24 @@ export const useStores = () => {
             isEcommerce: storeData.is_ecommerce || false,
             ecommerceUrl: storeData.ecommerce_url || '',
             hasGoogleBusinessProfile: storeData.has_google_profile || false,
+            sourceTable: 'stores',
+            sourceId: storeData.id
           };
         });
         
-        setStores(storeList);
-      } else {
-        // Fallback aux données statiques
-        console.log("No stores found in database, using local data");
-        setStores(storesData || []);
+        allStores = [...storeList];
       }
+      
+      // Ajouter les boutiques CBD à la liste
+      allStores = [...allStores, ...cbdShops];
+      
+      // Si aucune boutique trouvée, utiliser les données statiques
+      if (allStores.length === 0) {
+        console.log("No stores found in database, using local data");
+        allStores = storesData || [];
+      }
+      
+      setStores(allStores);
     } catch (err) {
       console.error("Error in useStores:", err);
       setError(err as Error);

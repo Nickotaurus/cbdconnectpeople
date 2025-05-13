@@ -1,29 +1,23 @@
 
-/**
- * Types for store association functionality
- */
+export interface StoreBasicInfo {
+  id: string;
+  name: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  latitude: number;
+  longitude: number;
+  phone?: string;
+  website?: string;
+  description?: string;
+  imageUrl?: string;
+  // Pour les boutiques provenant d'autres tables
+  sourceTable?: string;
+  sourceId?: string;
+}
 
 export interface AssociationResult {
   success: boolean;
   message: string;
   storeId?: string;
-}
-
-export interface StoreCoordinates {
-  lat: number;
-  lng: number;
-}
-
-export interface CityCoordinates {
-  [key: string]: StoreCoordinates;
-}
-
-export interface StoreBasicInfo {
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  latitude: number;
-  longitude: number;
-  placeId?: string;
 }

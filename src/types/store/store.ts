@@ -28,6 +28,9 @@ export interface Store {
   userId?: string; // ID de l'utilisateur propriétaire
   claimedBy?: string; // ID de l'utilisateur qui a revendiqué cette boutique
   coupon?: StoreCoupon; // Ajout de la propriété coupon
+  // Nouvelles propriétés pour identifier la source
+  sourceTable?: string;
+  sourceId?: string;
 }
 
 export interface OpeningHour {
